@@ -1,0 +1,127 @@
+{
+  "name": "BI Integration (Prod: Meta Ads to Supabase)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "adAccount",
+        "operation": "getInsights",
+        "adAccountId": "YOUR_AD_ACCOUNT_ID_HERE",
+        "insightFields": [
+          "campaign_name",
+          "spend",
+          "impressions",
+          "clicks",
+          "actions"
+        ],
+        "datePreset": "yesterday",
+        "level": "campaign",
+        "additionalFields": {}
+      },
+      "id": "facebook-marketing",
+      "name": "Facebook Meta Ads",
+      "type": "n8n-nodes-base.facebookMarketing",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "credentials": {
+        "facebookMarketingOAuth2Api": {
+          "id": "",
+          "name": "Facebook Marketing account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const PRODUCT_MAP = {\n  'Executoria': 'Mentoria',\n  'Inteligência Empresarial': 'Consultoria',\n  'Imersão': 'Imersão',\n  'Curso': 'Curso Online'\n};\n\nconst results = {};\nlet inputItems = [];\n\nif (Array.isArray(items)) {\n    for (const item of items) {\n        if (item.json) {\n            if (Array.isArray(item.json)) inputItems.push(...item.json);\n            else if (item.json.data && Array.isArray(item.json.data)) inputItems.push(...item.json.data);\n            else inputItems.push(item.json);\n        } else {\n            inputItems.push(item);\n        }\n    }\n} else {\n    if (items.json) {\n         if (Array.isArray(items.json)) inputItems = items.json;\n         else inputItems = [items.json];\n    } else {\n        inputItems = [items];\n    }\n}\n\ninputItems = inputItems.flat();\n\nfor (const ad of inputItems) {\n    if (!ad || !ad.campaign_name) continue;\n\n    const date = ad.date_start;\n    const campaignName = ad.campaign_name;\n    \n    const cost = parseFloat(ad.spend) || 0;\n    const impressions = parseInt(ad.impressions) || 0;\n    let clicks = parseInt(ad.clicks) || 0;\n\n    let leads = 0;\n    if (ad.actions && Array.isArray(ad.actions)) {\n      if (clicks === 0) {\n          const clickAction = ad.actions.find(a => a.action_type === 'link_click');\n          if (clickAction) clicks = parseInt(clickAction.value) || 0;\n      }\n\n      const leadObj = ad.actions.find(a => a.action_type === 'lead');\n      const leadGrouped = ad.actions.find(a => a.action_type === 'onsite_conversion.lead_grouped');\n      const offsiteRegistration = ad.actions.find(a => a.action_type === 'offsite_complete_registration_add_meta_leads');\n      \n      let maxLeads = 0;\n      if (leadObj) maxLeads = Math.max(maxLeads, parseInt(leadObj.value));\n      if (leadGrouped) maxLeads = Math.max(maxLeads, parseInt(leadGrouped.value));\n      \n      if (maxLeads > 0) {\n          leads = maxLeads;\n      } else {\n           if (offsiteRegistration) leads = parseInt(offsiteRegistration.value);\n      }\n    }\n\n    let productName = 'Institucional';\n    for (const [key, value] of Object.entries(PRODUCT_MAP)) {\n      if (campaignName.toLowerCase().includes(key.toLowerCase())) {\n        productName = value;\n        break;\n      }\n    }\n\n    const key = `${date}|${productName}`;\n\n    if (!results[key]) {\n        results[key] = {\n            date: date,\n            product_name: productName,\n            cost: 0,\n            impressions: 0,\n            clicks: 0,\n            leads: 0\n        };\n    }\n\n    results[key].cost += cost;\n    results[key].impressions += impressions;\n    results[key].clicks += clicks;\n    results[key].leads += leads;\n}\n\nconst finalOutput = Object.values(results).map(item => {\n    item.cost = Math.round(item.cost * 100) / 100;\n    return { json: item };\n});\n\nreturn finalOutput;"
+      },
+      "id": "transformer-node",
+      "name": "Transform Meta Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO fact_daily_marketing (date, channel_id, product_id, cost, impressions, clicks, leads)\nVALUES (\n  $1::DATE, \n  (SELECT id FROM dim_channels WHERE name = 'Meta Ads' LIMIT 1), \n  (SELECT id FROM dim_products WHERE name = $2 LIMIT 1), \n  $3, \n  $4, \n  $5, \n  $6\n)\nON CONFLICT (date, channel_id, product_id) \nDO UPDATE SET \n  cost = EXCLUDED.cost,\n  impressions = EXCLUDED.impressions,\n  clicks = EXCLUDED.clicks,\n  leads = EXCLUDED.leads;",
+        "additionalFields": {
+          "queryParams": "={{ $json.date }}, {{ $json.product_name }}, {{ $json.cost }}, {{ $json.impressions }}, {{ $json.clicks }}, {{ $json.leads }}"
+        }
+      },
+      "id": "postgres-insert",
+      "name": "Upsert Supabase",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        750,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Supabase Postgres"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Facebook Meta Ads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Meta Ads": {
+      "main": [
+        [
+          {
+            "node": "Transform Meta Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Meta Data": {
+      "main": [
+        [
+          {
+            "node": "Upsert Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

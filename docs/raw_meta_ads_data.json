@@ -1,0 +1,526 @@
+[
+  {
+    "campaign_name": "075 - [Legado] - [CAD] - [CBO] - Formulário Nativo Executoria [FLN]",
+    "spend": "1835.33",
+    "impressions": "68233",
+    "reach": "48038",
+    "actions": [
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "2"
+      },
+      {
+        "action_type": "link_click",
+        "value": "410"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "9486"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "10"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "10"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "7"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "9486"
+      },
+      {
+        "action_type": "comment",
+        "value": "1"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "178"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "2"
+      },
+      {
+        "action_type": "post",
+        "value": "12"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "6"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "152"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "6"
+      },
+      {
+        "action_type": "lead",
+        "value": "2"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "2"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "2"
+      },
+      {
+        "action_type": "video_view",
+        "value": "8898"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "159"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "6"
+      }
+    ],
+    "date_start": "2026-02-18",
+    "date_stop": "2026-02-18"
+  },
+  {
+    "campaign_name": "095 - [Legado] - [CAD] - [CBO] - Formulário Nativo Executoria [SP]",
+    "spend": "783.46",
+    "impressions": "24729",
+    "reach": "20541",
+    "actions": [
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "11"
+      },
+      {
+        "action_type": "link_click",
+        "value": "140"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "4329"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "21"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "21"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "5"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "4327"
+      },
+      {
+        "action_type": "like",
+        "value": "2"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "137"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "11"
+      },
+      {
+        "action_type": "post",
+        "value": "6"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "4"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "122"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "4"
+      },
+      {
+        "action_type": "lead",
+        "value": "11"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "11"
+      },
+      {
+        "action_type": "video_view",
+        "value": "4050"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "127"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "36"
+      }
+    ],
+    "date_start": "2026-02-18",
+    "date_stop": "2026-02-18"
+  },
+  {
+    "campaign_name": "075 - [Legado] - [CAD] - [CBO] - Formulário Nativo Executoria [FLN]",
+    "spend": "1331.32",
+    "impressions": "33442",
+    "reach": "25779",
+    "actions": [
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "5"
+      },
+      {
+        "action_type": "link_click",
+        "value": "160"
+      },
+      {
+        "action_type": "omni_initiated_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "4869"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "9"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "9"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "2"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "4869"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "79"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "5"
+      },
+      {
+        "action_type": "post",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "4"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "62"
+      },
+      {
+        "action_type": "onsite_web_initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "4"
+      },
+      {
+        "action_type": "lead",
+        "value": "5"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "5"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "5"
+      },
+      {
+        "action_type": "video_view",
+        "value": "4630"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "64"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "18"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+        "value": "1"
+      },
+      {
+        "action_type": "initiate_checkout",
+        "value": "1"
+      }
+    ],
+    "date_start": "2026-02-19",
+    "date_stop": "2026-02-19"
+  },
+  {
+    "campaign_name": "093 - [Imersão] - [CAD] - [CBO] - Form Nativo - Impulsão Empresarial",
+    "spend": "285.1",
+    "impressions": "10140",
+    "reach": "9068",
+    "actions": [
+      {
+        "action_type": "onsite_conversion.total_messaging_connection",
+        "value": "1"
+      },
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "6"
+      },
+      {
+        "action_type": "link_click",
+        "value": "54"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "1023"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "4"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "4"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "2"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "1023"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "17"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "6"
+      },
+      {
+        "action_type": "post",
+        "value": "4"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_first_reply",
+        "value": "1"
+      },
+      {
+        "action_type": "lead",
+        "value": "6"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "6"
+      },
+      {
+        "action_type": "onsite_conversion.messaging_conversation_started_7d",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "6"
+      },
+      {
+        "action_type": "video_view",
+        "value": "952"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "13"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "12"
+      }
+    ],
+    "date_start": "2026-02-19",
+    "date_stop": "2026-02-19"
+  },
+  {
+    "campaign_name": "095 - [Legado] - [CAD] - [CBO] - Formulário Nativo Executoria [SP]",
+    "spend": "580.75",
+    "impressions": "15476",
+    "reach": "13305",
+    "actions": [
+      {
+        "action_type": "offsite_complete_registration_add_meta_leads",
+        "value": "6"
+      },
+      {
+        "action_type": "link_click",
+        "value": "60"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "2705"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "11"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "11"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "2"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "2705"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "75"
+      },
+      {
+        "action_type": "offsite_search_add_meta_leads",
+        "value": "6"
+      },
+      {
+        "action_type": "post",
+        "value": "3"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "3"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "67"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "3"
+      },
+      {
+        "action_type": "lead",
+        "value": "6"
+      },
+      {
+        "action_type": "offsite_content_view_add_meta_leads",
+        "value": "6"
+      },
+      {
+        "action_type": "onsite_conversion.lead_grouped",
+        "value": "6"
+      },
+      {
+        "action_type": "video_view",
+        "value": "2570"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "69"
+      },
+      {
+        "action_type": "offsite_conversion.fb_pixel_custom",
+        "value": "18"
+      }
+    ],
+    "date_start": "2026-02-19",
+    "date_stop": "2026-02-19"
+  },
+  {
+    "campaign_name": "096 - [TESTE] - [Legado] - [CAD] - [CBO] - Executoria",
+    "spend": "607.5",
+    "impressions": "46299",
+    "reach": "45476",
+    "actions": [
+      {
+        "action_type": "link_click",
+        "value": "237"
+      },
+      {
+        "action_type": "page_engagement",
+        "value": "4652"
+      },
+      {
+        "action_type": "landing_page_view",
+        "value": "95"
+      },
+      {
+        "action_type": "omni_landing_page_view",
+        "value": "95"
+      },
+      {
+        "action_type": "onsite_conversion.post_unlike",
+        "value": "13"
+      },
+      {
+        "action_type": "post_engagement",
+        "value": "4652"
+      },
+      {
+        "action_type": "post_interaction_gross",
+        "value": "106"
+      },
+      {
+        "action_type": "post",
+        "value": "1"
+      },
+      {
+        "action_type": "onsite_conversion.post_save",
+        "value": "3"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_like",
+        "value": "89"
+      },
+      {
+        "action_type": "onsite_conversion.post_net_save",
+        "value": "3"
+      },
+      {
+        "action_type": "video_view",
+        "value": "4309"
+      },
+      {
+        "action_type": "post_reaction",
+        "value": "102"
+      }
+    ],
+    "date_start": "2026-02-19",
+    "date_stop": "2026-02-19"
+  }
+]

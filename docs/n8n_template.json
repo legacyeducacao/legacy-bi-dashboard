@@ -1,0 +1,99 @@
+{
+  "name": "BI Integration (Template)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO daily_trends (date, leads, investment, revenue, sales) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (date) DO UPDATE SET leads = EXCLUDED.leads, investment = EXCLUDED.investment, revenue = EXCLUDED.revenue, sales = EXCLUDED.sales;",
+        "additionalFields": {
+          "queryParams": "={{ $json.date }}, {{ $json.leads }}, {{ $json.investment }}, {{ $json.revenue }}, {{ $json.sales }}"
+        }
+      },
+      "id": "postgres-daily-trends",
+      "name": "Update Daily Trends",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        850,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Supabase Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Exemplo de atualização de KPI de Vendas\nUPDATE kpis SET value = $1 WHERE id = 'sales';",
+        "additionalFields": {
+          "queryParams": "={{ $json.total_sales }}"
+        }
+      },
+      "id": "postgres-kpis",
+      "name": "Update KPIs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        850,
+        500
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Supabase Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Como configurar este workflow\n\n1. **Conecte seus dados**: Adicione os nós do Meta Ads ou HubSpot antes dos nós do Postgres.\n2. **Transforme os dados**: Use um node \"Code\" ou \"Edit Fields\" para garantir que os dados de saída tenham os campos: `date`, `leads`, `investment`, etc.\n3. **Credenciais**: Selecione sua credencial do Supabase nos nós do Postgres.",
+        "height": 283,
+        "width": 566
+      },
+      "id": "instruction-note",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        380,
+        140
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Update Daily Trends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

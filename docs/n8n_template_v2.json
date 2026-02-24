@@ -1,0 +1,104 @@
+{
+  "name": "BI Integration V2 (Star Schema)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- 1. Upsert Channel (Dimensão)\nWITH dim AS (\n  INSERT INTO dim_channels (name) VALUES ($1) \n  ON CONFLICT (name) DO UPDATE SET active = true \n  RETURNING id\n)\n-- 2. Insert/Update Daily Fact\nINSERT INTO fact_daily_marketing (date, channel_id, cost, leads, impressions, clicks)\nSELECT $2::date, id, $3, $4, $5, $6 FROM dim\nON CONFLICT (date, channel_id, product_id) \nDO UPDATE SET cost = EXCLUDED.cost, leads = EXCLUDED.leads;",
+        "additionalFields": {
+          "queryParams": "={{ $json.channel_name }}, {{ $json.date }}, {{ $json.cost }}, {{ $json.leads }}, {{ $json.impressions }}, {{ $json.clicks }}"
+        }
+      },
+      "id": "postgres-marketing",
+      "name": "Update Daily Marketing",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        600,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Supabase Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- 1. Upsert Team Member (Dimensão)\nWITH dim AS (\n  INSERT INTO dim_team (name, role, email) VALUES ($1, $2, $3) \n  ON CONFLICT (email) DO UPDATE SET active = true \n  RETURNING id\n)\n-- 2. Insert/Update Team Activity Fact\nINSERT INTO fact_team_activities (date, team_member_id, connections, calls, meetings_booked)\nSELECT $4::date, id, $5, $6, $7 FROM dim\nON CONFLICT (date, team_member_id) \nDO UPDATE SET connections = EXCLUDED.connections;",
+        "additionalFields": {
+          "queryParams": "={{ $json.name }}, {{ $json.role }}, {{ $json.email }}, {{ $json.date }}, {{ $json.connections }}, {{ $json.calls }}, {{ $json.meetings_booked }}"
+        }
+      },
+      "id": "postgres-team",
+      "name": "Update Team Activities",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        600,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Supabase Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Workflow V2 (Star Schema)\n\nEste template popula as tabelas Fato e Dimensão.\n\n1. **Upsert Dimensão**: Garante que o Canal/Pessoa exista.\n2. **Insert Fato**: Grava o dado do dia.\n\nIsso garante histórico e integridade.",
+        "height": 248,
+        "width": 393
+      },
+      "id": "v2-note",
+      "name": "V2 Info",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        60
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Update Daily Marketing",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Team Activities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

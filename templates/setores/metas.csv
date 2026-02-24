@@ -1,0 +1,9 @@
+Metrica,Nome_Exibicao,Meta_Mensal,Unidade
+invest,Investimento Ads,25000,currency
+revenue,Faturamento Total,300000,currency
+leads,Leads Totais,1200,number
+mqls,MQLs,350,number
+opps,Oportunidades,900,number
+meetings_booked,Reuniões Agendadas,100,number
+meetings_held,Reuniões Realizadas,85,number
+sales,Vendas Totais,20,number
