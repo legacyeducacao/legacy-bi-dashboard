@@ -1027,7 +1027,7 @@ const App: React.FC = () => {
                           { header: 'Cliques', accessor: (row) => row.clicks, align: 'right' },
                           { header: 'CPC', accessor: (row) => formatValue(row.cpc, 'currency'), align: 'right' },
                           { header: 'CTR', accessor: (row) => `${row.ctr.toFixed(2)}%`, align: 'right' },
-                          { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
+                          { header: 'Leads', accessor: (row) => row.campaign.toLowerCase().includes('nativo') ? '-' : row.leads, align: 'right' },
                           { header: 'MQLs', accessor: (row) => row.mqls, align: 'right' },
                           { header: 'CPL (MQL)', accessor: (row) => formatValue((row as any).cpl_mql, 'currency'), align: 'right' },
                           { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },

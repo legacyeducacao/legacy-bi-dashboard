@@ -121,13 +121,14 @@ for (const ad of inputItems) {
             leads = parseInt(pixelCustom.value) || 0;
         }
 
-        // MQL Logic: Todo formulário nativo é MQL automáticamente (Leads e MQLs iguais)
-        // Para Lead Web, mqls vem apenas de conversões personalizadas que contenham 'mql' no nome
+        // MQL Logic: Nas campanhas de formulário nativo todos os leads são MQL e Leads fica vazio (0)
+        // Para Lead Web, mqls vem apenas de conversões personalizadas e leads continua preenchido
         const normalizedCampaign = campaignName.toLowerCase();
         const isNative = normalizedCampaign.includes('nativo');
         
         if (isNative) {
             mqls = leads;
+            leads = 0; // Leads fica vazio para Mostrar Somente MQL
         } else {
             mqls = customMqls;
         }

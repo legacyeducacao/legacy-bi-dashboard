@@ -1,0 +1,21 @@
+﻿[dotenv@17.3.1] injecting env (3) from .env -- tip: ÔÜÖ´©Å  specify custom .env file path with { path: '/custom/path/.env' }
+2026-02-26 | 096 - [TESTE] - [Legado] - [CAD] - [CBO] - Executoria | Leads: 0 | MQLs: 0
+2026-02-26 | 098 - [Lan├ºamento] - [IE] - [CAD] - [CBO] - Lead Web - Lan├ºamento 24/02 | Leads: 9 | MQLs: 0
+2026-02-26 | 097 - [Lan├ºamento] - [IE] - [CAD] - [CBO] - Lead Nativo - Lan├ºamento 24/02 | Leads: 6 | MQLs: 0
+2026-02-26 | 095 - [Legado] - [CAD] - [CBO] - Formul├írio Nativo Executoria [SP] | Leads: 3 | MQLs: 6
+2026-02-26 | 075 - [Legado] - [CAD] - [CBO] - Formul├írio Nativo Executoria [FLN] | Leads: 3 | MQLs: 6
+2026-02-25 | Diversos | Leads: 4 | MQLs: 0
+2026-02-25 | 096 - [TESTE] - [Legado] - [CAD] - [CBO] - Executoria | Leads: 4 | MQLs: 0
+2026-02-25 | Diversos | Leads: 62 | MQLs: 0
+2026-02-25 | 098 - [Lan├ºamento] - [IE] - [CAD] - [CBO] - Lead Web - Lan├ºamento 24/02 | Leads: 42 | MQLs: 0
+2026-02-25 | 097 - [Lan├ºamento] - [IE] - [CAD] - [CBO] - Lead Nativo - Lan├ºamento 24/02 | Leads: 21 | MQLs: 0
+2026-02-25 | Diversos | Leads: 5 | MQLs: 0
+2026-02-25 | 095 - [Legado] - [CAD] - [CBO] - Formul├írio Nativo Executoria [SP] | Leads: 2 | MQLs: 4
+2026-02-25 | 075 - [Legado] - [CAD] - [CBO] - Formul├írio Nativo Executoria [FLN] | Leads: 3 | MQLs: 6
+2026-02-23 | Diversos | Leads: 21 | MQLs: 21
+2026-02-23 | Diversos | Leads: 2 | MQLs: 0
+2026-02-22 | Diversos | Leads: 19 | MQLs: 17
+2026-02-22 | Diversos | Leads: 4 | MQLs: 0
+2026-02-21 | Diversos | Leads: 16 | MQLs: 16
+2026-02-21 | Diversos | Leads: 4 | MQLs: 0
+2026-02-20 | Diversos | Leads: 13 | MQLs: 12
