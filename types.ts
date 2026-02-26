@@ -2,6 +2,7 @@
 // Metric Data Structure
 export interface MetricData {
   id: string;
+  db_id?: string; // Original ID from database for updates
   label: string;
   value: number; // Current realized value
   goal: number;  // Monthly goal
@@ -55,6 +56,23 @@ export interface MarketingChannelStats {
   sales: number;
   revenue: number;
   roas: number;
+  cac: number;
+}
+
+export interface MarketingCampaignStats {
+  campaign: string;
+  investment: number;
+  leads: number;
+  sales: number;
+  cpl: number;
+  cpl_mql: number;
+  cac: number;
+  roas: number;
+  impressions: number;
+  clicks: number;
+  mqls: number;
+  ctr: number;
+  cpc: number;
 }
 
 // Marketing Micro Data - Products

@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Square, 
-  Circle, 
-  Diamond, 
-  StickyNote, 
-  Type, 
-  Trash2, 
-  ZoomIn, 
-  ZoomOut, 
+import {
+  Square,
+  Circle,
+  Diamond,
+  StickyNote,
+  Type,
+  Trash2,
+  ZoomIn,
+  ZoomOut,
   X,
   Scaling,
   Filter,
@@ -31,17 +31,17 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
   const [connections, setConnections] = useState<BoardConnection[]>([]);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  
+
   // Interaction State
-  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]); 
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
-  
+
   // Dragging States
   const [isDraggingNode, setIsDraggingNode] = useState<boolean>(false);
   const [isResizingNode, setIsResizingNode] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [isSpacePressed, setIsSpacePressed] = useState(false); // New state for Space bar
-  
+
   // Selection Box State
   const [selectionBox, setSelectionBox] = useState<{
     startX: number;
@@ -51,7 +51,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
   } | null>(null);
 
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  
+
   // Connection Draft State
   const [draftConnection, setDraftConnection] = useState<{
     fromId: string;
@@ -63,8 +63,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
-  const dragItemRef = useRef<NodeType | null>(null); 
-  const resizeStartDims = useRef<{w: number, h: number} | null>(null);
+  const dragItemRef = useRef<NodeType | null>(null);
+  const resizeStartDims = useRef<{ w: number, h: number } | null>(null);
 
   // --- Helpers ---
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -86,7 +86,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
   };
 
   const getDefaultDimensions = (type: NodeType) => {
-    switch(type) {
+    switch (type) {
       case 'circle': return { w: 100, h: 100 };
       case 'diamond': return { w: 100, h: 100 };
       case 'text': return { w: 150, h: 50 };
@@ -106,7 +106,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
   };
 
   // --- Effects ---
-  
+
   // Space Bar Listener for Panning Mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -122,7 +122,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
       if (e.code === 'Space') {
         setIsSpacePressed(false);
         if (!isPanning) {
-           // Ensure we stop panning logic visually if we released space without clicking
+          // Ensure we stop panning logic visually if we released space without clicking
         }
       }
     };
@@ -138,7 +138,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
 
   // --- Curve Calculation Logic ---
-  
+
   const getNodePorts = (node: BoardNode) => {
     return {
       top: { x: node.x + node.width / 2, y: node.y },
@@ -149,53 +149,53 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
   };
 
   const getSmartPath = (
-    startNode: BoardNode, 
+    startNode: BoardNode,
     endTarget: BoardNode | { x: number, y: number, width: number, height: number }
   ) => {
     const startPorts = getNodePorts(startNode);
-    
+
     const isNode = 'id' in endTarget;
     const endCenter = {
-        x: endTarget.x + endTarget.width / 2,
-        y: endTarget.y + endTarget.height / 2
+      x: endTarget.x + endTarget.width / 2,
+      y: endTarget.y + endTarget.height / 2
     };
 
     const startCenter = getNodeCenter(startNode);
     const dx = endCenter.x - startCenter.x;
     const dy = endCenter.y - startCenter.y;
-    
+
     let startPoint = startPorts.right;
-    let endPoint = { x: endCenter.x, y: endCenter.y }; 
+    let endPoint = { x: endCenter.x, y: endCenter.y };
     let startControl = { x: 0, y: 0 };
     let endControl = { x: 0, y: 0 };
 
     if (Math.abs(dx) > Math.abs(dy)) {
-        if (dx > 0) { 
-            startPoint = startPorts.right;
-            if (isNode) endPoint = getNodePorts(endTarget as BoardNode).left;
-            else endPoint = { x: endTarget.x, y: endCenter.y };
-        } else { 
-            startPoint = startPorts.left;
-            if (isNode) endPoint = getNodePorts(endTarget as BoardNode).right;
-            else endPoint = { x: endTarget.x + endTarget.width, y: endCenter.y };
-        }
-        const curvature = Math.max(Math.abs(dx) * 0.5, 50);
-        startControl = { x: startPoint.x + (dx > 0 ? curvature : -curvature), y: startPoint.y };
-        endControl = { x: endPoint.x + (dx > 0 ? -curvature : curvature), y: endPoint.y };
+      if (dx > 0) {
+        startPoint = startPorts.right;
+        if (isNode) endPoint = getNodePorts(endTarget as BoardNode).left;
+        else endPoint = { x: endTarget.x, y: endCenter.y };
+      } else {
+        startPoint = startPorts.left;
+        if (isNode) endPoint = getNodePorts(endTarget as BoardNode).right;
+        else endPoint = { x: endTarget.x + endTarget.width, y: endCenter.y };
+      }
+      const curvature = Math.max(Math.abs(dx) * 0.5, 50);
+      startControl = { x: startPoint.x + (dx > 0 ? curvature : -curvature), y: startPoint.y };
+      endControl = { x: endPoint.x + (dx > 0 ? -curvature : curvature), y: endPoint.y };
 
     } else {
-        if (dy > 0) { 
-            startPoint = startPorts.bottom;
-            if (isNode) endPoint = getNodePorts(endTarget as BoardNode).top;
-            else endPoint = { x: endCenter.x, y: endTarget.y };
-        } else { 
-            startPoint = startPorts.top;
-            if (isNode) endPoint = getNodePorts(endTarget as BoardNode).bottom;
-            else endPoint = { x: endCenter.x, y: endTarget.y + endTarget.height };
-        }
-        const curvature = Math.max(Math.abs(dy) * 0.5, 50);
-        startControl = { x: startPoint.x, y: startPoint.y + (dy > 0 ? curvature : -curvature) };
-        endControl = { x: endPoint.x, y: endPoint.y + (dy > 0 ? -curvature : curvature) };
+      if (dy > 0) {
+        startPoint = startPorts.bottom;
+        if (isNode) endPoint = getNodePorts(endTarget as BoardNode).top;
+        else endPoint = { x: endCenter.x, y: endTarget.y };
+      } else {
+        startPoint = startPorts.top;
+        if (isNode) endPoint = getNodePorts(endTarget as BoardNode).bottom;
+        else endPoint = { x: endCenter.x, y: endTarget.y + endTarget.height };
+      }
+      const curvature = Math.max(Math.abs(dy) * 0.5, 50);
+      startControl = { x: startPoint.x, y: startPoint.y + (dy > 0 ? curvature : -curvature) };
+      endControl = { x: endPoint.x, y: endPoint.y + (dy > 0 ? -curvature : curvature) };
     }
 
     return `M ${startPoint.x} ${startPoint.y} C ${startControl.x} ${startControl.y}, ${endControl.x} ${endControl.y}, ${endPoint.x} ${endPoint.y}`;
@@ -215,18 +215,18 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
     const { x, y } = screenToCanvas(e.clientX, e.clientY);
     const defaults = getDefaultDimensions(type);
-    
+
     let defaultContent = 'Texto';
-    if(type === 'sticky') defaultContent = 'Nota';
-    if(type === 'funnel') defaultContent = 'Etapa Funil';
-    if(type === 'persona') defaultContent = 'Nome Persona';
-    if(type === 'campaign') defaultContent = 'Nome Campanha';
-    if(type === 'channel') defaultContent = 'Canal';
+    if (type === 'sticky') defaultContent = 'Nota';
+    if (type === 'funnel') defaultContent = 'Etapa Funil';
+    if (type === 'persona') defaultContent = 'Nome Persona';
+    if (type === 'campaign') defaultContent = 'Nome Campanha';
+    if (type === 'channel') defaultContent = 'Canal';
 
     const newNode: BoardNode = {
       id: generateId(),
       type,
-      x: x - (defaults.w / 2), 
+      x: x - (defaults.w / 2),
       y: y - (defaults.h / 2),
       width: defaults.w,
       height: defaults.h,
@@ -257,15 +257,15 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
     // 2. Selection Box Logic (Left Click on background)
     if (e.button === 0 && !draftConnection) {
-       const canvasPos = screenToCanvas(x, y);
-       setSelectionBox({
-         startX: canvasPos.x,
-         startY: canvasPos.y,
-         currentX: canvasPos.x,
-         currentY: canvasPos.y
-       });
-       setSelectedNodeIds([]);
-       setEditingNodeId(null);
+      const canvasPos = screenToCanvas(x, y);
+      setSelectionBox({
+        startX: canvasPos.x,
+        startY: canvasPos.y,
+        currentX: canvasPos.x,
+        currentY: canvasPos.y
+      });
+      setSelectedNodeIds([]);
+      setEditingNodeId(null);
     }
   };
 
@@ -273,15 +273,15 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
     // If Space is pressed, we want to PAN, not select the node
     if (isSpacePressed) return;
 
-    e.stopPropagation(); 
-    
+    e.stopPropagation();
+
     if (editingNodeId === id) return;
 
     let newSelection = [...selectedNodeIds];
-    
+
     if (!selectedNodeIds.includes(id)) {
-        newSelection = [id];
-        setSelectedNodeIds([id]);
+      newSelection = [id];
+      setSelectedNodeIds([id]);
     }
 
     setEditingNodeId(null);
@@ -294,7 +294,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
   const handleResizeStart = (e: React.MouseEvent, nodeId: string) => {
     // If Space is pressed, ignore resize handle
     if (isSpacePressed) return;
-    
+
     e.stopPropagation();
     e.preventDefault();
     const node = nodes.find(n => n.id === nodeId);
@@ -336,11 +336,11 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
       const dy = y - dragStart.y;
       setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
       setDragStart({ x, y });
-    } 
+    }
     else if (isDraggingNode) {
       const dx = (x - dragStart.x) / scale;
       const dy = (y - dragStart.y) / scale;
-      
+
       setNodes(prev => prev.map(n => {
         if (selectedNodeIds.includes(n.id)) {
           return { ...n, x: n.x + dx, y: n.y + dy };
@@ -348,43 +348,43 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
         return n;
       }));
       setDragStart({ x, y });
-    } 
+    }
     else if (isResizingNode && resizeStartDims.current) {
-       const dx = (x - dragStart.x) / scale;
-       const dy = (y - dragStart.y) / scale;
+      const dx = (x - dragStart.x) / scale;
+      const dy = (y - dragStart.y) / scale;
 
-       const startW = resizeStartDims.current.w;
-       const startH = resizeStartDims.current.h;
+      const startW = resizeStartDims.current.w;
+      const startH = resizeStartDims.current.h;
 
-       setNodes(prev => prev.map(n => {
-         if (n.id === isResizingNode) {
-            return {
-               ...n,
-               width: Math.max(MIN_SIZE, startW + dx),
-               height: Math.max(MIN_SIZE, startH + dy)
-            };
-         }
-         return n;
-       }));
-    } 
+      setNodes(prev => prev.map(n => {
+        if (n.id === isResizingNode) {
+          return {
+            ...n,
+            width: Math.max(MIN_SIZE, startW + dx),
+            height: Math.max(MIN_SIZE, startH + dy)
+          };
+        }
+        return n;
+      }));
+    }
     else if (selectionBox) {
-        setSelectionBox(prev => prev ? { ...prev, currentX: canvasPos.x, currentY: canvasPos.y } : null);
+      setSelectionBox(prev => prev ? { ...prev, currentX: canvasPos.x, currentY: canvasPos.y } : null);
 
-        const x1 = Math.min(selectionBox.startX, canvasPos.x);
-        const y1 = Math.min(selectionBox.startY, canvasPos.y);
-        const x2 = Math.max(selectionBox.startX, canvasPos.x);
-        const y2 = Math.max(selectionBox.startY, canvasPos.y);
+      const x1 = Math.min(selectionBox.startX, canvasPos.x);
+      const y1 = Math.min(selectionBox.startY, canvasPos.y);
+      const x2 = Math.max(selectionBox.startX, canvasPos.x);
+      const y2 = Math.max(selectionBox.startY, canvasPos.y);
 
-        const newSelectedIds = nodes.filter(node => {
-            return (
-                node.x < x2 &&
-                node.x + node.width > x1 &&
-                node.y < y2 &&
-                node.y + node.height > y1
-            );
-        }).map(n => n.id);
+      const newSelectedIds = nodes.filter(node => {
+        return (
+          node.x < x2 &&
+          node.x + node.width > x1 &&
+          node.y < y2 &&
+          node.y + node.height > y1
+        );
+      }).map(n => n.id);
 
-        setSelectedNodeIds(newSelectedIds);
+      setSelectedNodeIds(newSelectedIds);
     }
     else if (draftConnection) {
       setDraftConnection(prev => prev ? {
@@ -404,13 +404,13 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
     if (draftConnection) {
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
-      
+
       const targetNode = nodes.find(n => {
         if (n.id === draftConnection.fromId) return false;
         return (
-          canvasPos.x >= n.x && 
+          canvasPos.x >= n.x &&
           canvasPos.x <= n.x + n.width &&
-          canvasPos.y >= n.y && 
+          canvasPos.y >= n.y &&
           canvasPos.y <= n.y + n.height
         );
       });
@@ -418,7 +418,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
       if (targetNode) {
         const exists = connections.some(
           c => (c.fromId === draftConnection.fromId && c.toId === targetNode.id) ||
-               (c.fromId === targetNode.id && c.toId === draftConnection.fromId)
+            (c.fromId === targetNode.id && c.toId === draftConnection.fromId)
         );
 
         if (!exists) {
@@ -436,7 +436,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
   const deleteSelectedNodes = () => {
     if (selectedNodeIds.length === 0) return;
-    
+
     setNodes(prev => prev.filter(n => !selectedNodeIds.includes(n.id)));
     setConnections(prev => prev.filter(c => !selectedNodeIds.includes(c.fromId) && !selectedNodeIds.includes(c.toId)));
     setSelectedNodeIds([]);
@@ -454,20 +454,20 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
       return (
         <textarea
           autoFocus
-          className="w-full h-full bg-transparent resize-none outline-none text-center font-sans text-sm pointer-events-auto"
+          className="w-full h-full bg-transparent resize-none outline-none text-center text-sm pointer-events-auto"
           style={{ lineHeight: '1.2' }}
           defaultValue={node.content}
           onBlur={(e) => {
-             updateNodeContent(node.id, e.target.value);
-             setEditingNodeId(null);
+            updateNodeContent(node.id, e.target.value);
+            setEditingNodeId(null);
           }}
           onKeyDown={(e) => {
-              if(e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  e.currentTarget.blur();
-              }
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              e.currentTarget.blur();
+            }
           }}
-          onMouseDown={(e) => e.stopPropagation()} 
+          onMouseDown={(e) => e.stopPropagation()}
         />
       );
     }
@@ -476,7 +476,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
   const renderNodeShape = (node: BoardNode, isEditing: boolean) => {
     const commonClasses = "w-full h-full flex items-center justify-center text-center p-2 text-sm break-words leading-tight transition-colors";
-    
+
     switch (node.type) {
       case 'rectangle':
         return (
@@ -487,22 +487,22 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
       case 'circle':
         return (
           <div className={`${commonClasses} bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-full shadow-sm group-hover:border-brand-primary`}>
-             {renderEditableContent(node, isEditing)}
+            {renderEditableContent(node, isEditing)}
           </div>
         );
       case 'diamond':
         return (
-           <div className="w-full h-full flex items-center justify-center relative">
-              <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
-                 <polygon points="50,0 100,50 50,100 0,50" 
-                    className="fill-white dark:fill-slate-800 stroke-2 stroke-slate-300 dark:stroke-slate-600 group-hover:stroke-brand-primary transition-colors vector-effect-non-scaling-stroke"
-                    vectorEffect="non-scaling-stroke"
-                 />
-              </svg>
-             <div className={`${commonClasses} relative z-10 w-[70%] h-[70%]`}>
-               {renderEditableContent(node, isEditing)}
-             </div>
-           </div>
+          <div className="w-full h-full flex items-center justify-center relative">
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
+              <polygon points="50,0 100,50 50,100 0,50"
+                className="fill-white dark:fill-slate-800 stroke-2 stroke-slate-300 dark:stroke-slate-600 group-hover:stroke-brand-primary transition-colors vector-effect-non-scaling-stroke"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+            <div className={`${commonClasses} relative z-10 w-[70%] h-[70%]`}>
+              {renderEditableContent(node, isEditing)}
+            </div>
+          </div>
         );
       case 'sticky':
         return (
@@ -519,45 +519,45 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
       case 'funnel':
         return (
           <div className="w-full h-full flex items-center justify-center relative">
-             <div 
-               className="absolute inset-0 w-full h-full bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-300 dark:border-indigo-600 group-hover:border-brand-primary transition-colors shadow-sm"
-               style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)' }}
-             />
-             <div className={`${commonClasses} relative z-10 w-[60%] h-[80%] text-indigo-900 dark:text-indigo-100 font-medium`}>
-               {renderEditableContent(node, isEditing)}
-             </div>
+            <div
+              className="absolute inset-0 w-full h-full bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-300 dark:border-indigo-600 group-hover:border-brand-primary transition-colors shadow-sm"
+              style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)' }}
+            />
+            <div className={`${commonClasses} relative z-10 w-[60%] h-[80%] text-indigo-900 dark:text-indigo-100 font-medium`}>
+              {renderEditableContent(node, isEditing)}
+            </div>
           </div>
         );
       case 'persona':
         return (
           <div className="w-full h-full flex flex-col bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-xl overflow-hidden shadow-sm group-hover:border-brand-primary transition-colors">
-             <div className="h-1/3 bg-slate-100 dark:bg-slate-700 flex items-center justify-center border-b border-slate-200 dark:border-slate-600">
-                <User className="w-8 h-8 text-slate-400 dark:text-slate-300" />
-             </div>
-             <div className="h-2/3 p-2 flex items-center justify-center text-center text-sm leading-tight text-slate-700 dark:text-slate-200">
-               {renderEditableContent(node, isEditing)}
-             </div>
+            <div className="h-1/3 bg-slate-100 dark:bg-slate-700 flex items-center justify-center border-b border-slate-200 dark:border-slate-600">
+              <User className="w-8 h-8 text-slate-400 dark:text-slate-300" />
+            </div>
+            <div className="h-2/3 p-2 flex items-center justify-center text-center text-sm leading-tight text-slate-700 dark:text-slate-200">
+              {renderEditableContent(node, isEditing)}
+            </div>
           </div>
         );
       case 'campaign':
         return (
           <div className="w-full h-full flex flex-col bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden shadow-sm group-hover:border-brand-primary transition-colors">
-             <div className="h-2 w-full bg-brand-primary"></div>
-             <div className="flex-1 p-2 flex flex-col justify-center">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Campanha</span>
-                <div className="flex-1 flex items-center justify-center text-center font-bold text-slate-800 dark:text-slate-100 leading-tight">
-                  {renderEditableContent(node, isEditing)}
-                </div>
-             </div>
+            <div className="h-2 w-full bg-brand-primary"></div>
+            <div className="flex-1 p-2 flex flex-col justify-center">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Campanha</span>
+              <div className="flex-1 flex items-center justify-center text-center font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                {renderEditableContent(node, isEditing)}
+              </div>
+            </div>
           </div>
         );
       case 'channel':
         return (
           <div className="w-full h-full rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 shadow-sm group-hover:border-brand-primary transition-colors flex items-center justify-center relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-transparent to-slate-100 dark:to-slate-700/50 pointer-events-none"></div>
-             <div className={`${commonClasses} font-semibold text-slate-700 dark:text-slate-200`}>
-                {renderEditableContent(node, isEditing)}
-             </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-slate-100 dark:to-slate-700/50 pointer-events-none"></div>
+            <div className={`${commonClasses} font-semibold text-slate-700 dark:text-slate-200`}>
+              {renderEditableContent(node, isEditing)}
+            </div>
           </div>
         );
       default: return null;
@@ -575,7 +575,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
   return (
     <div className="flex h-full w-full bg-slate-100 dark:bg-[#0b1121] overflow-hidden relative group">
-      
+
       {/* --- Toolbar --- */}
       <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 bg-white dark:bg-slate-800 p-2 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700/50 backdrop-blur-md max-h-[80vh] overflow-y-auto">
         {/* Basic Shapes */}
@@ -597,11 +597,11 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
             <item.icon className="w-6 h-6" />
           </div>
         ))}
-        
+
         {/* Marketing Widgets */}
         <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 text-center px-1">Marketing</div>
-        
+
         {[
           { type: 'funnel', icon: Filter, label: 'Etapa Funil' },
           { type: 'persona', icon: User, label: 'Persona' },
@@ -626,12 +626,12 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
         <button onClick={() => setScale(s => Math.max(0.2, s - 0.1))} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
           <ZoomOut className="w-5 h-5" />
         </button>
-        <span className="text-xs font-mono w-12 text-center text-slate-500 dark:text-slate-400">{(scale * 100).toFixed(0)}%</span>
+        <span className="text-xs w-12 text-center text-slate-500 dark:text-slate-400">{(scale * 100).toFixed(0)}%</span>
         <button onClick={() => setScale(s => Math.min(3, s + 0.1))} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
           <ZoomIn className="w-5 h-5" />
         </button>
         <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
-        <button 
+        <button
           onClick={() => { setNodes([]); setConnections([]); }}
           className="p-2 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 rounded-lg"
           title="Limpar Board"
@@ -640,16 +640,16 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
         </button>
       </div>
 
-       {/* --- Help Tip --- */}
-       <div className="absolute bottom-4 left-4 z-20 bg-white/80 dark:bg-slate-800/80 px-4 py-2 rounded-full text-xs text-slate-500 dark:text-slate-400 pointer-events-none backdrop-blur border border-slate-200 dark:border-slate-700 flex items-center gap-2">
-         {isSpacePressed ? <Move className="w-3 h-3 text-brand-primary" /> : null}
-         <span>
-           <span className="font-bold">Dica:</span> Segure <span className="font-mono bg-slate-200 dark:bg-slate-700 px-1 rounded">Espaço</span> para navegar (Pan).
-         </span>
-       </div>
+      {/* --- Help Tip --- */}
+      <div className="absolute bottom-4 left-4 z-20 bg-white/80 dark:bg-slate-800/80 px-4 py-2 rounded-full text-xs text-slate-500 dark:text-slate-400 pointer-events-none backdrop-blur border border-slate-200 dark:border-slate-700 flex items-center gap-2">
+        {isSpacePressed ? <Move className="w-3 h-3 text-brand-primary" /> : null}
+        <span>
+          <span className="font-bold">Dica:</span> Segure <span className="bg-slate-200 dark:bg-slate-700 px-1 rounded">Espaço</span> para navegar (Pan).
+        </span>
+      </div>
 
       {/* --- Canvas --- */}
-      <div 
+      <div
         ref={containerRef}
         className={`flex-1 w-full h-full overflow-hidden relative ${getCursorStyle()}`}
         onDrop={handleDrop}
@@ -661,7 +661,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
         onContextMenu={(e) => e.preventDefault()}
       >
         {/* Grid Background */}
-        <div 
+        <div
           className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.05] dark:opacity-[0.08]"
           style={{
             backgroundImage: `radial-gradient(${isDarkMode ? '#ffffff' : '#000000'} 1px, transparent 1px)`,
@@ -671,7 +671,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
         />
 
         {/* --- Content Layer --- */}
-        <div 
+        <div
           className="absolute origin-top-left"
           style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})` }}
         >
@@ -682,7 +682,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
                 <polygon points="0 0, 10 3.5, 0 7" fill={isDarkMode ? '#1895D8' : '#17ADFD'} />
               </marker>
             </defs>
-            
+
             {/* Existing Connections */}
             {connections.map(conn => {
               const start = nodes.find(n => n.id === conn.fromId);
@@ -692,7 +692,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
               const pathData = getSmartPath(start, end);
 
               return (
-                <path 
+                <path
                   key={conn.id}
                   d={pathData}
                   fill="none"
@@ -707,29 +707,29 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
             {/* Draft Line (Dragging) */}
             {draftConnection && (() => {
-               const startNode = nodes.find(n => n.id === draftConnection.fromId);
-               if(!startNode) return null;
-               
-               const draftTarget = {
-                 x: draftConnection.toX,
-                 y: draftConnection.toY,
-                 width: 0,
-                 height: 0
-               };
-               
-               const pathData = getSmartPath(startNode, draftTarget);
-               
-               return (
-                  <path 
-                    d={pathData}
-                    fill="none"
-                    stroke={isDarkMode ? '#1895D8' : '#17ADFD'}
-                    strokeWidth="2"
-                    strokeDasharray="5, 5"
-                    strokeOpacity="0.6"
-                    markerEnd="url(#arrowhead)"
-                  />
-               );
+              const startNode = nodes.find(n => n.id === draftConnection.fromId);
+              if (!startNode) return null;
+
+              const draftTarget = {
+                x: draftConnection.toX,
+                y: draftConnection.toY,
+                width: 0,
+                height: 0
+              };
+
+              const pathData = getSmartPath(startNode, draftTarget);
+
+              return (
+                <path
+                  d={pathData}
+                  fill="none"
+                  stroke={isDarkMode ? '#1895D8' : '#17ADFD'}
+                  strokeWidth="2"
+                  strokeDasharray="5, 5"
+                  strokeOpacity="0.6"
+                  markerEnd="url(#arrowhead)"
+                />
+              );
             })()}
           </svg>
 
@@ -737,7 +737,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
           {nodes.map(node => {
             const isSelected = selectedNodeIds.includes(node.id);
             const isEditing = editingNodeId === node.id;
-            
+
             return (
               <div
                 key={node.id}
@@ -763,24 +763,24 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
                    ${isSelected && !isEditing ? 'ring-2 ring-brand-primary shadow-[0_0_15px_rgba(24,149,216,0.4)]' : ''}
                 `}>
                   {renderNodeShape(node, isEditing)}
-                  
+
                   {/* Connector Handle - Right Side (Only show if not editing and NOT panning) */}
                   {!isEditing && !isPanning && !isSpacePressed && (
-                    <div 
+                    <div
                       className="absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-slate-800 border-2 border-brand-primary rounded-full cursor-crosshair opacity-0 group-hover:opacity-100 transition-opacity hover:scale-125 z-40 flex items-center justify-center shadow-sm"
                       onMouseDown={(e) => handleConnectionStart(e, node.id)}
                     >
-                       <div className="w-1.5 h-1.5 bg-brand-primary rounded-full" />
+                      <div className="w-1.5 h-1.5 bg-brand-primary rounded-full" />
                     </div>
                   )}
 
                   {/* Resize Handle - Bottom Right (Only show if selected and NOT editing and NOT panning) */}
                   {isSelected && !isEditing && selectedNodeIds.length === 1 && !isPanning && !isSpacePressed && (
-                    <div 
+                    <div
                       className="absolute -right-1 -bottom-1 w-4 h-4 cursor-nwse-resize z-40 flex items-center justify-center group/resize"
                       onMouseDown={(e) => handleResizeStart(e, node.id)}
                     >
-                       <Scaling className="w-3 h-3 text-brand-primary opacity-50 group-hover/resize:opacity-100" />
+                      <Scaling className="w-3 h-3 text-brand-primary opacity-50 group-hover/resize:opacity-100" />
                     </div>
                   )}
 
@@ -788,7 +788,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
                 {/* Selection Controls (Only show if selected and NOT editing) */}
                 {isSelected && !isEditing && selectedNodeIds.length === 1 && !isPanning && !isSpacePressed && (
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); deleteSelectedNodes(); }}
                     className="absolute -top-3 -right-3 bg-rose-500 text-white p-1 rounded-full shadow-md hover:bg-rose-600 transition-transform hover:scale-110 z-50"
                   >
@@ -801,7 +801,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ isDarkMode }) => {
 
           {/* Selection Box Visual */}
           {selectionBox && (
-            <div 
+            <div
               className="absolute border-2 border-brand-primary bg-brand-primary/20 pointer-events-none z-50"
               style={{
                 left: Math.min(selectionBox.startX, selectionBox.currentX),

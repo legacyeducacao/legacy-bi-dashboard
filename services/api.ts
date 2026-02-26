@@ -4,6 +4,7 @@ import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChanne
 export interface DashboardData {
    kpis: Record<string, MetricData>;
    dailyTrends: any[];
+   rawMarketingData: any[]; // fact_daily_marketing com channel_name e product_name
    sdrData: RepPerformance[];
    closerData: RepPerformance[];
    channels: MarketingChannelStats[];
@@ -33,49 +34,98 @@ const KEY_MAP: Record<string, string> = {
    'no_show_rate': 'noShowRate',
    'cac': 'cac',
    'ltv': 'ltv',
-   'roas': 'roas'
+   'roas': 'roas',
+   'sales_inbound': 'salesInbound',
+   'sales_outbound': 'salesOutbound'
 };
 
 const N8N_META_ADS_WEBHOOK = 'https://automacao-n8n.zs0trp.easypanel.host/webhook/30135616-a1ea-4196-abb1-367e88b1d882';
 
-export const triggerMetaAdsAutomation = async () => {
-   try {
-      console.log("Triggering n8n Meta Ads Automation...");
-      // We use a simple POST. Depending on how the user configured n8n, 
-      // they might need specific data, but usually a simple trigger suffices for "Fetch Insights".
-      const response = await fetch(N8N_META_ADS_WEBHOOK, {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ action: 'sync_meta_ads', timestamp: new Date().toISOString() })
-      });
+/**
+ * Dispara o webhook do n8n.
+ * O n8n busca dados do Meta Ads, transforma e salva no banco via nó Postgres.
+ * O frontend apenas aguarda o processamento e então busca os dados atualizados.
+ */
+export const triggerMetaAdsAutomation = async (): Promise<void> => {
+   const now = new Date();
+   const todayLocal = new Date(now.getTime() - 3 * 60 * 60 * 1000); // BRT = UTC-3
+   const todayStr = todayLocal.toISOString().split('T')[0];
 
-      if (!response.ok) {
-         throw new Error(`Failed to trigger n8n: ${response.statusText}`);
-      }
-      return true;
-   } catch (error) {
-      console.error("Error triggering n8n automation:", error);
-      throw error;
+   console.log(`[n8n] Disparando webhook para sync de ${todayStr}...`);
+
+   const response = await fetch(N8N_META_ADS_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+         action: 'sync_meta_ads',
+         timestamp: now.toISOString(),
+         date: todayStr,
+         date_preset: 'today'
+      })
+   });
+
+   if (!response.ok) {
+      throw new Error(`n8n webhook failed: ${response.status} ${response.statusText}`);
    }
+
+   console.log('[n8n] Webhook disparado. Aguardando processamento...');
 };
+
+
 
 export const fetchDashboardData = async (): Promise<DashboardData> => {
    try {
       console.log("Fetching data with Architecture V2...");
 
+      // Busca trends e dados raw por canal/produto em paralelo
       const [
          { data: kpisData, error: kpisError },
-         { data: trendsData, error: trendsError },
+         { data: rawTrendsData, error: trendsError },
+         { data: rawMarketingRaw, error: marketingError },
          { data: teamData, error: teamError },
          { data: channelsData, error: channelsError },
          { data: productsData, error: productsError }
       ] = await Promise.all([
          supabase.from('kpis').select('*'),
-         supabase.from('daily_trends').select('*').order('date', { ascending: true }),
+         // Totais por dia (para o gráfico de tendência)
+         supabase.from('fact_daily_marketing')
+            .select('date, cost, leads, mqls')
+            .order('date', { ascending: true }),
+         // Dados raw por canal + produto + dia (para a tabela de performance com filtro de data)
+         supabase.from('fact_daily_marketing')
+            .select('date, cost, leads, mqls, impressions, clicks, campaign_name, dim_channels(name), dim_products(name)')
+            .order('date', { ascending: true }),
          supabase.from('team_performance').select('*'),
          supabase.from('marketing_channels').select('*'),
          supabase.from('marketing_products').select('*')
       ]);
+
+      // Normaliza os dados raw com nome de canal e produto
+      const rawMarketingData = (rawMarketingRaw || []).map((row: any) => ({
+         date: row.date,
+         channel: row.dim_channels?.name || 'Desconhecido',
+         product: row.dim_products?.name || 'Institucional',
+         campaign: row.campaign_name || 'Diversos',
+         cost: Number(row.cost) || 0,
+         leads: Number(row.leads) || 0,
+         mqls: Number(row.mqls) || 0,
+         impressions: Number(row.impressions) || 0,
+         clicks: Number(row.clicks) || 0,
+      }));
+
+      // Agrupa múltiplas linhas do mesmo dia (canais diferentes) em uma única entrada
+      const trendsMap = new Map<string, any>();
+      (rawTrendsData || []).forEach((row: any) => {
+         const dateKey = row.date;
+         if (!trendsMap.has(dateKey)) {
+            trendsMap.set(dateKey, { date: dateKey, cost: 0, leads: 0, mqls: 0 });
+         }
+         const existing = trendsMap.get(dateKey);
+         existing.cost += Number(row.cost) || 0;
+         existing.leads += Number(row.leads) || 0;
+         existing.mqls += Number(row.mqls) || 0;
+      });
+      const trendsData = Array.from(trendsMap.values()).sort((a, b) => a.date.localeCompare(b.date));
 
       if (kpisError) throw kpisError;
 
@@ -85,6 +135,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             const mappedId = KEY_MAP[row.id] || row.id;
             kpis[mappedId] = {
                id: mappedId,
+               db_id: row.id, // ID original do banco para updates
                label: row.label,
                value: Number(row.value),
                goal: Number(row.goal),
@@ -107,7 +158,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          date: row.date,
          leads: Number(row.leads) || 0,
          mqls: Number(row.mqls) || 0,
-         investment: Number(row.investment) || 0,
+         investment: Number(row.cost ?? row.investment) || 0, // fact_daily_marketing usa 'cost'
          revenue: Number(row.revenue) || 0,
          sales: Number(row.sales) || 0,
          connected: Number(row.connected) || 0,
@@ -152,6 +203,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       return {
          kpis,
          dailyTrends,
+         rawMarketingData,
          sdrData,
          closerData,
          channels: (channelsData || []).map(r => ({ ...r, roas: Number(r.roas) })),
@@ -166,6 +218,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       return {
          kpis: {},
          dailyTrends: [],
+         rawMarketingData: [],
          sdrData: [],
          closerData: [],
          channels: [],
@@ -209,6 +262,7 @@ export const uploadMarketingSector = async (parsedData: any[]) => {
    for (const row of parsedData) {
       const channelName = row['Canal'] || row['channel'] || row['canal'];
       const productName = row['Produto'] || row['product'] || row['produto'];
+      const campaignName = row['Campanha'] || row['campaign'] || row['campanha'] || 'Diversos';
       const date = row['Data'] || row['date'] || row['data'];
 
       if (!channelName || !date) continue;
@@ -220,6 +274,7 @@ export const uploadMarketingSector = async (parsedData: any[]) => {
          date,
          channel_id,
          product_id,
+         campaign_name: campaignName,
          cost: safeNumber(row['Investimento'] || row['investment'] || 0),
          leads: safeNumber(row['Leads'] || row['leads'] || 0),
          mqls: safeNumber(row['MQLs'] || row['mqls'] || 0),
@@ -271,6 +326,12 @@ export const uploadGoalsSector = async (parsedData: any[]) => {
    }));
 
    const { error } = await supabase.from('kpis').upsert(rows, { onConflict: 'id' });
+   if (error) throw error;
+   return true;
+};
+
+export const updateKPIGoals = async (kpis: any[]) => {
+   const { error } = await supabase.from('kpis').upsert(kpis, { onConflict: 'id' });
    if (error) throw error;
    return true;
 };

@@ -47,10 +47,10 @@ import {
   KPI_METRICS, MOCK_CONTEXT, FUNNEL_DATA, DAILY_TRENDS, SDR_DATA, CLOSER_DATA,
   LEAD_SOURCES, MARKETING_CHANNELS_DATA, MARKETING_PRODUCTS_DATA
 } from './services/mockData';
-import { fetchDashboardData, DashboardData, uploadMarketingSector, uploadCommercialSector, uploadGoalsSector, triggerMetaAdsAutomation } from './services/api';
+import { fetchDashboardData, DashboardData, uploadMarketingSector, uploadCommercialSector, uploadGoalsSector, triggerMetaAdsAutomation, updateKPIGoals } from './services/api';
 import { formatValue, calculatePace } from './utils/calculations';
 import { parseCSV } from './utils/csvParser';
-import { RepPerformance, AppSettings, MetricData, MarketingChannelStats, MarketingProductStats, FilterState, FilterOptions, PaceAnalysis } from './types';
+import { RepPerformance, AppSettings, MetricData, MarketingChannelStats, MarketingProductStats, MarketingCampaignStats, FilterState, FilterOptions, PaceAnalysis } from './types';
 
 // Tab Enum
 enum Tab {
@@ -82,6 +82,7 @@ const App: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSidebarHidden, setIsSidebarHidden] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<'general' | 'data' | 'goals'>('general');
 
   // Marketing Micro View Toggle State
   const [microView, setMicroView] = useState<'channels' | 'products'>('channels');
@@ -133,8 +134,46 @@ const App: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
+  // --- New Goals State ---
+  const [tempGoals, setTempGoals] = useState<Record<string, number>>({});
+
+  // Sync tempGoals when settings opens
+  useEffect(() => {
+    if (showSettings && data.kpis) {
+      const goals: Record<string, number> = {};
+      Object.keys(data.kpis).forEach(key => {
+        goals[key] = data.kpis[key].goal;
+      });
+      setTempGoals(goals);
+    }
+  }, [showSettings, data.kpis]);
+
   // --- Handlers ---
-  const handleSectorUpload = async (e: React.ChangeEvent<HTMLInputElement>, sector: 'marketing' | 'commercial' | 'goals') => {
+  const handleSaveGoals = async () => {
+    setIsUploading(true);
+    setUploadStatus(null);
+    try {
+      const kpisToUpdate = Object.entries(tempGoals).map(([id, goal]) => {
+        // Usa o db_id original para fazer o upsert no Supabase
+        const kpi = data.kpis[id];
+        return {
+          id: kpi.db_id || kpi.id || id,
+          label: kpi.label, // Inclui label para satisfazer NOT NULL no upsert
+          unit: kpi.unit,   // Inclui unit para satisfazer NOT NULL no upsert
+          goal
+        };
+      });
+      await updateKPIGoals(kpisToUpdate);
+      setUploadStatus({ type: 'success', message: 'Metas atualizadas com sucesso!' });
+      loadData();
+    } catch (e) {
+      setUploadStatus({ type: 'error', message: 'Erro ao atualizar metas.' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSectorUpload = async (e: React.ChangeEvent<HTMLInputElement>, sector: 'marketing' | 'commercial') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -151,7 +190,6 @@ const App: React.FC = () => {
 
       if (sector === 'marketing') await uploadMarketingSector(parsedData);
       else if (sector === 'commercial') await uploadCommercialSector(parsedData);
-      else if (sector === 'goals') await uploadGoalsSector(parsedData);
 
       setUploadStatus({ type: 'success', message: `Dados de ${sector.toUpperCase()} sincronizados!` });
       loadData(); // Refresh dashboard
@@ -165,18 +203,19 @@ const App: React.FC = () => {
   };
 
   const loadData = async (triggerSync = false) => {
-    // Only set loading true if it's the initial load or explicit refresh
     setIsLoading(true);
 
     if (triggerSync) {
       setIsSyncing(true);
       try {
+        // 1. Dispara o webhook — o n8n faz fetch do Meta Ads + salva via Postgres
         await triggerMetaAdsAutomation();
+        // 2. Aguarda o n8n processar (Meta Ads API + transform + Postgres upsert)
+        await new Promise(resolve => setTimeout(resolve, 6000));
+        console.log('[Sync] n8n concluído. Buscando dados atualizados...');
       } catch (e) {
-        console.error("N8N Trigger Error:", e);
+        console.error("N8N Sync Error:", e);
       } finally {
-        // We don't wait for the automation to finish (it's async), 
-        // but we wait for the trigger request to complete.
         setIsSyncing(false);
       }
     }
@@ -190,6 +229,8 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+
 
   useEffect(() => {
     loadData();
@@ -245,18 +286,107 @@ const App: React.FC = () => {
     return data.closerData.filter(c => filters.closerId === 'all' || c.id === filters.closerId);
   }, [data.closerData, filters.closerId]);
 
+  // Helper: aplica o mesmo filtro de período de filteredTrends nos dados raw por canal/produto
+  const filteredRawMarketing = useMemo(() => {
+    const raw = data.rawMarketingData || [];
+    if (filters.period === 'today') {
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      return raw.filter((r: any) => r.date === todayStr);
+    }
+    if (filters.period === 'this_month') {
+      const now = new Date();
+      const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      return raw.filter((r: any) => r.date >= startOfMonth);
+    }
+    if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
+      return raw.filter((r: any) => r.date >= filters.customStartDate && r.date <= filters.customEndDate);
+    }
+    // Períodos fixos: 7d, 15d, 30d
+    const days = filters.period === '7d' ? 7 : filters.period === '15d' ? 15 : filters.period === '30d' ? 30 : raw.length;
+    const dates = [...new Set(raw.map((r: any) => r.date))].sort().slice(-days) as string[];
+    const dateSet = new Set(dates);
+    return raw.filter((r: any) => dateSet.has(r.date));
+  }, [data.rawMarketingData, filters.period, filters.customStartDate, filters.customEndDate]);
+
   const filteredChannels = useMemo(() => {
-    return data.channels.filter(c => {
-      if (filters.channel !== 'all' && c.channel !== filters.channel) return false;
-      // Note: source filter logic implies matching channel names or separate source field
-      if (filters.source !== 'all' && !c.channel.includes(filters.source)) return false;
-      return true;
+    // Agrupa filteredRawMarketing por canal, somando métricas
+    const map = new Map<string, any>();
+    filteredRawMarketing.forEach((row: any) => {
+      const key = row.channel;
+      if (filters.channel !== 'all' && row.channel !== filters.channel) return;
+      if (!map.has(key)) {
+        map.set(key, { channel: key, investment: 0, leads: 0, mqls: 0, revenue: 0, sales: 0, roas: 0, cpl: 0, cac: 0 });
+      }
+      const entry = map.get(key);
+      entry.investment += row.cost || 0;
+      entry.leads += row.leads || 0;
+      entry.mqls += row.mqls || 0;
+      entry.revenue += row.revenue || 0;
+      entry.sales += row.sales || 0;
     });
-  }, [data.channels, filters.channel, filters.source]);
+    // Calcula métricas derivadas
+    return Array.from(map.values()).map(c => ({
+      ...c,
+      cpl: c.leads > 0 ? c.investment / c.leads : 0,
+      cac: c.sales > 0 ? c.investment / c.sales : 0,
+      roas: c.investment > 0 ? c.revenue / c.investment : 0,
+    }));
+  }, [filteredRawMarketing, filters.channel]);
+
+  const filteredCampaigns = useMemo(() => {
+    // Agrupa filteredRawMarketing por campanha (Focando em Meta Ads conforme solicitado)
+    const map = new Map<string, any>();
+    filteredRawMarketing.forEach((row: any) => {
+      if (row.channel !== 'Meta Ads (Insta/FB)' && row.channel !== 'Meta Ads') return;
+      const key = row.campaign || 'Diversos';
+      if (!map.has(key)) {
+        map.set(key, { campaign: key, investment: 0, leads: 0, mqls: 0, sales: 0, cpl: 0, cac: 0, roas: 0, revenue: 0, impressions: 0, clicks: 0, ctr: 0, cpc: 0 });
+      }
+      const entry = map.get(key);
+      entry.investment += row.cost || 0;
+      entry.leads += row.leads || 0;
+      entry.mqls += row.mqls || 0;
+      entry.sales += row.sales || 0;
+      entry.revenue += row.revenue || 0;
+      entry.impressions += row.impressions || 0;
+      entry.clicks += row.clicks || 0;
+    });
+
+    return Array.from(map.values())
+      .filter(c => c.campaign !== 'Diversos')
+      .map(c => ({
+        ...c,
+        cpl: c.leads > 0 ? c.investment / c.leads : 0,
+        cpl_mql: c.mqls > 0 ? c.investment / c.mqls : 0,
+        cac: c.sales > 0 ? c.investment / c.sales : 0,
+        roas: c.investment > 0 ? c.revenue / c.investment : 0,
+        ctr: c.impressions > 0 ? (c.clicks / c.impressions) * 100 : 0,
+        cpc: c.clicks > 0 ? c.investment / c.clicks : 0,
+      })).sort((a, b) => b.investment - a.investment);
+  }, [filteredRawMarketing]);
 
   const filteredProducts = useMemo(() => {
-    return data.products.filter(p => filters.product === 'all' || p.product === filters.product);
-  }, [data.products, filters.product]);
+    // Agrupa filteredRawMarketing por produto, somando métricas
+    const map = new Map<string, any>();
+    filteredRawMarketing.forEach((row: any) => {
+      const key = row.product;
+      if (filters.product !== 'all' && row.product !== filters.product) return;
+      if (!map.has(key)) {
+        map.set(key, { product: key, investment: 0, leads: 0, mqls: 0, revenue: 0, sales: 0, roas: 0 });
+      }
+      const entry = map.get(key);
+      entry.investment += row.cost || 0;
+      entry.leads += row.leads || 0;
+      entry.mqls += row.mqls || 0;
+    });
+    return Array.from(map.values()).map(p => ({
+      ...p,
+      roas: p.investment > 0 ? p.revenue / p.investment : 0,
+    }));
+  }, [filteredRawMarketing, filters.product]);
+
+
 
   // 2. Filtered Trends (Date Range)
   const filteredTrends = useMemo(() => {
@@ -366,6 +496,26 @@ const App: React.FC = () => {
         newKPIs.roas.value = newKPIs.marketingRevenue.value / newKPIs.investment.value;
       }
     }
+
+    // New: Calculate Inbound vs Outbound Sales (based on marketing attribution)
+    if (newKPIs.salesInbound) newKPIs.salesInbound.value = newKPIs.marketingSales.value;
+    if (newKPIs.salesOutbound) newKPIs.salesOutbound.value = Math.max(0, newKPIs.sales.value - newKPIs.marketingSales.value);
+
+    // Ensure common indicators are always correctly initialized for Display if DB is missing them
+    const ensureKPI = (key: string, label: string, unit: any, goal: number) => {
+      if (!newKPIs[key]) {
+        newKPIs[key] = { id: key, label, value: 0, goal, unit };
+      }
+    };
+
+    ensureKPI('ticket', 'Ticket Médio', 'currency', 15000);
+    ensureKPI('cpl', 'CPL Médio', 'currency', 20);
+    ensureKPI('cac', 'CAC Blended', 'currency', 1500);
+    ensureKPI('connections', 'Conexões', 'number', 450);
+    ensureKPI('meetingsBooked', 'Reuniões Agendadas', 'number', 100);
+    ensureKPI('meetingsHeld', 'Reuniões Realizadas', 'number', 85);
+    ensureKPI('salesInbound', 'Vendas Inbound', 'number', 15);
+    ensureKPI('salesOutbound', 'Vendas Outbound', 'number', 5);
 
     return newKPIs;
   }, [data.kpis, filters, filteredTrends, filteredSDRs, filteredClosers, filteredChannels, filteredProducts]);
@@ -479,39 +629,146 @@ const App: React.FC = () => {
   // --- Views Components ---
 
   const OverviewView = () => (
-    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
-        {activeKPIs.investment && <MetricCard metric={activeKPIs.investment} context={data.context} />}
-        {activeKPIs.leads && <MetricCard metric={activeKPIs.leads} context={data.context} />}
-        {activeKPIs.sales && <MetricCard metric={activeKPIs.sales} context={data.context} />}
+    <div className="flex flex-col h-full gap-6 animate-in fade-in duration-500 overflow-y-auto custom-scrollbar pr-1 pb-6">
+
+      {/* 1. Primary KPIs - Dedicated Row for perfect balance */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 flex-shrink-0 mb-2">
+        {activeKPIs.investment && <MetricCard metric={activeKPIs.investment} context={data.context} inverse />}
         {activeKPIs.revenue && <MetricCard metric={activeKPIs.revenue} context={data.context} />}
+        {activeKPIs.roas && <MetricCard metric={activeKPIs.roas} context={data.context} />}
+        {activeKPIs.leads && <MetricCard metric={activeKPIs.leads} context={data.context} />}
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-        <div className="lg:col-span-2 h-full min-h-0 flex flex-col gap-6">
-          <div className="flex-1 min-h-0">
-            <GoalAchievementChart
-              title="Atingimento de Meta (Ritmo) - Faturamento"
-              currentData={filteredTrends}
-              dataKey="revenue"
-              goal={activeKPIs.revenue?.goal || 0}
-              totalDays={data.context.totalDays}
-              currentDay={data.context.currentDay}
-              isDarkMode={isDark}
-              className="h-full"
-              unit="currency"
-            />
-          </div>
+      {/* 2. Marketing & Efficiency Cluster */}
+      <div className="bg-slate-50/50 dark:bg-slate-900/10 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/50 flex flex-col gap-4">
+        <div className="flex items-center gap-2 px-1">
+          <div className="w-2 h-6 bg-slate-400/50 rounded-full"></div>
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Marketing & Eficiência</h4>
         </div>
-        <div className="lg:col-span-1 h-full min-h-0 flex flex-col gap-6">
-          <div className="flex-1 min-h-0">
-            <FunnelChart
-              data={data.funnelData}
-              isDarkMode={isDark}
-              className="h-full"
-            />
-          </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          {activeKPIs.ticket && <div className="h-full"><MetricCard metric={activeKPIs.ticket} context={data.context} variant="compact" /></div>}
+          {activeKPIs.cpl && <div className="h-full"><MetricCard metric={activeKPIs.cpl} context={data.context} variant="compact" inverse /></div>}
+          {activeKPIs.cac && <div className="h-full"><MetricCard metric={activeKPIs.cac} context={data.context} variant="compact" inverse /></div>}
+          {activeKPIs.salesInbound && (
+            <div className="h-full">
+              <MetricCard
+                metric={activeKPIs.salesInbound}
+                context={data.context}
+                variant="compact"
+                customComparison={{
+                  label: 'Inbound (Entrada)',
+                  value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesInbound.value / activeKPIs.sales.value) * 100 : 0,
+                  suffix: '%'
+                }}
+              />
+            </div>
+          )}
+          {activeKPIs.salesOutbound && (
+            <div className="h-full">
+              <MetricCard
+                metric={activeKPIs.salesOutbound}
+                context={data.context}
+                variant="compact"
+                customComparison={{
+                  label: 'Outbound (Ativo)',
+                  value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesOutbound.value / activeKPIs.sales.value) * 100 : 0,
+                  suffix: '%'
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 2. Unified Commercial Funnel Cluster */}
+      <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/50 flex flex-col gap-4">
+        <div className="flex items-center gap-2 px-1">
+          <div className="w-2 h-6 bg-primary rounded-full"></div>
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Funil Comercial</h4>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {activeKPIs.connections && (
+            <div className="h-full">
+              <MetricCard
+                metric={activeKPIs.connections}
+                context={data.context}
+                variant="funnel"
+                customComparison={{
+                  label: 'Taxa Conv.',
+                  value: activeKPIs.leads?.value > 0 ? (activeKPIs.connections.value / activeKPIs.leads.value) * 100 : 0,
+                  suffix: '%'
+                }}
+              />
+            </div>
+          )}
+          {activeKPIs.meetingsBooked && (
+            <div className="h-full">
+              <MetricCard
+                metric={activeKPIs.meetingsBooked}
+                context={data.context}
+                variant="funnel"
+                customComparison={{
+                  label: 'Taxa Agend.',
+                  value: activeKPIs.connections?.value > 0 ? (activeKPIs.meetingsBooked.value / activeKPIs.connections.value) * 100 : 0,
+                  suffix: '%'
+                }}
+              />
+            </div>
+          )}
+          {activeKPIs.meetingsHeld && (
+            <div className="h-full">
+              <MetricCard
+                metric={activeKPIs.meetingsHeld}
+                context={data.context}
+                variant="funnel"
+                customComparison={{
+                  label: 'Taxa de Presença',
+                  value: activeKPIs.meetingsBooked?.value > 0 ? (activeKPIs.meetingsHeld.value / activeKPIs.meetingsBooked.value) * 100 : 0,
+                  suffix: '%'
+                }}
+              />
+            </div>
+          )}
+          {activeKPIs.sales && (
+            <div className="h-full">
+              <MetricCard
+                metric={activeKPIs.sales}
+                context={data.context}
+                variant="funnel"
+                customComparison={{
+                  label: 'Taxa de Fechamento',
+                  value: activeKPIs.meetingsHeld?.value > 0 ? (activeKPIs.sales.value / activeKPIs.meetingsHeld.value) * 100 : 0,
+                  suffix: '%'
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. Charts Cluster */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[400px]">
+        <div className="lg:col-span-2 flex flex-col">
+          <GoalAchievementChart
+            title="Performance de Faturamento"
+            currentData={filteredTrends}
+            dataKey="revenue"
+            goal={activeKPIs.revenue?.goal || 0}
+            totalDays={data.context.totalDays}
+            currentDay={data.context.currentDay}
+            isDarkMode={isDark}
+            className="flex-1"
+            unit="currency"
+          />
+        </div>
+        <div className="lg:col-span-1 flex flex-col">
+          <FunnelChart
+            data={data.funnelData}
+            isDarkMode={isDark}
+            className="h-full"
+          />
         </div>
       </div>
     </div>
@@ -740,20 +997,46 @@ const App: React.FC = () => {
             />
           </div>
           <div className="lg:col-span-2 h-full min-h-0 overflow-hidden flex flex-col">
-            <div className="flex-1 overflow-auto animate-in fade-in duration-300">
+            <div className="flex-1 animate-in fade-in duration-300 flex flex-col gap-6 overflow-hidden">
               {microView === 'channels' ? (
-                <DataTable<MarketingChannelStats>
-                  title="Performance por Canal"
-                  data={[...filteredChannels].sort((a, b) => b.investment - a.investment)}
-                  columns={[
-                    { header: 'Canal / Origem', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white">{row.channel}</span> },
-                    { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
-                    { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
-                    { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
-                    { header: 'MQLs', accessor: (row) => row.mqls, align: 'right' },
-                    { header: 'ROAS', accessor: (row) => <span className={row.roas > 10 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
-                  ]}
-                />
+                <>
+                  <div className="flex-shrink-0 pb-1">
+                    <DataTable<MarketingChannelStats>
+                      title="Performance por Canal"
+                      data={[...filteredChannels].sort((a, b) => b.investment - a.investment)}
+                      columns={[
+                        { header: 'Canal / Origem', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white">{row.channel}</span> },
+                        { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
+                        { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
+                        { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
+                        { header: 'CAC', accessor: (row) => formatValue(row.cac, 'currency'), align: 'right' },
+                        { header: 'ROAS', accessor: (row) => <span className={row.roas > 10 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
+                      ]}
+                    />
+                  </div>
+
+                  {filteredCampaigns.length > 0 && (
+                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/30">
+                      <DataTable<MarketingCampaignStats>
+                        title="Performance de Campanhas (Meta Ads)"
+                        data={filteredCampaigns}
+                        showBorder={false}
+                        columns={[
+                          { header: 'Campanha', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white">{row.campaign}</span> },
+                          { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
+                          { header: 'Cliques', accessor: (row) => row.clicks, align: 'right' },
+                          { header: 'CPC', accessor: (row) => formatValue(row.cpc, 'currency'), align: 'right' },
+                          { header: 'CTR', accessor: (row) => `${row.ctr.toFixed(2)}%`, align: 'right' },
+                          { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
+                          { header: 'MQLs', accessor: (row) => row.mqls, align: 'right' },
+                          { header: 'CPL (MQL)', accessor: (row) => formatValue((row as any).cpl_mql, 'currency'), align: 'right' },
+                          { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
+                          { header: 'ROAS', accessor: (row) => <span className={row.roas > 10 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
+                        ]}
+                      />
+                    </div>
+                  )}
+                </>
               ) : (
                 <DataTable<MarketingProductStats>
                   title="Performance por Produto"
@@ -851,7 +1134,7 @@ const App: React.FC = () => {
           <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-teal-500 pl-2">
             Análise Micro: Ritmo & Faturamento
           </h3>
-          <div className="text-xs font-mono text-slate-400">
+          <div className="text-xs text-slate-400">
             Ticket Médio Global: {activeKPIs.ticket ? formatValue(activeKPIs.ticket.value, 'currency') : 'R$ 0'}
           </div>
         </div>
@@ -927,7 +1210,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="flex h-screen w-screen bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 font-sans transition-colors duration-300 overflow-hidden">
+    <div className="flex h-screen w-screen bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 transition-colors duration-300 overflow-hidden">
 
       {/* Sidebar - Conditional rendering based on isSidebarHidden */}
       {!isSidebarHidden && (
@@ -1153,81 +1436,100 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            {/* Tabs Navigation */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800">
+              {[
+                { id: 'general', label: 'Preferências', icon: <Settings className="w-4 h-4" /> },
+                { id: 'data', label: 'Importação', icon: <Activity className="w-4 h-4" /> },
+                { id: 'goals', label: 'Metas', icon: <Target className="w-4 h-4" /> },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setSettingsTab(t.id as any)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${settingsTab === t.id ? 'border-brand-primary text-brand-primary bg-brand-primary/5' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                >
+                  {t.icon}
+                  {t.label}
+                </button>
+              ))}
+            </div>
 
-              {/* Theme Toggle */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Aparência</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setSettings(s => ({ ...s, theme: 'light' }))}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${settings.theme === 'light' ? 'border-brand-primary bg-brand-primary/5 text-brand-primary' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
-                  >
-                    <Sun className="w-5 h-5" />
-                    <span>Modo Claro</span>
-                  </button>
-                  <button
-                    onClick={() => setSettings(s => ({ ...s, theme: 'dark' }))}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${settings.theme === 'dark' ? 'border-brand-primary bg-brand-primary/5 text-brand-primary' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
-                  >
-                    <Moon className="w-5 h-5" />
-                    <span>Modo Escuro</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Auto Rotation Config */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Rotação Automática</label>
-                  <button
-                    onClick={() => setSettings(s => ({ ...s, autoRotate: !s.autoRotate }))}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.autoRotate ? 'bg-brand-primary' : 'bg-slate-200 dark:bg-slate-700'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.autoRotate ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
-                </div>
-
-                {settings.autoRotate && (
-                  <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Defina o tempo (em segundos) por tela:</p>
-                    {[
-                      { id: Tab.OVERVIEW, label: 'Visão Geral' },
-                      { id: Tab.ANALYSIS, label: 'Análise Geral' },
-                      { id: Tab.MARKETING, label: 'Marketing' },
-                      { id: Tab.SDR, label: 'SDR / Pré-Vendas' },
-                      { id: Tab.SALES, label: 'Vendas' },
-                      { id: Tab.RANKING, label: 'Rankings' },
-                    ].map((tab) => (
-                      <div key={tab.id} className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600 dark:text-slate-300">{tab.label}</span>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="5"
-                            value={settings.tabDurations[tab.id as keyof typeof settings.tabDurations]}
-                            onChange={(e) => updateDuration(tab.id as Tab, parseInt(e.target.value) || 10)}
-                            className="w-20 px-2 py-1 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-brand-primary"
-                          />
-                          <span className="text-xs text-slate-400">seg</span>
-                        </div>
-                      </div>
-                    ))}
+            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              {settingsTab === 'general' && (
+                <>
+                  {/* Theme Toggle */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Aparência</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setSettings(s => ({ ...s, theme: 'light' }))}
+                        className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${settings.theme === 'light' ? 'border-brand-primary bg-brand-primary/5 text-brand-primary' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
+                      >
+                        <Sun className="w-5 h-5" />
+                        <span>Modo Claro</span>
+                      </button>
+                      <button
+                        onClick={() => setSettings(s => ({ ...s, theme: 'dark' }))}
+                        className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${settings.theme === 'dark' ? 'border-brand-primary bg-brand-primary/5 text-brand-primary' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
+                      >
+                        <Moon className="w-5 h-5" />
+                        <span>Modo Escuro</span>
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                  <Megaphone className="w-4 h-4 text-brand-primary" />
-                  Alimentação do Dashboard por Setor
-                </label>
+                  {/* Auto Rotation Config */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Rotação Automática</label>
+                      <button
+                        onClick={() => setSettings(s => ({ ...s, autoRotate: !s.autoRotate }))}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.autoRotate ? 'bg-brand-primary' : 'bg-slate-200 dark:bg-slate-700'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.autoRotate ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
 
+                    {settings.autoRotate && (
+                      <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Defina o tempo (em segundos) por tela:</p>
+                        {[
+                          { id: Tab.OVERVIEW, label: 'Visão Geral' },
+                          { id: Tab.ANALYSIS, label: 'Análise Geral' },
+                          { id: Tab.MARKETING, label: 'Marketing' },
+                          { id: Tab.SDR, label: 'SDR / Pré-Vendas' },
+                          { id: Tab.SALES, label: 'Vendas' },
+                          { id: Tab.RANKING, label: 'Rankings' },
+                        ].map((tab) => (
+                          <div key={tab.id} className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600 dark:text-slate-300">{tab.label}</span>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min="5"
+                                value={settings.tabDurations[tab.id as keyof typeof settings.tabDurations]}
+                                onChange={(e) => updateDuration(tab.id as Tab, parseInt(e.target.value) || 10)}
+                                className="w-20 px-2 py-1 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-brand-primary"
+                              />
+                              <span className="text-xs text-slate-400">seg</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {settingsTab === 'data' && (
                 <div className="space-y-4">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-brand-primary" />
+                    Alimentação por Planilha (CSV)
+                  </label>
                   {[
                     { id: 'marketing', label: 'Setor Marketing', icon: <Megaphone className="w-5 h-5" />, desc: 'Investimento, Leads e Conversão por Data' },
                     { id: 'commercial', label: 'Setor Comercial', icon: <Headset className="w-5 h-5" />, desc: 'Atividade de Vendedores e SDRs por Data' },
-                    { id: 'goals', label: 'Metas e KPIs', icon: <Target className="w-5 h-5" />, desc: 'Configuração de Objetivos Mensais' },
                   ].map((item) => (
                     <div key={item.id} className="relative">
                       <input
@@ -1255,30 +1557,75 @@ const App: React.FC = () => {
                       </label>
                     </div>
                   ))}
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">
+                    * O upload sobrescreve dados existentes com o mesmo ID/Data.
+                  </p>
                 </div>
+              )}
 
-                {/* Status Message */}
-                {uploadStatus && (
-                  <div className={`p-3 rounded-lg text-xs font-medium flex items-center gap-2 animate-in slide-in-from-top-2 duration-300 ${uploadStatus.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
-                    {uploadStatus.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                    {uploadStatus.message}
+              {settingsTab === 'goals' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-brand-primary" />
+                      Definição de Objetivos
+                    </label>
+                    <button
+                      onClick={handleSaveGoals}
+                      disabled={isUploading}
+                      className="px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-lg hover:bg-brand-primary/90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                      SALVAR METAS
+                    </button>
                   </div>
-                )}
 
-                {isUploading && (
-                  <div className="flex items-center justify-center gap-2 text-slate-500 text-xs py-2">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Processando e sincronizando...
+                  <div className="space-y-3">
+                    {Object.entries(data.kpis).map(([key, kpi]: [string, any]) => (
+                      <div key={key} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{kpi.label}</span>
+                          <span className="text-[10px] text-slate-400 uppercase font-bold">{kpi.unit}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <label className="text-[10px] text-slate-400 block mb-1">Meta Mensal</label>
+                            <input
+                              type="number"
+                              value={tempGoals[key] ?? kpi.goal}
+                              onChange={(e) => setTempGoals(prev => ({ ...prev, [key]: parseFloat(e.target.value) || 0 }))}
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:border-brand-primary transition-colors"
+                            />
+                          </div>
+                          <div className="w-24 text-right">
+                            <label className="text-[10px] text-slate-400 block mb-1">Atual</label>
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400 text-truncate block">
+                              {kpi.prefix || ''}{kpi.value}{kpi.suffix || ''}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">
-                  * Use arquivos CSV com os cabeçalhos corretos. O upload sobrescreve dados existentes com o mesmo ID/Data.
-                </p>
-              </div>
+              {/* Status Message (Shared) */}
+              {uploadStatus && (
+                <div className={`p-4 rounded-xl text-sm font-medium flex items-center gap-3 animate-in slide-in-from-top-2 duration-300 ${uploadStatus.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/10 dark:text-emerald-400 dark:border-emerald-900/20' : 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-900/10 dark:text-rose-400 dark:border-rose-900/20'}`}>
+                  {uploadStatus.type === 'success' ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                  <span className="leading-tight">{uploadStatus.message}</span>
+                </div>
+              )}
+
+              {isUploading && (
+                <div className="flex items-center justify-center gap-2 text-slate-500 text-xs py-2">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Sincronizando dados...
+                </div>
+              )}
             </div>
           </div>
-
         </div>
       )}
     </div>

@@ -1,0 +1,59 @@
+﻿============================================================
+­ƒôà Data de hoje (BRT): 2026-02-25
+­ƒôà UTC: 2026-02-25T13:12:12.967Z
+============================================================
+
+­ƒôè ├ÜLTIMOS 5 REGISTROS em fact_daily_marketing:
+  2026-02-23 | cost: 2894.47 | leads: 21 | channel: 45bdae74...
+  2026-02-23 | cost: 190.98 | leads: 2 | channel: 45bdae74...
+  2026-02-22 | cost: 211.07 | leads: 4 | channel: 45bdae74...
+  2026-02-22 | cost: 3399.94 | leads: 19 | channel: 45bdae74...
+  2026-02-21 | cost: 3196.47 | leads: 16 | channel: 45bdae74...
+  2026-02-21 | cost: 344.17 | leads: 4 | channel: 45bdae74...
+  2026-02-20 | cost: 347.97 | leads: 8 | channel: 45bdae74...
+  2026-02-20 | cost: 3306.02 | leads: 13 | channel: 45bdae74...
+  2026-02-19 | cost: 349.07 | leads: 7 | channel: 45bdae74...
+  2026-02-19 | cost: 3411.57 | leads: 18 | channel: 45bdae74...
+
+­ƒöì DADOS DE HOJE (2026-02-25) em fact_daily_marketing:
+ÔÜá´©Å  NENHUM DADO para 2026-02-25!
+
+­ƒôï VERIFICANDO se daily_trends existe:
+Ô£à daily_trends EXISTE com 1 registros na amostra
+
+­ƒôï dim_channels (canais cadastrados):
+  Canal: "Google Ads" | id: 7b063bf8-29f1-473a-85fc-626ee012067a
+  Canal: "LinkedIn Ads" | id: 3030e444-b32c-4424-aa37-4a56bbe577b1
+  Canal: "Org├ónico" | id: 8c63938d-13b9-4280-b94a-10499a2db05e
+  Canal: "Indica├º├úo" | id: ee08b70f-9f07-4a37-b7a3-18ad645b4863
+  Canal: "Meta Ads" | id: 45bdae74-6eca-4ba9-a96e-21b7e9f89308
+
+­ƒôï dim_products (produtos cadastrados):
+  Produto: "Legado" | id: 4995fad3-b8ca-4b64-828e-2b4dec7c4c9b
+  Produto: "Impuls├úo" | id: 2aa1f8db-1955-4fc7-b61d-f31dad81ad51
+
+­ƒôï TABELA kpis:
+  invest: valor=0 | meta=84000
+  revenue: valor=0 | meta=660000
+  leads: valor=0 | meta=0
+  mqls: valor=0 | meta=240
+  opps: valor=0 | meta=0
+  meetings_booked: valor=0 | meta=47
+  meetings_held: valor=0 | meta=33
+  sales: valor=0 | meta=3
+  cpl: valor=0 | meta=0
+  cpmql: valor=0 | meta=0
+  mkt_revenue: valor=0 | meta=0
+  mkt_sales: valor=0 | meta=0
+  roas: valor=0 | meta=0
+  cac: valor=0 | meta=0
+  ltv: valor=0 | meta=0
+  connections: valor=0 | meta=0
+  response_time: valor=0 | meta=0
+  no_show_rate: valor=0 | meta=0
+  ticket: valor=0 | meta=0
+  conv_meet_sale: valor=0 | meta=0
+
+============================================================
+DIAGN├ôSTICO COMPLETO
+============================================================
