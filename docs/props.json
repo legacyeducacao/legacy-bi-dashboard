@@ -1,0 +1,558 @@
+[
+  {
+    "updatedAt": "2025-12-09T13:46:50.204Z",
+    "createdAt": "2025-12-09T13:42:30.953Z",
+    "name": "data_na_etapa_entrada",
+    "label": "Tempo na etapa Entrada",
+    "type": "number",
+    "fieldType": "calculation_equation",
+    "description": "Propriedade que mede o tempo do negócio na etapa Entrada.",
+    "groupName": "dealinformation",
+    "options": [],
+    "createdUserId": "85369321",
+    "updatedUserId": "85369321",
+    "displayOrder": -1,
+    "calculated": true,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "showCurrencySymbol": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": true
+    },
+    "formField": false,
+    "calculationFormula": "if string(pipeline) equals '827389965' then time_between(hs_v2_date_entered_1225098146, hs_v2_date_exited_1225098146) endif",
+    "dataSensitivity": "non_sensitive"
+  },
+  {
+    "updatedAt": "2025-05-28T18:36:50.847Z",
+    "createdAt": "2025-05-02T12:33:15.023Z",
+    "name": "motivo_da_demanda__c",
+    "label": "Motivo da demanda",
+    "type": "enumeration",
+    "fieldType": "select",
+    "description": "",
+    "groupName": "salesforceinformation",
+    "options": [
+      {
+        "label": "Expansão",
+        "value": "Expansão",
+        "description": "",
+        "displayOrder": 0,
+        "hidden": false
+      },
+      {
+        "label": "Troca de parque",
+        "value": "Troca de parque",
+        "description": "",
+        "displayOrder": 1,
+        "hidden": false
+      },
+      {
+        "label": "Insatisfação com o fornecedor atual",
+        "value": "Insatisfação com o fornecedor atual",
+        "description": "",
+        "displayOrder": 2,
+        "hidden": false
+      }
+    ],
+    "updatedUserId": "62264824",
+    "displayOrder": -1,
+    "calculated": false,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": false
+    },
+    "formField": true,
+    "dataSensitivity": "non_sensitive"
+  },
+  {
+    "updatedAt": "2025-05-28T18:36:50.205Z",
+    "createdAt": "2025-05-02T12:33:13.691Z",
+    "name": "motivo_de_abandono_de_carrinho__c",
+    "label": "Motivo de abandono de carrinho",
+    "type": "enumeration",
+    "fieldType": "select",
+    "description": "",
+    "groupName": "salesforceinformation",
+    "options": [
+      {
+        "label": "Problema no Checkout",
+        "value": "Problema no Checkout",
+        "description": "",
+        "displayOrder": 0,
+        "hidden": false
+      },
+      {
+        "label": "Problema no site (tempo de carregamento)",
+        "value": "Problema no site (tempo de carregamento)",
+        "description": "",
+        "displayOrder": 1,
+        "hidden": false
+      },
+      {
+        "label": "Estornado pelo Gateway (Suspeita de fraude)",
+        "value": "Estornado pelo Gateway (Suspeita de fraude)",
+        "description": "",
+        "displayOrder": 2,
+        "hidden": false
+      },
+      {
+        "label": "Prefere comprar com um consultor",
+        "value": "Prefere comprar com um consultor",
+        "description": "",
+        "displayOrder": 3,
+        "hidden": false
+      },
+      {
+        "label": "Dúvidas sobre produto que não estavam no site",
+        "value": "Dúvidas sobre produto que não estavam no site",
+        "description": "",
+        "displayOrder": 4,
+        "hidden": false
+      },
+      {
+        "label": "Comprou no Marketplace",
+        "value": "Comprou no Marketplace",
+        "description": "",
+        "displayOrder": 5,
+        "hidden": false
+      }
+    ],
+    "updatedUserId": "62264824",
+    "displayOrder": -1,
+    "calculated": false,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": false
+    },
+    "formField": true,
+    "dataSensitivity": "non_sensitive"
+  },
+  {
+    "updatedAt": "2025-09-25T14:24:43.263Z",
+    "createdAt": "2024-06-27T18:41:56.069Z",
+    "name": "motivo_de_perda__atualizado_",
+    "label": "Motivo de perda (atualizado)",
+    "type": "enumeration",
+    "fieldType": "select",
+    "description": "",
+    "groupName": "deal_activity",
+    "options": [
+      {
+        "label": "Profissional Liberal",
+        "value": "Profissional Liberal",
+        "displayOrder": 0,
+        "hidden": false
+      },
+      {
+        "label": "Financeiro",
+        "value": "Financeiro",
+        "displayOrder": 1,
+        "hidden": false
+      },
+      {
+        "label": "Concorrente ",
+        "value": "Concorrente",
+        "displayOrder": 2,
+        "hidden": false
+      },
+      {
+        "label": "Teste",
+        "value": "Teste",
+        "displayOrder": 3,
+        "hidden": false
+      },
+      {
+        "label": "Sem contato",
+        "value": "Sem contato",
+        "displayOrder": 4,
+        "hidden": false
+      },
+      {
+        "label": "Tel Inválido",
+        "value": "Tel Inválido",
+        "displayOrder": 5,
+        "hidden": false
+      },
+      {
+        "label": "Não tem perfil",
+        "value": "Não tem perfil",
+        "displayOrder": 6,
+        "hidden": false
+      },
+      {
+        "label": "Outros Motivos",
+        "value": "Outros Motivos",
+        "displayOrder": 7,
+        "hidden": false
+      },
+      {
+        "label": "Já é Cliente ",
+        "value": "Já é Cliente",
+        "displayOrder": 8,
+        "hidden": false
+      },
+      {
+        "label": "Não tem interesse ",
+        "value": "Não tem interesse",
+        "displayOrder": 9,
+        "hidden": false
+      },
+      {
+        "label": "Não é o momento",
+        "value": "nao_e_o_momento",
+        "description": "",
+        "displayOrder": 10,
+        "hidden": false
+      },
+      {
+        "label": "No-show",
+        "value": "No-show",
+        "description": "",
+        "displayOrder": 11,
+        "hidden": false
+      },
+      {
+        "label": "Geo localização",
+        "value": "Geo localização",
+        "description": "",
+        "displayOrder": 12,
+        "hidden": false
+      },
+      {
+        "label": "Lead Frio( Não está querendo o contato)",
+        "value": "Lead Frio( Não está querendo o contato)",
+        "description": "",
+        "displayOrder": 13,
+        "hidden": false
+      },
+      {
+        "label": "Não é empresário( coordenador, gerente, supervisor)",
+        "value": "Não é empresário( coordenador, gerente, supervisor)",
+        "description": "",
+        "displayOrder": 14,
+        "hidden": false
+      },
+      {
+        "label": "Ainda não abriu empresa",
+        "value": "Ainda não abriu empresa",
+        "description": "",
+        "displayOrder": 15,
+        "hidden": false
+      },
+      {
+        "label": "Abaixo de 30k",
+        "value": "Abaixo de 30k",
+        "description": "",
+        "displayOrder": 16,
+        "hidden": false
+      },
+      {
+        "label": "Legado online",
+        "value": "Legado online",
+        "description": "",
+        "displayOrder": 17,
+        "hidden": false
+      },
+      {
+        "label": "Sem dados",
+        "value": "Sem dados",
+        "description": "",
+        "displayOrder": 18,
+        "hidden": false
+      }
+    ],
+    "createdUserId": "62264824",
+    "updatedUserId": "74190215",
+    "displayOrder": -1,
+    "calculated": false,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": false
+    },
+    "formField": true,
+    "dataSensitivity": "non_sensitive"
+  },
+  {
+    "updatedAt": "2025-05-28T18:36:50.053Z",
+    "createdAt": "2025-05-02T12:33:13.574Z",
+    "name": "motivodeperda__c",
+    "label": "Motivo de perda",
+    "type": "enumeration",
+    "fieldType": "select",
+    "description": "",
+    "groupName": "salesforceinformation",
+    "options": [
+      {
+        "label": "Fechou com concorrente",
+        "value": "Lost to Competitor",
+        "description": "",
+        "displayOrder": 0,
+        "hidden": false
+      },
+      {
+        "label": "Sem Budget",
+        "value": "No Budget / Lost Funding",
+        "description": "",
+        "displayOrder": 1,
+        "hidden": false
+      },
+      {
+        "label": "Não respondeu/parou de responder",
+        "value": "No Decision / Non-Responsive",
+        "description": "",
+        "displayOrder": 2,
+        "hidden": false
+      },
+      {
+        "label": "Preço",
+        "value": "Price",
+        "description": "",
+        "displayOrder": 3,
+        "hidden": false
+      },
+      {
+        "label": "No Show",
+        "value": "No Show",
+        "description": "",
+        "displayOrder": 4,
+        "hidden": false
+      },
+      {
+        "label": "Timing (3 meses)",
+        "value": "Timing (3 meses)",
+        "description": "",
+        "displayOrder": 5,
+        "hidden": false
+      },
+      {
+        "label": "Timing (6 meses)",
+        "value": "Timing (6 meses)",
+        "description": "",
+        "displayOrder": 6,
+        "hidden": false
+      },
+      {
+        "label": "Baixo limite de crédito",
+        "value": "Baixo limite de crédito",
+        "description": "",
+        "displayOrder": 7,
+        "hidden": false
+      },
+      {
+        "label": "Logística",
+        "value": "Logística",
+        "description": "",
+        "displayOrder": 8,
+        "hidden": false
+      },
+      {
+        "label": "Preço (Sulframa, Difal, etc)",
+        "value": "Preço (Sulframa, Difal, etc)",
+        "description": "",
+        "displayOrder": 9,
+        "hidden": false
+      },
+      {
+        "label": "Falta de produto à pronta entrega",
+        "value": "Falta de produto à pronta entrega",
+        "description": "",
+        "displayOrder": 10,
+        "hidden": false
+      },
+      {
+        "label": "Logística / Preço do frete",
+        "value": "Logística / Preço do frete",
+        "description": "",
+        "displayOrder": 11,
+        "hidden": false
+      },
+      {
+        "label": "Comprou no site",
+        "value": "Comprou no site",
+        "description": "",
+        "displayOrder": 12,
+        "hidden": false
+      }
+    ],
+    "updatedUserId": "62264824",
+    "displayOrder": -1,
+    "calculated": false,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": false
+    },
+    "formField": true,
+    "dataSensitivity": "non_sensitive"
+  },
+  {
+    "updatedAt": "2025-05-28T18:36:48.971Z",
+    "createdAt": "2025-05-02T12:33:12.663Z",
+    "name": "por_qual_motivo_escolheu_a_elements__c",
+    "label": "Por qual motivo escolheu a Elements?",
+    "type": "enumeration",
+    "fieldType": "select",
+    "description": "",
+    "groupName": "salesforceinformation",
+    "options": [
+      {
+        "label": "Qualidade dos produtos",
+        "value": "Qualidade dos produtos",
+        "description": "",
+        "displayOrder": 0,
+        "hidden": false
+      },
+      {
+        "label": "Preço",
+        "value": "Preço",
+        "description": "",
+        "displayOrder": 1,
+        "hidden": false
+      },
+      {
+        "label": "Indicação",
+        "value": "Indicação",
+        "description": "",
+        "displayOrder": 2,
+        "hidden": false
+      },
+      {
+        "label": "Reviews positivos",
+        "value": "Reviews positivos",
+        "description": "",
+        "displayOrder": 3,
+        "hidden": false
+      }
+    ],
+    "updatedUserId": "62264824",
+    "displayOrder": -1,
+    "calculated": false,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": false
+    },
+    "formField": true,
+    "dataSensitivity": "non_sensitive"
+  },
+  {
+    "updatedAt": "2025-12-18T17:36:21.739Z",
+    "createdAt": "2025-12-18T17:36:21.739Z",
+    "name": "response_time_1_ligacao",
+    "label": "Response time 1ª ligação",
+    "type": "number",
+    "fieldType": "calculation_equation",
+    "description": "Lead Responde Time",
+    "groupName": "dealinformation",
+    "options": [],
+    "createdUserId": "85369321",
+    "updatedUserId": "85369321",
+    "displayOrder": -1,
+    "calculated": true,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "showCurrencySymbol": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": true
+    },
+    "formField": false,
+    "calculationFormula": "time_between(createdate, datahora_da_1_ligacao)",
+    "dataSensitivity": "non_sensitive"
+  },
+  {
+    "updatedAt": "2024-09-03T12:38:34.929Z",
+    "createdAt": "2024-08-20T12:11:10.956Z",
+    "name": "tempo_de_empresa",
+    "label": "Tempo de empresa",
+    "type": "enumeration",
+    "fieldType": "checkbox",
+    "description": "",
+    "groupName": "dealstages",
+    "options": [
+      {
+        "label": "Até 1 ano ",
+        "value": "Até 1 ano",
+        "displayOrder": 0,
+        "hidden": false
+      },
+      {
+        "label": "Entre 1 e 2 anos ",
+        "value": "Entre 1 e 2 anos",
+        "displayOrder": 1,
+        "hidden": false
+      },
+      {
+        "label": "Entre 2 e 3 anos ",
+        "value": "Entre 2 e 3 anos",
+        "displayOrder": 2,
+        "hidden": false
+      },
+      {
+        "label": "Entre 3 e 4 anos ",
+        "value": "Entre 3 e 4 anos",
+        "displayOrder": 3,
+        "hidden": false
+      },
+      {
+        "label": "Entre 4 e 5 anos ",
+        "value": "Entre 4 e 5 anos",
+        "displayOrder": 4,
+        "hidden": false
+      },
+      {
+        "label": "acima de 5 anos ",
+        "value": "acima de 5 anos",
+        "displayOrder": 5,
+        "hidden": false
+      }
+    ],
+    "createdUserId": "62264824",
+    "updatedUserId": "67223448",
+    "displayOrder": -1,
+    "calculated": false,
+    "externalOptions": false,
+    "archived": false,
+    "hasUniqueValue": false,
+    "hidden": false,
+    "showCurrencySymbol": false,
+    "modificationMetadata": {
+      "archivable": true,
+      "readOnlyDefinition": false,
+      "readOnlyValue": false
+    },
+    "formField": true,
+    "dataSensitivity": "non_sensitive"
+  }
+]

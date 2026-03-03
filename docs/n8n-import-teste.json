@@ -1,0 +1,229 @@
+{
+  "name": "HubSpot Analytics Full (HTTP Only) – Micro + Macro",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 2,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "name": "Cron Daily",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/owners/v2/owners",
+        "method": "GET",
+        "responseFormat": "json",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer SEU_HUBSPOT_PRIVATE_APP_TOKEN"
+            }
+          ]
+        }
+      },
+      "name": "HTTP Owners",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        320,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// MAPEIE AQUI SDR x CLOSER\nconst roleMap = {\n  \"123456\": \"SDR\",\n  \"789012\": \"CLOSER\"\n};\n\nreturn items.map(i => ({\n  json: {\n    owner_id: i.json.id,\n    owner_name: `${i.json.firstName} ${i.json.lastName}`,\n    owner_role: roleMap[i.json.id] || \"UNKNOWN\"\n  }\n}));"
+      },
+      "name": "Normalize Owners",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        540,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/crm/v3/objects/meetings/search",
+        "method": "POST",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "{\n  \"limit\": 100,\n  \"properties\": [\n    \"hs_meeting_start_time\",\n    \"hs_meeting_outcome\",\n    \"hubspot_owner_id\"\n  ]\n}",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer SEU_HUBSPOT_PRIVATE_APP_TOKEN"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "HTTP Meetings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// NORMALIZA REUNIÕES (MICRO)\nreturn items[0].json.results.map(m => ({\n  json: {\n    meeting_id: m.id,\n    owner_id: m.properties.hubspot_owner_id,\n    outcome: m.properties.hs_meeting_outcome,\n    start_time: m.properties.hs_meeting_start_time,\n    created_at: m.createdAt\n  }\n}));"
+      },
+      "name": "Normalize Meetings",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "method": "POST",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "{\n  \"limit\": 100,\n  \"properties\": [\n    \"dealstage\",\n    \"amount\",\n    \"hubspot_owner_id\",\n    \"closedate\"\n  ]\n}",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer SEU_HUBSPOT_PRIVATE_APP_TOKEN"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "HTTP Deals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        320,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// NORMALIZA DEALS (MICRO)\nreturn items[0].json.results.map(d => ({\n  json: {\n    deal_id: d.id,\n    owner_id: d.properties.hubspot_owner_id,\n    stage: d.properties.dealstage,\n    amount: Number(d.properties.amount || 0),\n    closed_at: d.properties.closedate,\n    created_at: d.createdAt\n  }\n}));"
+      },
+      "name": "Normalize Deals",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        540,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// AGREGAÇÃO MACRO (EXEMPLO DIÁRIO)\nconst meetings = $items(\"Normalize Meetings\").map(i => i.json);\nconst deals = $items(\"Normalize Deals\").map(i => i.json);\n\nconst realizadas = meetings.filter(m => m.outcome === 'COMPLETED');\nconst noShow = meetings.filter(m => m.outcome === 'NO_SHOW');\nconst vendas = deals.filter(d => d.stage === 'closedwon');\n\nreturn [{\n  json: {\n    date: new Date().toISOString().split('T')[0],\n    reunioes_agendadas: meetings.length,\n    reunioes_realizadas: realizadas.length,\n    no_show: noShow.length,\n    vendas_total: vendas.length,\n    valor_vendas: vendas.reduce((a,b) => a + b.amount, 0),\n    taxa_no_show: meetings.length ? noShow.length / meetings.length : 0,\n    conversao_reuniao_venda: realizadas.length ? vendas.length / realizadas.length : 0\n  }\n}];"
+      },
+      "name": "Generate KPIs (Macro)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        800,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Cron Daily": {
+      "main": [
+        [
+          {
+            "node": "HTTP Owners",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Meetings",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Owners": {
+      "main": [
+        [
+          {
+            "node": "Normalize Owners",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Meetings": {
+      "main": [
+        [
+          {
+            "node": "Normalize Meetings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Deals": {
+      "main": [
+        [
+          {
+            "node": "Normalize Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Meetings": {
+      "main": [
+        [
+          {
+            "node": "Generate KPIs (Macro)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Deals": {
+      "main": [
+        [
+          {
+            "node": "Generate KPIs (Macro)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

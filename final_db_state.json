@@ -1,0 +1,89 @@
+﻿{
+    "value":  [
+                  {
+                      "date":  "2026-02-27",
+                      "team_member_id":  "d237ca20-81c9-4e77-b877-dcfc8e21d734",
+                      "connections":  6,
+                      "calls":  0,
+                      "meetings_booked":  0,
+                      "meetings_held":  0,
+                      "no_shows":  0,
+                      "created_at":  "2026-02-27T22:28:40.944223+00:00",
+                      "opportunities":  5,
+                      "sales":  0,
+                      "revenue":  0,
+                      "response_time_sum":  43698519,
+                      "response_time_count":  4,
+                      "inbound_count":  5,
+                      "outbound_count":  0,
+                      "dim_team":  {
+                                       "name":  "Sem_Dono",
+                                       "role":  "SDR"
+                                   }
+                  },
+                  {
+                      "date":  "2026-02-27",
+                      "team_member_id":  "772a468b-1b3c-4d72-b291-eddb505b250b",
+                      "connections":  6,
+                      "calls":  0,
+                      "meetings_booked":  0,
+                      "meetings_held":  0,
+                      "no_shows":  0,
+                      "created_at":  "2026-02-27T23:01:29.842445+00:00",
+                      "opportunities":  5,
+                      "sales":  1,
+                      "revenue":  32000,
+                      "response_time_sum":  728.3086500000001,
+                      "response_time_count":  4,
+                      "inbound_count":  5,
+                      "outbound_count":  0,
+                      "dim_team":  {
+                                       "name":  "Vitor Hills",
+                                       "role":  "SDR"
+                                   }
+                  },
+                  {
+                      "date":  "2026-02-27",
+                      "team_member_id":  "f316187d-9b4c-4254-9cc9-423b5a8d4fba",
+                      "connections":  0,
+                      "calls":  0,
+                      "meetings_booked":  0,
+                      "meetings_held":  0,
+                      "no_shows":  0,
+                      "created_at":  "2026-02-27T22:28:40.944223+00:00",
+                      "opportunities":  7,
+                      "sales":  1,
+                      "revenue":  32000,
+                      "response_time_sum":  1023.43025,
+                      "response_time_count":  4,
+                      "inbound_count":  5,
+                      "outbound_count":  2,
+                      "dim_team":  {
+                                       "name":  "Isaque Inacio",
+                                       "role":  "SDR"
+                                   }
+                  },
+                  {
+                      "date":  "2026-02-27",
+                      "team_member_id":  "f4375d9b-1f22-43e9-9d95-81a5f39743be",
+                      "connections":  1,
+                      "calls":  0,
+                      "meetings_booked":  0,
+                      "meetings_held":  0,
+                      "no_shows":  0,
+                      "created_at":  "2026-02-27T22:28:40.944223+00:00",
+                      "opportunities":  6,
+                      "sales":  0,
+                      "revenue":  0,
+                      "response_time_sum":  84.41721666666666,
+                      "response_time_count":  3,
+                      "inbound_count":  5,
+                      "outbound_count":  1,
+                      "dim_team":  {
+                                       "name":  "Luan Silva",
+                                       "role":  "SDR"
+                                   }
+                  }
+              ],
+    "Count":  4
+}

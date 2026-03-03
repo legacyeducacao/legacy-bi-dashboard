@@ -57,6 +57,10 @@ export interface MarketingChannelStats {
   revenue: number;
   roas: number;
   cac: number;
+  impressions: number;
+  clicks: number;
+  cpm: number;
+  ctr: number;
 }
 
 export interface MarketingCampaignStats {

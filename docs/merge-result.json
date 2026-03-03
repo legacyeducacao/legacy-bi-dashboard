@@ -1,0 +1,2325 @@
+[
+  {
+    "completedAt": "2026-02-27T23:06:39.642Z",
+    "status": "COMPLETE",
+    "startedAt": "2026-02-27T23:06:39.609Z",
+    "results": [
+      {
+        "id": "57105476972",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T21:21:11.458Z",
+          "dealname": "Nitrofort Produtos Quimicos",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:48:35.540Z",
+          "hs_object_id": "57105476972",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "989520"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T21:21:11.458Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350135670545;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T21:21:11.458Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350135670545;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T21:21:11.458Z",
+        "updatedAt": "2026-02-27T18:48:35.540Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57105476972"
+      },
+      {
+        "id": "57030589308",
+        "properties": {
+          "amount": null,
+          "createdate": "2026-02-26T12:23:20.280Z",
+          "dealname": "Jovdn pro",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:55:01.021Z",
+          "hs_object_id": "57030589308",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "3964491"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T13:35:00.322Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T12:23:20.280Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85616302",
+              "updatedByUserId": 85616302
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T13:17:47.086Z",
+              "sourceType": "CRM_UI_BULK_ACTION",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T12:23:20.280Z",
+        "updatedAt": "2026-02-27T18:55:01.021Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57030589308"
+      },
+      {
+        "id": "57217467419",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T20:36:44.713Z",
+          "dealname": "CVRD",
+          "dealstage": "1225098149",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:02:40.309Z",
+          "hs_object_id": "57217467419",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "1266119"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-27T20:56:06.949Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-27T20:41:55.114Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T20:36:44.713Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352390634309;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-27T20:36:44.713Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352390634309;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T20:36:44.713Z",
+        "updatedAt": "2026-02-27T21:02:40.309Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57217467419"
+      },
+      {
+        "id": "57029902494",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T02:16:23.874Z",
+          "dealname": "Doceria & Buffet Dois Amores",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:50:04.153Z",
+          "hs_object_id": "57029902494",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "38825355"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T13:07:25.820Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T02:16:23.874Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347962257779;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T12:36:38.467Z",
+              "sourceType": "CRM_UI_BULK_ACTION",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            },
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T02:16:23.874Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347962257779;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T02:16:23.874Z",
+        "updatedAt": "2026-02-27T18:50:04.153Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57029902494"
+      },
+      {
+        "id": "57002145835",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T03:47:27.684Z",
+          "dealname": "Ems empreiteira ltda me ",
+          "dealstage": "1239126390",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T21:03:33.786Z",
+          "hs_object_id": "57002145835",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "31095457"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1239126390",
+              "timestamp": "2026-02-25T17:02:34.959Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098148",
+              "timestamp": "2026-02-25T14:04:22.108Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-25T13:59:15.522Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346889689764;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-25T12:25:27.591Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T03:47:27.684Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2345354320899;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-25T03:47:27.684Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2345354320899;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T03:47:27.684Z",
+        "updatedAt": "2026-02-27T21:03:33.786Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57002145835"
+      },
+      {
+        "id": "57219327626",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T22:47:56.553Z",
+          "dealname": "Obra certa construtora",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T22:49:03.931Z",
+          "hs_object_id": "57219327626",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T22:47:56.553Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352598790774;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-27T22:47:56.553Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352598790774;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T22:47:56.553Z",
+        "updatedAt": "2026-02-27T22:49:03.931Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57219327626"
+      },
+      {
+        "id": "57078771616",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T11:04:48.036Z",
+          "dealname": "Vidrocor",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:48:36.385Z",
+          "hs_object_id": "57078771616",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "1806869"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T11:04:48.036Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349164971147;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T11:04:48.036Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349164971147;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T11:04:48.036Z",
+        "updatedAt": "2026-02-27T18:48:36.385Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57078771616"
+      },
+      {
+        "id": "57212609405",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T19:48:22.242Z",
+          "dealname": "Concretiza",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:28.940Z",
+          "hs_object_id": "57212609405",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "1673392"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T19:48:22.242Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352374779546;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-27T19:48:22.242Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352374779546;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T19:48:22.242Z",
+        "updatedAt": "2026-02-27T21:03:28.940Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57212609405"
+      },
+      {
+        "id": "57078922915",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T10:33:04.618Z",
+          "dealname": "ALS",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T19:01:21.424Z",
+          "hs_object_id": "57078922915",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "6124180"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T14:34:59.698Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T10:33:04.618Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349156379194;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T12:12:07.618Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            },
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T10:33:04.618Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349156379194;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T10:33:04.618Z",
+        "updatedAt": "2026-02-27T19:01:21.424Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57078922915"
+      },
+      {
+        "id": "56999665835",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T04:13:10.559Z",
+          "dealname": "Forttech ",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T21:03:30.283Z",
+          "hs_object_id": "56999665835",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "29047889"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-25T12:20:15.191Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T04:13:10.559Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2345314854212;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-25T04:13:10.559Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2345314854212;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T04:13:10.559Z",
+        "updatedAt": "2026-02-27T21:03:30.283Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/56999665835"
+      },
+      {
+        "id": "57136208640",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T12:53:28.648Z",
+          "dealname": "Galaxy Marmoraria",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:02:38.598Z",
+          "hs_object_id": "57136208640",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "217863"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-27T12:55:57.466Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T12:53:28.648Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2351881852794;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-27T12:53:28.648Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2351881852794;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T12:53:28.648Z",
+        "updatedAt": "2026-02-27T21:02:38.598Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57136208640"
+      },
+      {
+        "id": "57013128354",
+        "properties": {
+          "amount": "27000",
+          "createdate": "2026-02-25T10:25:45.062Z",
+          "dealname": "Franquia Kumon ",
+          "dealstage": "1225098152",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:38.987Z",
+          "hs_object_id": "57013128354",
+          "hubspot_owner_id": "78938498",
+          "response_time_1_ligacao": "6694236"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098152",
+              "timestamp": "2026-02-26T17:46:36.978Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:78938498",
+              "updatedByUserId": 78938498
+            },
+            {
+              "value": "1225098150",
+              "timestamp": "2026-02-26T16:48:43.318Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349596090543;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-25T18:06:51.812Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-25T12:17:05.622Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T10:25:45.062Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346069067696;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "78938498",
+              "timestamp": "2026-02-26T16:49:00.649Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349596090543;actionExecutionIndex:1"
+            },
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-25T10:25:45.062Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346069067696;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T10:25:45.062Z",
+        "updatedAt": "2026-02-27T21:03:38.987Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57013128354"
+      },
+      {
+        "id": "57144970555",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T00:11:48.691Z",
+          "dealname": "Ferrazcar veiculos",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T13:38:03.835Z",
+          "hs_object_id": "57144970555",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "48064609"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T00:11:48.691Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350258064540;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-27T00:11:48.691Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350258064540;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T00:11:48.691Z",
+        "updatedAt": "2026-02-27T13:38:03.835Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57144970555"
+      },
+      {
+        "id": "57093640871",
+        "properties": {
+          "amount": null,
+          "createdate": "2026-02-27T11:59:15.690Z",
+          "dealname": "Mercado da Vila Jardim São Paulo",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:37.874Z",
+          "hs_object_id": "57093640871",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "2317307"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T11:59:15.690Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85616302",
+              "updatedByUserId": 85616302
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-27T12:14:23.318Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T11:59:15.690Z",
+        "updatedAt": "2026-02-27T21:03:37.874Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57093640871"
+      },
+      {
+        "id": "57050089856",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T12:34:55.934Z",
+          "dealname": "empresario",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:57:45.216Z",
+          "hs_object_id": "57050089856",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "1805586"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T13:09:43.531Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T12:34:55.934Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349402590807;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T12:36:22.443Z",
+              "sourceType": "CRM_UI_BULK_ACTION",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            },
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T12:34:55.934Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349402590807;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T12:34:55.934Z",
+        "updatedAt": "2026-02-27T18:57:45.216Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57050089856"
+      },
+      {
+        "id": "57145056938",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T19:42:49.234Z",
+          "dealname": ".. infomo no whats",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:02:39.805Z",
+          "hs_object_id": "57145056938",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "376124"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T19:42:49.234Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352463107415;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-27T19:42:49.234Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352463107415;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T19:42:49.234Z",
+        "updatedAt": "2026-02-27T21:02:39.805Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57145056938"
+      },
+      {
+        "id": "57071287733",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T08:07:53.953Z",
+          "dealname": "MBA terraplanagem",
+          "dealstage": "1225098149",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T22:46:00.600Z",
+          "hs_object_id": "57071287733",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "22301660"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-27T14:09:28.098Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1239126390",
+              "timestamp": "2026-02-27T13:15:15.788Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2351824238851;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-26T15:01:51.425Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098148",
+              "timestamp": "2026-02-26T15:01:48.183Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T14:43:40.491Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T08:07:53.953Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348517708959;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T08:07:53.953Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348517708959;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T08:07:53.953Z",
+        "updatedAt": "2026-02-27T22:46:00.600Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57071287733"
+      },
+      {
+        "id": "57188316734",
+        "properties": {
+          "amount": null,
+          "createdate": "2026-02-27T12:02:20.893Z",
+          "dealname": "Apcastrobrindes.com.br",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:22.215Z",
+          "hs_object_id": "57188316734",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "2127775"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-27T12:31:15.049Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T12:02:20.893Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85616302",
+              "updatedByUserId": 85616302
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-27T12:14:12.676Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T12:02:20.893Z",
+        "updatedAt": "2026-02-27T21:03:22.215Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57188316734"
+      },
+      {
+        "id": "57119515668",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T17:00:12.673Z",
+          "dealname": "Void",
+          "dealstage": "1226813477",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T14:17:30.301Z",
+          "hs_object_id": "57119515668",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1226813477",
+              "timestamp": "2026-02-27T14:17:24.049Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T17:00:12.673Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349714519128;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T17:00:12.673Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349714519128;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T17:00:12.673Z",
+        "updatedAt": "2026-02-27T14:17:30.301Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57119515668"
+      },
+      {
+        "id": "57129327791",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T23:13:28.816Z",
+          "dealname": "MarmorariaCavalcante.",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:55:48.951Z",
+          "hs_object_id": "57129327791",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "46009890"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-27T12:02:30.101Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T23:13:28.816Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350069493283;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T23:13:28.816Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350069493283;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T23:13:28.816Z",
+        "updatedAt": "2026-02-27T18:55:48.951Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57129327791"
+      },
+      {
+        "id": "57030589293",
+        "properties": {
+          "amount": null,
+          "createdate": "2026-02-26T12:22:12.106Z",
+          "dealname": "King acabamentos ltda",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:56:12.415Z",
+          "hs_object_id": "57030589293",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "4443898"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T13:37:36.379Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T12:22:12.106Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85616302",
+              "updatedByUserId": 85616302
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T12:32:41.439Z",
+              "sourceType": "CRM_UI_BULK_ACTION",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T12:22:12.106Z",
+        "updatedAt": "2026-02-27T18:56:12.415Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57030589293"
+      },
+      {
+        "id": "57153084208",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T01:01:20.097Z",
+          "dealname": "Distribuidora GAM",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T19:03:51.759Z",
+          "hs_object_id": "57153084208",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "40086762"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-27T12:05:16.986Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T01:01:20.097Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350367604524;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-27T01:01:20.097Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350367604524;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T01:01:20.097Z",
+        "updatedAt": "2026-02-27T19:03:51.759Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57153084208"
+      },
+      {
+        "id": "57138640937",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T01:27:17.296Z",
+          "dealname": "Ribeiro construções",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T20:32:52.193Z",
+          "hs_object_id": "57138640937",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-27T18:58:16.551Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T01:27:17.296Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350387563336;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-27T01:27:17.296Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350387563336;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T01:27:17.296Z",
+        "updatedAt": "2026-02-27T20:32:52.193Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57138640937"
+      },
+      {
+        "id": "57058387833",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T22:51:54.691Z",
+          "dealname": "Mundo dos cabeçotes",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T22:01:06.136Z",
+          "hs_object_id": "57058387833",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T00:32:59.023Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T22:51:54.691Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347823206781;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-25T22:51:54.691Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347823206781;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T22:51:54.691Z",
+        "updatedAt": "2026-02-27T22:01:06.136Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57058387833"
+      },
+      {
+        "id": "57033003154",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T23:29:16.409Z",
+          "dealname": "Consórcio Embracon",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:02:41.718Z",
+          "hs_object_id": "57033003154",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "47520009"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T12:42:14.830Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T23:29:16.409Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347868605093;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-25T23:29:16.409Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347868605093;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T23:29:16.409Z",
+        "updatedAt": "2026-02-27T18:02:41.718Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57033003154"
+      },
+      {
+        "id": "57093641028",
+        "properties": {
+          "amount": null,
+          "createdate": "2026-02-27T12:05:11.683Z",
+          "dealname": "Splash piscinas",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:29.403Z",
+          "hs_object_id": "57093641028",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "2918072"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T12:05:11.683Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85616302",
+              "updatedByUserId": 85616302
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-27T12:14:02.368Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T12:05:11.683Z",
+        "updatedAt": "2026-02-27T21:03:29.403Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57093641028"
+      },
+      {
+        "id": "57174937456",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T09:30:22.003Z",
+          "dealname": "Bigcompra supermercado",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:25.934Z",
+          "hs_object_id": "57174937456",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T09:30:22.003Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2351235049562;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-27T09:30:22.003Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2351235049562;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T09:30:22.003Z",
+        "updatedAt": "2026-02-27T21:03:25.934Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57174937456"
+      },
+      {
+        "id": "57039283295",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T12:17:56.537Z",
+          "dealname": "Attuale Brindes",
+          "dealstage": "1226813477",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T14:32:41.623Z",
+          "hs_object_id": "57039283295",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "3192085"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1226813477",
+              "timestamp": "2026-02-27T14:32:28.954Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098148",
+              "timestamp": "2026-02-26T13:32:16.134Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T13:32:06.305Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T12:17:56.537Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349185747513;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T12:17:56.537Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349185747513;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T12:17:56.537Z",
+        "updatedAt": "2026-02-27T14:32:41.623Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57039283295"
+      },
+      {
+        "id": "57028067997",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T21:23:00.738Z",
+          "dealname": "Engcosta",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T14:54:54.759Z",
+          "hs_object_id": "57028067997",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "1514521"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T21:23:00.738Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347468367713;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-25T21:23:00.738Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347468367713;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T21:23:00.738Z",
+        "updatedAt": "2026-02-27T14:54:54.759Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57028067997"
+      },
+      {
+        "id": "57016902529",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T11:24:32.301Z",
+          "dealname": "BMA.DETAILER",
+          "dealstage": "1226813477",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T21:03:34.427Z",
+          "hs_object_id": "57016902529",
+          "hubspot_owner_id": "78938498",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1226813477",
+              "timestamp": "2026-02-26T17:22:36.985Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:78938498",
+              "updatedByUserId": 78938498
+            },
+            {
+              "value": "1225098150",
+              "timestamp": "2026-02-25T18:28:28.742Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347208211750;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-25T16:21:58.202Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098148",
+              "timestamp": "2026-02-25T16:20:15.645Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-25T15:07:41.919Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346804726828;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-25T13:56:24.692Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T11:24:32.301Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346598890321;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "78938498",
+              "timestamp": "2026-02-25T18:28:30.255Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347208211750;actionExecutionIndex:1"
+            },
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-25T11:24:32.301Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346598890321;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T11:24:32.301Z",
+        "updatedAt": "2026-02-27T21:03:34.427Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57016902529"
+      },
+      {
+        "id": "57038964065",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T10:26:25.427Z",
+          "dealname": "Maristher",
+          "dealstage": "1225098149",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:04:27.560Z",
+          "hs_object_id": "57038964065",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "42769501"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-26T22:19:39.978Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098148",
+              "timestamp": "2026-02-26T22:19:36.970Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T22:19:26.924Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T10:26:25.427Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349142498445;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T10:26:25.427Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349142498445;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T10:26:25.427Z",
+        "updatedAt": "2026-02-27T21:04:27.560Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57038964065"
+      },
+      {
+        "id": "57152463702",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T00:26:35.196Z",
+          "dealname": "Ilumiverde Soluções em Iluminação",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T21:46:06.930Z",
+          "hs_object_id": "57152463702",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T00:26:35.196Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350355146356;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-27T00:26:35.196Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350355146356;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T00:26:35.196Z",
+        "updatedAt": "2026-02-27T21:46:06.930Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57152463702"
+      },
+      {
+        "id": "57161670708",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T23:32:08.220Z",
+          "dealname": "Storil",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:55:51.860Z",
+          "hs_object_id": "57161670708",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T23:32:08.220Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350206641708;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T23:32:08.220Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350206641708;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T23:32:08.220Z",
+        "updatedAt": "2026-02-27T18:55:51.860Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57161670708"
+      },
+      {
+        "id": "57031311919",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T03:50:32.205Z",
+          "dealname": "Rikkoburguer",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:48:20.120Z",
+          "hs_object_id": "57031311919",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "30539538"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T03:50:32.205Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348141347479;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T03:50:32.205Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348141347479;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T03:50:32.205Z",
+        "updatedAt": "2026-02-27T18:48:20.120Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57031311919"
+      },
+      {
+        "id": "57138640689",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T01:20:14.951Z",
+          "dealname": "Skcontabil",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T19:19:31.372Z",
+          "hs_object_id": "57138640689",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-27T13:46:07.244Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T01:20:14.951Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350389253722;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-27T01:20:14.951Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350389253722;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T01:20:14.951Z",
+        "updatedAt": "2026-02-27T19:19:31.372Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57138640689"
+      },
+      {
+        "id": "57198100844",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T22:38:26.905Z",
+          "dealname": "Vpo servicos aduaneiro",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T22:39:33.185Z",
+          "hs_object_id": "57198100844",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T22:38:26.905Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352680130969;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-27T22:38:26.905Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352680130969;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T22:38:26.905Z",
+        "updatedAt": "2026-02-27T22:39:33.185Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57198100844"
+      },
+      {
+        "id": "57105459021",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T17:57:06.452Z",
+          "dealname": "PAIM LTDA teste",
+          "dealstage": "1226813477",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-26T21:02:23.294Z",
+          "hs_object_id": "57105459021",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1226813477",
+              "timestamp": "2026-02-26T18:00:42.871Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T17:57:06.452Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349770387004;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T17:57:06.452Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349770387004;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T17:57:06.452Z",
+        "updatedAt": "2026-02-26T21:02:23.294Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57105459021"
+      },
+      {
+        "id": "57113108845",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T19:22:44.623Z",
+          "dealname": "Arm manutenção Ferro e aço",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T18:01:55.600Z",
+          "hs_object_id": "57113108845",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "1647338"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T19:53:12.583Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T19:22:44.623Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349820981838;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T19:22:44.623Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349820981838;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T19:22:44.623Z",
+        "updatedAt": "2026-02-27T18:01:55.600Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57113108845"
+      },
+      {
+        "id": "57188316758",
+        "properties": {
+          "amount": null,
+          "createdate": "2026-02-27T12:03:58.609Z",
+          "dealname": "pizzaria dom lucas",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:02:12.921Z",
+          "hs_object_id": "57188316758",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "2371602"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T12:03:58.609Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85616302",
+              "updatedByUserId": 85616302
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-27T12:14:07.176Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T12:03:58.609Z",
+        "updatedAt": "2026-02-27T21:02:12.921Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57188316758"
+      },
+      {
+        "id": "56992689500",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T12:21:10.244Z",
+          "dealname": "Faros Lanches",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T22:01:42.033Z",
+          "hs_object_id": "56992689500",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "4451063"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-25T13:39:23.648Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T12:21:10.244Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346662726798;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-25T12:21:10.244Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346662726798;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T12:21:10.244Z",
+        "updatedAt": "2026-02-27T22:01:42.033Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/56992689500"
+      },
+      {
+        "id": "56996766001",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T10:00:35.567Z",
+          "dealname": "Tabacaria império ",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T21:03:28.955Z",
+          "hs_object_id": "56996766001",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "15016971"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-25T14:12:49.642Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T10:00:35.567Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346131841707;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-25T10:00:35.567Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346131841707;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T10:00:35.567Z",
+        "updatedAt": "2026-02-27T21:03:28.955Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/56996766001"
+      },
+      {
+        "id": "57026259224",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T16:46:19.129Z",
+          "dealname": "Josene Paz",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:33.613Z",
+          "hs_object_id": "57026259224",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "533844"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-25T16:53:19.460Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T16:46:19.129Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347133788249;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-25T16:46:19.129Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347133788249;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T16:46:19.129Z",
+        "updatedAt": "2026-02-27T21:03:33.613Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57026259224"
+      },
+      {
+        "id": "57142859794",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T15:02:30.760Z",
+          "dealname": "Induspol",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T21:03:33.495Z",
+          "hs_object_id": "57142859794",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T15:02:30.760Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352040733282;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-27T15:02:30.760Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352040733282;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T15:02:30.760Z",
+        "updatedAt": "2026-02-27T21:03:33.495Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57142859794"
+      },
+      {
+        "id": "57046687355",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T00:25:06.493Z",
+          "dealname": "Alan",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T18:50:34.152Z",
+          "hs_object_id": "57046687355",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T00:25:06.493Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347900394771;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T00:25:06.493Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347900394771;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T00:25:06.493Z",
+        "updatedAt": "2026-02-27T18:50:34.152Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57046687355"
+      },
+      {
+        "id": "57174792825",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-27T10:55:09.125Z",
+          "dealname": "Climar - Climatização Automotiva",
+          "dealstage": "1225098146",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:03:37.860Z",
+          "hs_object_id": "57174792825",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": "8749742"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-27T10:55:09.125Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2351726592778;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-27T10:55:09.125Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2351726592778;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-27T10:55:09.125Z",
+        "updatedAt": "2026-02-27T21:03:37.860Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57174792825"
+      },
+      {
+        "id": "57041075979",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T09:56:24.794Z",
+          "dealname": "Valoriza Brindes",
+          "dealstage": "1225098147",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T19:00:03.089Z",
+          "hs_object_id": "57041075979",
+          "hubspot_owner_id": "85822345",
+          "response_time_1_ligacao": "7761193"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T12:12:58.281Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T09:56:24.794Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348842632290;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T09:56:24.794Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348842632290;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T09:56:24.794Z",
+        "updatedAt": "2026-02-27T19:00:03.089Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57041075979"
+      },
+      {
+        "id": "57027755811",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T20:46:05.485Z",
+          "dealname": "Tempero da Casa",
+          "dealstage": "1226813477",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T13:59:40.904Z",
+          "hs_object_id": "57027755811",
+          "hubspot_owner_id": "86857769",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1226813477",
+              "timestamp": "2026-02-27T13:59:36.078Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T20:46:05.485Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347433940491;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-25T21:53:18.776Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            },
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-25T20:46:05.485Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2347433940491;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T20:46:05.485Z",
+        "updatedAt": "2026-02-27T13:59:40.904Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57027755811"
+      },
+      {
+        "id": "57032086367",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T03:49:55.018Z",
+          "dealname": "Sulprev",
+          "dealstage": "1225098150",
+          "hs_analytics_source": "OFFLINE",
+          "hs_lastmodifieddate": "2026-02-27T21:39:40.853Z",
+          "hs_object_id": "57032086367",
+          "hubspot_owner_id": "78938498",
+          "response_time_1_ligacao": null
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098150",
+              "timestamp": "2026-02-27T20:38:44.975Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352491226679;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-26T23:11:35.609Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098148",
+              "timestamp": "2026-02-26T23:11:05.250Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-26T23:10:38.840Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2350214878529;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T12:19:06.862Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:86857769",
+              "updatedByUserId": 86857769
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T03:49:55.018Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348141339705;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "78938498",
+              "timestamp": "2026-02-27T20:38:54.365Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352491226679;actionExecutionIndex:1"
+            },
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T12:39:50.484Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-26T12:32:41.439Z",
+              "sourceType": "CRM_UI_BULK_ACTION",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            },
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T11:58:29.018Z",
+              "sourceType": "CRM_UI_BULK_ACTION",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            },
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T03:49:55.018Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348141339705;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T03:49:55.018Z",
+        "updatedAt": "2026-02-27T21:39:40.853Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57032086367"
+      },
+      {
+        "id": "57011750912",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-25T12:06:24.290Z",
+          "dealname": "Ecomais Supermercado",
+          "dealstage": "1225098150",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:02:40.463Z",
+          "hs_object_id": "57011750912",
+          "hubspot_owner_id": "78938498",
+          "response_time_1_ligacao": "3694707"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1225098150",
+              "timestamp": "2026-02-26T12:07:44.895Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349203954253;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-25T13:20:58.103Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:85822345",
+              "updatedByUserId": 85822345
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-25T12:06:24.290Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346644617350;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "78938498",
+              "timestamp": "2026-02-26T12:07:46.805Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349203954253;actionExecutionIndex:1"
+            },
+            {
+              "value": "85822345",
+              "timestamp": "2026-02-25T12:06:24.290Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2346644617350;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-25T12:06:24.290Z",
+        "updatedAt": "2026-02-27T21:02:40.463Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57011750912"
+      },
+      {
+        "id": "57070677355",
+        "properties": {
+          "amount": "32000.00",
+          "createdate": "2026-02-26T09:25:55.719Z",
+          "dealname": "capital da goiaba",
+          "dealstage": "1239126390",
+          "hs_analytics_source": "PAID_SOCIAL",
+          "hs_lastmodifieddate": "2026-02-27T21:02:41.352Z",
+          "hs_object_id": "57070677355",
+          "hubspot_owner_id": "2011790555",
+          "response_time_1_ligacao": "17000297"
+        },
+        "propertiesWithHistory": {
+          "dealstage": [
+            {
+              "value": "1239126390",
+              "timestamp": "2026-02-27T17:30:08.922Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2352318413861;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-26T15:03:41.545Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098148",
+              "timestamp": "2026-02-26T15:02:51.710Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098149",
+              "timestamp": "2026-02-26T14:42:38.502Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2349538933524;actionExecutionIndex:0"
+            },
+            {
+              "value": "1225098147",
+              "timestamp": "2026-02-26T14:30:41.138Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "1225098146",
+              "timestamp": "2026-02-26T09:25:55.719Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348691392055;actionExecutionIndex:1"
+            }
+          ],
+          "hubspot_owner_id": [
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T14:27:46.929Z",
+              "sourceType": "CRM_UI",
+              "sourceId": "userId:69864695",
+              "updatedByUserId": 69864695
+            },
+            {
+              "value": "86857769",
+              "timestamp": "2026-02-26T12:36:22.443Z",
+              "sourceType": "CRM_UI_BULK_ACTION",
+              "sourceId": "userId:85369321",
+              "updatedByUserId": 85369321
+            },
+            {
+              "value": "2011790555",
+              "timestamp": "2026-02-26T09:25:55.719Z",
+              "sourceType": "AUTOMATION_PLATFORM",
+              "sourceId": "enrollmentId:2348691392055;actionExecutionIndex:1"
+            }
+          ]
+        },
+        "createdAt": "2026-02-26T09:25:55.719Z",
+        "updatedAt": "2026-02-27T21:02:41.352Z",
+        "archived": false,
+        "url": "https://app.hubspot.com/contacts/45614141/record/0-3/57070677355"
+      }
+    ]
+  }
+]

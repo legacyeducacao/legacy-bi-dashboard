@@ -43,10 +43,6 @@ import RankingWidget from './components/RankingWidget';
 import Whiteboard from './components/Whiteboard';
 import FilterBar from './components/FilterBar';
 import { SkeletonMetricCard, SkeletonChart, SkeletonTable, SkeletonRankingWidget, SkeletonAnalysis, Skeleton } from './components/SkeletonLoader';
-import {
-  KPI_METRICS, MOCK_CONTEXT, FUNNEL_DATA, DAILY_TRENDS, SDR_DATA, CLOSER_DATA,
-  LEAD_SOURCES, MARKETING_CHANNELS_DATA, MARKETING_PRODUCTS_DATA
-} from './services/mockData';
 import { fetchDashboardData, DashboardData, uploadMarketingSector, uploadCommercialSector, uploadGoalsSector, triggerMetaAdsAutomation, updateKPIGoals } from './services/api';
 import { formatValue, calculatePace } from './utils/calculations';
 import { parseCSV } from './utils/csvParser';
@@ -90,14 +86,15 @@ const App: React.FC = () => {
   // Data State
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<DashboardData>({
-    kpis: KPI_METRICS,
-    dailyTrends: DAILY_TRENDS,
-    sdrData: SDR_DATA,
-    closerData: CLOSER_DATA,
-    channels: MARKETING_CHANNELS_DATA,
-    products: MARKETING_PRODUCTS_DATA,
-    context: MOCK_CONTEXT,
-    funnelData: FUNNEL_DATA,
+    kpis: {},
+    dailyTrends: [],
+    sdrData: [],
+    closerData: [],
+    channels: [],
+    products: [],
+    context: { currentDay: 1, totalDays: 30 },
+    funnelData: [],
+    rawMarketingData: [],
     lastUpdated: new Date()
   });
 
@@ -246,7 +243,7 @@ const App: React.FC = () => {
       closers: data.closerData.map(c => ({ id: c.id, name: c.name })),
       channels: data.channels.map(c => c.channel),
       products: data.products.map(p => p.product),
-      sources: LEAD_SOURCES.map(s => s.name),
+      sources: [], // Or derive from another dimension if we build one
     };
   }, [data]);
 
@@ -278,13 +275,91 @@ const App: React.FC = () => {
   // --- FILTER IMPLEMENTATION ---
 
   // 1. Filtered Lists (Entities)
+  // Helper: filter raw team activities by period
+  const filteredRawTeam = useMemo(() => {
+    const raw = data.rawTeamData || [];
+    if (filters.period === 'today') {
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      return raw.filter((r: any) => r.date === todayStr);
+    }
+    if (filters.period === 'this_month') {
+      const now = new Date();
+      const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      return raw.filter((r: any) => r.date >= startOfMonth);
+    }
+    if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
+      return raw.filter((r: any) => r.date >= filters.customStartDate && r.date <= filters.customEndDate);
+    }
+    // For 7d, 15d, 30d
+    let days = 30;
+    if (filters.period === '7d') days = 7;
+    else if (filters.period === '15d') days = 15;
+
+    const now = new Date();
+    now.setDate(now.getDate() - days);
+    const cutoff = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return raw.filter((r: any) => r.date >= cutoff);
+  }, [data.rawTeamData, filters.period, filters.customStartDate, filters.customEndDate]);
+
+  // 1. Filtered Lists (Entities)
   const filteredSDRs = useMemo(() => {
-    return data.sdrData.filter(s => filters.sdrId === 'all' || s.id === filters.sdrId);
-  }, [data.sdrData, filters.sdrId]);
+    const teamMap = new Map<string, any>();
+    filteredRawTeam.forEach((r: any) => {
+      const repName = r.dim_team?.name || r.rep_name || 'Sem_Dono';
+      const role = r.dim_team?.role || r.role || 'SDR';
+      if (!teamMap.has(repName)) {
+        teamMap.set(repName, { id: repName.replace(/\s+/g, ''), name: repName, role, opportunities: 0, connections: 0, meetingsBooked: 0, meetingsHeld: 0, no_shows: 0, responseTimeSum: 0, responseTimeCount: 0 });
+      }
+      const t = teamMap.get(repName);
+      t.opportunities += Number(r.opportunities) || 0;
+      t.connections += Number(r.connections) || 0;
+      t.meetingsBooked += Number(r.meetings_booked) || 0;
+      t.meetingsHeld += Number(r.meetings_held) || 0;
+      t.no_shows += Number(r.no_shows) || 0;
+      t.responseTimeSum += Number(r.response_time_sum) || 0;
+      t.responseTimeCount += Number(r.response_time_count) || 0;
+    });
+
+    const arr = Array.from(teamMap.values())
+      .filter((r: any) => {
+        const nm = String(r.name).toUpperCase();
+        return nm !== 'SISTEMA_APOIO' && nm !== 'SISTEMA APOIO' && String(r.role).toUpperCase() === 'SDR';
+      })
+      .map((r: any) => ({
+        id: r.id, name: r.name, role: 'SDR' as const, opportunities: r.opportunities, connections: r.connections, meetingsBooked: r.meetingsBooked, meetingsHeld: r.meetingsHeld, noShowCount: r.no_shows || Math.max(0, r.meetingsBooked - r.meetingsHeld), responseTime: r.responseTimeCount > 0 ? (r.responseTimeSum / r.responseTimeCount) : 0
+      }));
+
+    return arr.filter(s => filters.sdrId === 'all' || s.id === filters.sdrId);
+  }, [filteredRawTeam, filters.sdrId]);
 
   const filteredClosers = useMemo(() => {
-    return data.closerData.filter(c => filters.closerId === 'all' || c.id === filters.closerId);
-  }, [data.closerData, filters.closerId]);
+    const teamMap = new Map<string, any>();
+    filteredRawTeam.forEach((r: any) => {
+      const repName = r.dim_team?.name || r.rep_name || 'Sem_Dono';
+      const role = r.dim_team?.role || r.role || 'SDR';
+      if (!teamMap.has(repName)) {
+        teamMap.set(repName, { id: repName.replace(/\s+/g, ''), name: repName, role, sales: 0, revenue: 0, meetingsBooked: 0, meetingsHeld: 0, no_shows: 0 });
+      }
+      const t = teamMap.get(repName);
+      t.sales += Number(r.sales) || 0;
+      t.revenue += Number(r.revenue) || 0;
+      t.meetingsBooked += Number(r.meetings_booked) || 0;
+      t.meetingsHeld += Number(r.meetings_held) || 0;
+      t.no_shows += Number(r.no_shows) || 0;
+    });
+
+    const arr = Array.from(teamMap.values())
+      .filter((r: any) => {
+        const nm = String(r.name).toUpperCase();
+        return nm !== 'SISTEMA_APOIO' && nm !== 'SISTEMA APOIO' && String(r.role).toUpperCase() === 'CLOSER';
+      })
+      .map((r: any) => ({
+        id: r.id, name: r.name, role: 'Closer' as const, sales: r.sales, revenue: r.revenue, meetingsBooked: r.meetingsBooked, meetingsHeld: r.meetingsHeld, noShowCount: r.no_shows || Math.max(0, r.meetingsBooked - r.meetingsHeld)
+      }));
+
+    return arr.filter(c => filters.closerId === 'all' || c.id === filters.closerId);
+  }, [filteredRawTeam, filters.closerId]);
 
   // Helper: aplica o mesmo filtro de período de filteredTrends nos dados raw por canal/produto
   const filteredRawMarketing = useMemo(() => {
@@ -316,7 +391,7 @@ const App: React.FC = () => {
       const key = row.channel;
       if (filters.channel !== 'all' && row.channel !== filters.channel) return;
       if (!map.has(key)) {
-        map.set(key, { channel: key, investment: 0, leads: 0, mqls: 0, revenue: 0, sales: 0, roas: 0, cpl: 0, cac: 0 });
+        map.set(key, { channel: key, investment: 0, leads: 0, mqls: 0, revenue: 0, sales: 0, roas: 0, cpl: 0, cac: 0, impressions: 0, clicks: 0, cpm: 0, ctr: 0 });
       }
       const entry = map.get(key);
       entry.investment += row.cost || 0;
@@ -324,6 +399,8 @@ const App: React.FC = () => {
       entry.mqls += row.mqls || 0;
       entry.revenue += row.revenue || 0;
       entry.sales += row.sales || 0;
+      entry.impressions += row.impressions || 0;
+      entry.clicks += row.clicks || 0;
     });
     // Calcula métricas derivadas
     return Array.from(map.values()).map(c => ({
@@ -331,6 +408,8 @@ const App: React.FC = () => {
       cpl: c.leads > 0 ? c.investment / c.leads : 0,
       cac: c.sales > 0 ? c.investment / c.sales : 0,
       roas: c.investment > 0 ? c.revenue / c.investment : 0,
+      cpm: c.impressions > 0 ? (c.investment / c.impressions) * 1000 : 0,
+      ctr: c.impressions > 0 ? (c.clicks / c.impressions) * 100 : 0,
     }));
   }, [filteredRawMarketing, filters.channel]);
 
@@ -404,13 +483,14 @@ const App: React.FC = () => {
       return data.dailyTrends.filter(t => t.date >= startOfMonth);
     }
 
+    if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
+      return data.dailyTrends.filter(t => t.date >= filters.customStartDate && t.date <= filters.customEndDate);
+    }
+
     days = data.dailyTrends.length;
     if (filters.period === '7d') days = 7;
     else if (filters.period === '15d') days = 15;
     else if (filters.period === '30d') days = 30;
-    else if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
-      return data.dailyTrends.filter(t => t.date >= filters.customStartDate && t.date <= filters.customEndDate);
-    }
 
     return data.dailyTrends.slice(-Math.min(days, data.dailyTrends.length));
   }, [filters.period, filters.customStartDate, filters.customEndDate, data.dailyTrends]);
@@ -425,21 +505,56 @@ const App: React.FC = () => {
     const sum = (arr: any[], key: string) => arr.reduce((acc, curr) => acc + (curr[key] || 0), 0);
     const avg = (arr: any[], key: string) => arr.length > 0 ? sum(arr, key) / arr.length : 0;
 
+    // Helper to safely initialize KPI objects if they don't exist yet
+    const safeKpi = (key: string, label: string, unit: 'currency' | 'number' | 'percentage' | 'time') => {
+      if (!newKPIs[key]) newKPIs[key] = { id: key, label, value: 0, goal: 0, unit };
+      return newKPIs[key];
+    };
+
     // 1. ALWAYS update base metrics from filteredTrends values to ensure real-time aggregation
-    newKPIs.investment.value = sum(filteredTrends, 'investment');
-    newKPIs.leads.value = sum(filteredTrends, 'leads');
-    newKPIs.revenue.value = sum(filteredTrends, 'revenue');
-    newKPIs.sales.value = sum(filteredTrends, 'sales');
-    newKPIs.mqls.value = sum(filteredTrends, 'mqls');
-    newKPIs.connections.value = sum(filteredTrends, 'connected');
-    newKPIs.opportunities.value = sum(filteredTrends, 'opportunities');
+    safeKpi('investment', 'Investimento', 'currency').value = sum(filteredTrends, 'investment');
+    safeKpi('leads', 'Leads', 'number').value = sum(filteredTrends, 'leads');
+    safeKpi('revenue', 'Faturamento MKT', 'currency').value = sum(filteredTrends, 'revenue');
+    safeKpi('sales', 'Vendas MKT', 'number').value = sum(filteredTrends, 'sales');
+    safeKpi('mqls', 'MQLs', 'number').value = sum(filteredTrends, 'mqls');
+    safeKpi('connections', 'Conexões', 'number').value = sum(filteredTrends, 'connections');
+    safeKpi('opportunities', 'Oportunidades', 'number').value = sum(filteredTrends, 'opportunities');
+    safeKpi('meetingsBooked', 'Reuniões Agendadas', 'number').value = sum(filteredTrends, 'meetings_booked');
+    safeKpi('meetingsHeld', 'Reuniões Realizadas', 'number').value = sum(filteredTrends, 'meetings_held');
 
     // Calculate derived metrics
-    if (newKPIs.leads.value > 0) newKPIs.cpl.value = newKPIs.investment.value / newKPIs.leads.value;
-    if (newKPIs.mqls.value > 0) newKPIs.cpmql.value = newKPIs.investment.value / newKPIs.mqls.value;
-    if (newKPIs.sales.value > 0) newKPIs.ticket.value = newKPIs.revenue.value / newKPIs.sales.value;
-    if (newKPIs.investment.value > 0) newKPIs.roas.value = newKPIs.revenue.value / newKPIs.investment.value;
-    if (newKPIs.sales.value > 0) newKPIs.cac.value = newKPIs.investment.value / newKPIs.sales.value;
+    if (newKPIs.leads.value > 0) safeKpi('cpl', 'CPL', 'currency').value = newKPIs.investment.value / newKPIs.leads.value;
+    if (newKPIs.mqls.value > 0) safeKpi('cpmql', 'Custo por MQL', 'currency').value = newKPIs.investment.value / newKPIs.mqls.value;
+    if (newKPIs.sales.value > 0) safeKpi('ticket', 'Ticket Médio', 'currency').value = newKPIs.revenue.value / newKPIs.sales.value;
+    if (newKPIs.investment.value > 0) safeKpi('roas', 'ROAS', 'number').value = newKPIs.revenue.value / newKPIs.investment.value;
+    if (newKPIs.sales.value > 0) safeKpi('cac', 'CAC', 'currency').value = newKPIs.investment.value / newKPIs.sales.value;
+
+    // Macro Marketing Additions (CPM/CTR)
+    const totalImpressions = sum(filteredTrends, 'impressions') || sum(filteredChannels, 'impressions') || 0;
+    const totalClicks = sum(filteredTrends, 'clicks') || sum(filteredChannels, 'clicks') || 0;
+
+    // Inject dynamic CPM and CTR into newKPIs (will be used in MarketingView)
+    newKPIs.cpmMacro = {
+      id: "cpm_macro",
+      label: "CPM MACRO",
+      value: totalImpressions > 0 ? (newKPIs.investment.value / totalImpressions) * 1000 : 0,
+      goal: 0,
+      unit: "currency"
+    };
+    newKPIs.ctrMacro = {
+      id: "ctr_macro",
+      label: "CTR MACRO",
+      value: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
+      goal: 0,
+      unit: "percentage"
+    };
+
+    // Calculate No-Show Rate globally (Meetings Booked - Meetings Held)
+    const totalBooked = sum(filteredTrends, 'meetings_booked') || sum(filteredSDRs, 'meetingsBooked') || 0;
+    const totalHeld = sum(filteredTrends, 'meetings_held') || sum(filteredClosers, 'meetingsHeld') || 0;
+    safeKpi('noShowRate', 'Taxa de No-Show', 'percentage').value = totalBooked > 0 ? (Math.max(0, totalBooked - totalHeld) / totalBooked) * 100 : 0;
+    safeKpi('conversionMeetingSale', 'Conversão (Agendado -> Venda)', 'percentage').value = totalHeld > 0 ? (newKPIs.sales.value / totalHeld) * 100 : 0;
+    safeKpi('responseTime', 'Tempo de Resposta', 'time').value = avg(filteredSDRs, 'responseTime');
 
     // Apply SDR Filter logic to KPIs
     if (filters.sdrId !== 'all') {
@@ -451,13 +566,18 @@ const App: React.FC = () => {
     }
 
     // Apply Closer Filter logic to KPIs
+    safeKpi('marketingSales', 'Vendas MKT', 'number');
+    safeKpi('marketingRevenue', 'Faturamento MKT', 'currency');
+    safeKpi('salesInbound', 'Leads Inbound', 'number');
+    safeKpi('salesOutbound', 'Leads Outbound', 'number');
+
     if (filters.closerId !== 'all') {
-      newKPIs.meetingsHeld.value = sum(filteredClosers, 'meetingsHeld');
-      newKPIs.sales.value = sum(filteredClosers, 'sales');
-      newKPIs.revenue.value = sum(filteredClosers, 'revenue');
+      safeKpi('meetingsHeld', 'Reuniões Realizadas', 'number').value = sum(filteredClosers, 'meetingsHeld');
+      safeKpi('sales', 'Vendas', 'number').value = sum(filteredClosers, 'sales');
+      safeKpi('revenue', 'Faturamento', 'currency').value = sum(filteredClosers, 'revenue');
       // Recalculate derived metrics
       if (newKPIs.sales.value > 0) {
-        newKPIs.ticket.value = newKPIs.revenue.value / newKPIs.sales.value;
+        safeKpi('ticket', 'Ticket Médio', 'currency').value = newKPIs.revenue.value / newKPIs.sales.value;
       }
     }
 
@@ -466,40 +586,40 @@ const App: React.FC = () => {
       // Decide source: if product filter active, use products, else use channels
       const sourceData = filters.product !== 'all' ? filteredProducts : filteredChannels;
 
-      newKPIs.investment.value = sum(sourceData, 'investment');
-      newKPIs.leads.value = sum(sourceData, 'leads');
+      safeKpi('investment', 'Investimento', 'currency').value = sum(sourceData, 'investment');
+      safeKpi('leads', 'Leads', 'number').value = sum(sourceData, 'leads');
 
       // Recalculate CPL
       if (newKPIs.leads.value > 0) {
-        newKPIs.cpl.value = newKPIs.investment.value / newKPIs.leads.value;
+        safeKpi('cpl', 'CPL', 'currency').value = newKPIs.investment.value / newKPIs.leads.value;
       }
 
       if (filters.channel !== 'all') {
-        newKPIs.mqls.value = sum(filteredChannels, 'mqls');
+        safeKpi('mqls', 'MQLs', 'number').value = sum(filteredChannels, 'mqls');
       }
 
       // If we are filtering by channel/product, revenue/sales might imply marketing attribution
-      newKPIs.marketingRevenue.value = sum(sourceData, 'revenue');
-      newKPIs.marketingSales.value = sum(sourceData, 'sales');
+      safeKpi('marketingRevenue', 'Faturamento MKT', 'currency').value = sum(sourceData, 'revenue');
+      safeKpi('marketingSales', 'Vendas MKT', 'number').value = sum(sourceData, 'sales');
 
       // ROAS
       if (newKPIs.investment.value > 0) {
-        newKPIs.roas.value = newKPIs.marketingRevenue.value / newKPIs.investment.value;
+        safeKpi('roas', 'ROAS', 'number').value = newKPIs.marketingRevenue.value / newKPIs.investment.value;
       }
     } else {
       // DEFAULT: When no marketing-specific filter is applied, use global commercial values
       // as the "Marketing" baseline for consistency, as requested by the user.
-      newKPIs.marketingSales.value = newKPIs.sales.value;
-      newKPIs.marketingRevenue.value = newKPIs.revenue.value;
+      safeKpi('marketingSales', 'Vendas MKT', 'number').value = newKPIs.sales?.value || 0;
+      safeKpi('marketingRevenue', 'Faturamento MKT', 'currency').value = newKPIs.revenue?.value || 0;
 
-      if (newKPIs.investment.value > 0) {
-        newKPIs.roas.value = newKPIs.marketingRevenue.value / newKPIs.investment.value;
+      if (newKPIs.investment?.value > 0) {
+        safeKpi('roas', 'ROAS', 'number').value = newKPIs.marketingRevenue.value / newKPIs.investment.value;
       }
     }
 
-    // New: Calculate Inbound vs Outbound Sales (based on marketing attribution)
-    if (newKPIs.salesInbound) newKPIs.salesInbound.value = newKPIs.marketingSales.value;
-    if (newKPIs.salesOutbound) newKPIs.salesOutbound.value = Math.max(0, newKPIs.sales.value - newKPIs.marketingSales.value);
+    // Use assertive Inbound/Outbound counts from our dual-sync pipeline
+    safeKpi('salesInbound', 'Leads Inbound', 'number').value = sum(filteredTrends, 'inbound');
+    safeKpi('salesOutbound', 'Leads Outbound', 'number').value = sum(filteredTrends, 'outbound');
 
     // Ensure common indicators are always correctly initialized for Display if DB is missing them
     const ensureKPI = (key: string, label: string, unit: any, goal: number) => {
@@ -514,8 +634,8 @@ const App: React.FC = () => {
     ensureKPI('connections', 'Conexões', 'number', 450);
     ensureKPI('meetingsBooked', 'Reuniões Agendadas', 'number', 100);
     ensureKPI('meetingsHeld', 'Reuniões Realizadas', 'number', 85);
-    ensureKPI('salesInbound', 'Vendas Inbound', 'number', 15);
-    ensureKPI('salesOutbound', 'Vendas Outbound', 'number', 5);
+    ensureKPI('salesInbound', 'Leads Inbound', 'number', 15);
+    ensureKPI('salesOutbound', 'Leads Outbound', 'number', 5);
 
     return newKPIs;
   }, [data.kpis, filters, filteredTrends, filteredSDRs, filteredClosers, filteredChannels, filteredProducts]);
@@ -952,18 +1072,16 @@ const App: React.FC = () => {
               customComparison={{ value: activeKPIs.cpl?.value || 0, label: 'CPL Médio', unit: 'currency' }}
             />
           )}
-          {activeKPIs.marketingSales && (
+          {activeKPIs.cpmMacro && (
             <MetricCard
-              metric={activeKPIs.marketingSales}
+              metric={activeKPIs.cpmMacro}
               context={data.context}
-              customComparison={{ value: activeKPIs.cac?.value || 0, label: `CAC (LTV: ${formatValue(activeKPIs.ltv?.value || 0, 'currency', '', '',)})`, unit: 'currency' }}
             />
           )}
-          {activeKPIs.marketingRevenue && (
+          {activeKPIs.ctrMacro && (
             <MetricCard
-              metric={activeKPIs.marketingRevenue}
+              metric={activeKPIs.ctrMacro}
               context={data.context}
-              customComparison={{ value: activeKPIs.roas?.value || 0, label: 'ROAS Macro', unit: 'number', suffix: 'x' }}
             />
           )}
         </div>
@@ -1009,6 +1127,8 @@ const App: React.FC = () => {
                         { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
                         { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
                         { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
+                        { header: 'CPM', accessor: (row) => formatValue(row.cpm, 'currency'), align: 'right' },
+                        { header: 'CTR', accessor: (row) => `${row.ctr.toFixed(2)}%`, align: 'right' },
                         { header: 'CAC', accessor: (row) => formatValue(row.cac, 'currency'), align: 'right' },
                         { header: 'ROAS', accessor: (row) => <span className={row.roas > 10 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
                       ]}
@@ -1186,7 +1306,7 @@ const App: React.FC = () => {
           <div className="h-80"><RankingWidget<RepPerformance> title="Oportunidades Geradas" icon={<Zap className="w-4 h-4 text-brand-primary" />} data={filteredSDRs} accessor={(item) => item.opportunities || 0} labelAccessor={(item) => item.name} formatValue={(val) => val.toString()} /></div>
           <div className="h-80"><RankingWidget<RepPerformance> title="Conexões Realizadas" icon={<UserCheck className="w-4 h-4 text-emerald-500" />} data={filteredSDRs} accessor={(item) => item.connections || 0} labelAccessor={(item) => item.name} formatValue={(val) => val.toString()} /></div>
           <div className="h-80"><RankingWidget<RepPerformance> title="Reuniões Agendadas" icon={<Target className="w-4 h-4 text-indigo-500" />} data={filteredSDRs} accessor={(item) => item.meetingsBooked || 0} labelAccessor={(item) => item.name} formatValue={(val) => val.toString()} /></div>
-          <div className="h-80"><RankingWidget<RepPerformance> title="Tempo de Resposta (min)" icon={<Clock className="w-4 h-4 text-rose-500" />} data={filteredSDRs} accessor={(item) => item.responseTime || 0} labelAccessor={(item) => item.name} formatValue={(val) => `${val}m`} inverse={true} /></div>
+          <div className="h-80"><RankingWidget<RepPerformance> title="Tempo de Resposta (min)" icon={<Clock className="w-4 h-4 text-rose-500" />} data={filteredSDRs} accessor={(item) => item.responseTime || 0} labelAccessor={(item) => item.name} formatValue={(val) => `${Number(val).toFixed(1)}m`} inverse={true} /></div>
           <div className="h-80"><RankingWidget<RepPerformance> title="Total de No-Show" icon={<AlertTriangle className="w-4 h-4 text-rose-500" />} data={filteredSDRs} accessor={(item) => item.noShowCount || 0} labelAccessor={(item) => item.name} formatValue={(val) => val.toString()} inverse={false} /></div>
           <div className="h-80"><RankingWidget<RepPerformance> title="Conversão (Conexão -> Agend.)" icon={<TrendingUp className="w-4 h-4 text-teal-500" />} data={filteredSDRs} accessor={(item) => item.connections ? (item.meetingsBooked! / item.connections) * 100 : 0} labelAccessor={(item) => item.name} formatValue={(val) => `${val.toFixed(1)}%`} /></div>
         </div>

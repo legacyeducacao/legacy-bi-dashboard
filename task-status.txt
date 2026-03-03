@@ -1,0 +1,1 @@
+Explaining Deal Stage History configuration array for HubSpot Custom HTTP API

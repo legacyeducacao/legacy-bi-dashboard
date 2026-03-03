@@ -1,0 +1,916 @@
+{
+  "results": [
+    {
+      "id": "7707013",
+      "email": "",
+      "type": "QUEUE",
+      "firstName": "",
+      "lastName": "Pré-Vendas Revenda",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.930Z",
+      "updatedAt": "2025-05-02T12:38:08.930Z",
+      "archived": false
+    },
+    {
+      "id": "34208890",
+      "email": "mariana.moreno@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Mariana",
+      "lastName": "Moreno",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.019Z",
+      "updatedAt": "2025-05-02T12:38:06.019Z",
+      "archived": false
+    },
+    {
+      "id": "68979595",
+      "email": "kael.carneiro@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Kael",
+      "lastName": "Carneiro",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.285Z",
+      "updatedAt": "2025-05-02T12:38:08.285Z",
+      "archived": false
+    },
+    {
+      "id": "78938498",
+      "email": "leonardo.padilha@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Leonardo",
+      "lastName": "Padilha",
+      "userId": 78938498,
+      "userIdIncludingInactive": 78938498,
+      "createdAt": "2025-03-27T11:54:10.216Z",
+      "updatedAt": "2025-12-02T20:01:40.266Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102856",
+          "name": "Vendas",
+          "primary": true
+        },
+        {
+          "id": "73102843",
+          "name": "Pré-Vendas",
+          "primary": false
+        },
+        {
+          "id": "73294026",
+          "name": "Comercial Legacy",
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "80486855",
+      "email": "lucas.leal@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Lucas",
+      "lastName": "Leal",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-29T20:34:22.324Z",
+      "updatedAt": "2025-11-04T13:01:52.468Z",
+      "archived": false
+    },
+    {
+      "id": "82406376",
+      "email": "luan.rodrigues@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Luan",
+      "lastName": "Rodrigues",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-08-13T13:53:27.114Z",
+      "updatedAt": "2025-11-19T19:11:24.504Z",
+      "archived": false
+    },
+    {
+      "id": "84782362",
+      "email": "marcelo.peixoto@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Marcelo",
+      "lastName": "Peixoto",
+      "userId": 84782362,
+      "userIdIncludingInactive": 84782362,
+      "createdAt": "2025-11-04T13:04:37.033Z",
+      "updatedAt": "2026-01-07T15:07:56.028Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102823",
+          "name": "Gestão",
+          "primary": true
+        },
+        {
+          "id": "73294026",
+          "name": "Comercial Legacy",
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "85369321",
+      "email": "lucca.nicolay@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Lucca",
+      "lastName": "Nicolay",
+      "userId": 85369321,
+      "userIdIncludingInactive": 85369321,
+      "createdAt": "2025-11-19T18:39:26.681Z",
+      "updatedAt": "2025-12-02T14:00:53.983Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102823",
+          "name": "Gestão",
+          "primary": true
+        },
+        {
+          "id": "73294026",
+          "name": "Comercial Legacy",
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "85369712",
+      "email": "joel.rodrigues@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Joel",
+      "lastName": "Carlos Lemos Rodrigues",
+      "userId": 85369712,
+      "userIdIncludingInactive": 85369712,
+      "createdAt": "2025-11-19T18:51:25.817Z",
+      "updatedAt": "2026-02-23T11:44:02.721Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102843",
+          "name": "Pré-Vendas",
+          "primary": true
+        },
+        {
+          "id": "73102856",
+          "name": "Vendas",
+          "primary": false
+        },
+        {
+          "id": "73294026",
+          "name": "Comercial Legacy",
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "85616302",
+      "email": "anderson.paim@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Anderson",
+      "lastName": "Paim",
+      "userId": 85616302,
+      "userIdIncludingInactive": 85616302,
+      "createdAt": "2025-11-26T16:50:25.038Z",
+      "updatedAt": "2026-02-24T08:51:11.969Z",
+      "archived": false
+    },
+    {
+      "id": "85822345",
+      "email": "luan.silva@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Luan",
+      "lastName": "Silva",
+      "userId": 85822345,
+      "userIdIncludingInactive": 85822345,
+      "createdAt": "2025-12-02T20:24:32.385Z",
+      "updatedAt": "2026-02-27T11:14:21.953Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102843",
+          "name": "Pré-Vendas",
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "86298935",
+      "email": "leonardo.santini@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Leonardo",
+      "lastName": "Santini",
+      "userId": 86298935,
+      "userIdIncludingInactive": 86298935,
+      "createdAt": "2025-12-16T17:30:20.345Z",
+      "updatedAt": "2026-01-28T14:26:33.841Z",
+      "archived": false
+    },
+    {
+      "id": "86362284",
+      "email": "leonardo.souza@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Leonardo",
+      "lastName": "Souza",
+      "userId": 86362284,
+      "userIdIncludingInactive": 86362284,
+      "createdAt": "2025-12-18T14:19:11.272Z",
+      "updatedAt": "2026-02-23T11:47:56.355Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102843",
+          "name": "Pré-Vendas",
+          "primary": true
+        },
+        {
+          "id": "73102856",
+          "name": "Vendas",
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "86857769",
+      "email": "isaque.inacio@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Isaque",
+      "lastName": "Inacio",
+      "userId": 86857769,
+      "userIdIncludingInactive": 86857769,
+      "createdAt": "2026-01-06T12:48:41.544Z",
+      "updatedAt": "2026-02-25T13:27:32.956Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102843",
+          "name": "Pré-Vendas",
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "88809210",
+      "email": "allan.silva@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Allan",
+      "lastName": "Silva",
+      "userId": 88809210,
+      "userIdIncludingInactive": 88809210,
+      "createdAt": "2026-02-24T20:03:48.057Z",
+      "updatedAt": "2026-02-24T20:04:56.472Z",
+      "archived": false
+    },
+    {
+      "id": "88847178",
+      "email": "joao.gaspar@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "João",
+      "lastName": "Gaspar",
+      "userId": 88847178,
+      "userIdIncludingInactive": 88847178,
+      "createdAt": "2026-02-25T17:20:26.705Z",
+      "updatedAt": "2026-02-27T17:59:01.825Z",
+      "archived": false
+    },
+    {
+      "id": "137539252",
+      "email": "",
+      "type": "QUEUE",
+      "firstName": "",
+      "lastName": "WhatsApp",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.841Z",
+      "updatedAt": "2025-05-02T12:38:08.841Z",
+      "archived": false
+    },
+    {
+      "id": "267854426",
+      "email": "micaele.oliveira@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Micaele",
+      "lastName": "Oliveira",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-07-25T17:59:16.238Z",
+      "updatedAt": "2025-07-25T17:59:16.238Z",
+      "archived": false
+    },
+    {
+      "id": "287074324",
+      "email": "",
+      "type": "QUEUE",
+      "firstName": "",
+      "lastName": "Comercial Revenda",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:09.212Z",
+      "updatedAt": "2025-05-02T12:38:09.212Z",
+      "archived": false
+    },
+    {
+      "id": "291903016",
+      "email": "andre.borba@elements.com.br",
+      "type": "PERSON",
+      "firstName": "André",
+      "lastName": "Borba",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.412Z",
+      "updatedAt": "2025-05-02T12:38:06.412Z",
+      "archived": false
+    },
+    {
+      "id": "313026096",
+      "email": "noreply@salesforce.com",
+      "type": "PERSON",
+      "firstName": "Integração",
+      "lastName": "Usuário",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.636Z",
+      "updatedAt": "2025-05-02T12:38:05.636Z",
+      "archived": false
+    },
+    {
+      "id": "314675632",
+      "email": "form.landing@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Formulário",
+      "lastName": "Landingpage",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:07.817Z",
+      "updatedAt": "2025-05-02T12:38:07.817Z",
+      "archived": false
+    },
+    {
+      "id": "317279409",
+      "email": "hiago.bertuol@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Hiago",
+      "lastName": "Bertuol",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.473Z",
+      "updatedAt": "2025-05-02T12:38:08.473Z",
+      "archived": false
+    },
+    {
+      "id": "319719622",
+      "email": "noreply@00das000006vozjeay",
+      "type": "PERSON",
+      "firstName": "Automated",
+      "lastName": "Process",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:07.040Z",
+      "updatedAt": "2025-05-02T12:38:07.040Z",
+      "archived": false
+    },
+    {
+      "id": "336352571",
+      "email": "",
+      "type": "QUEUE",
+      "firstName": "",
+      "lastName": "Pré-Vendas Corporativo",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:09.029Z",
+      "updatedAt": "2025-05-02T12:38:09.029Z",
+      "archived": false
+    },
+    {
+      "id": "414667614",
+      "email": "jonathan@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Jonathan",
+      "lastName": "Cabral",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2024-06-26T14:29:00.499Z",
+      "updatedAt": "2025-12-16T17:24:55.598Z",
+      "archived": false
+    },
+    {
+      "id": "457559915",
+      "email": "taluana.carvalho@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Taluana",
+      "lastName": "Carvalho",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.872Z",
+      "updatedAt": "2025-05-02T12:38:06.872Z",
+      "archived": false
+    },
+    {
+      "id": "465343294",
+      "email": "cdev@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Coach",
+      "lastName": "de Vendas",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.569Z",
+      "updatedAt": "2025-05-02T12:38:08.569Z",
+      "archived": false
+    },
+    {
+      "id": "546329675",
+      "email": "suporte@cerestec.io",
+      "type": "PERSON",
+      "firstName": "Suporte",
+      "lastName": "Ceres",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:07.424Z",
+      "updatedAt": "2025-05-02T12:38:07.424Z",
+      "archived": false
+    },
+    {
+      "id": "640356064",
+      "email": "camila.dutra@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Camila",
+      "lastName": "Dutra",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-09-18T12:59:02.319Z",
+      "updatedAt": "2025-09-18T12:59:02.319Z",
+      "archived": false
+    },
+    {
+      "id": "657635557",
+      "email": "isaque.inacio@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Isaque",
+      "lastName": "Inacio",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-28T18:59:36.599Z",
+      "updatedAt": "2025-05-28T18:59:36.599Z",
+      "archived": false
+    },
+    {
+      "id": "676735251",
+      "email": "elements@imaginedone.com.br",
+      "type": "PERSON",
+      "firstName": "Imagine",
+      "lastName": "Done",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-09-15T14:29:13.329Z",
+      "updatedAt": "2025-09-15T14:29:13.329Z",
+      "archived": false
+    },
+    {
+      "id": "686697194",
+      "email": "luiz.melo@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Integração",
+      "lastName": "Marketing Cloud",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-09-22T16:29:13.370Z",
+      "updatedAt": "2025-09-22T16:58:59.073Z",
+      "archived": false
+    },
+    {
+      "id": "702657404",
+      "email": "allan.silva@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Allan",
+      "lastName": "Silva",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2024-03-20T20:46:36.512Z",
+      "updatedAt": "2026-02-24T20:04:44.950Z",
+      "archived": false
+    },
+    {
+      "id": "754293920",
+      "email": "murilo.tavares@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Murilo",
+      "lastName": "Tavares",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-28T18:59:36.402Z",
+      "updatedAt": "2025-05-28T18:59:36.402Z",
+      "archived": false
+    },
+    {
+      "id": "829085803",
+      "email": "suporte@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Suporte",
+      "lastName": "Elements",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:07.236Z",
+      "updatedAt": "2025-05-02T12:38:07.236Z",
+      "archived": false
+    },
+    {
+      "id": "843307587",
+      "email": "cristian.oliveira@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Cristian",
+      "lastName": "Rick",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-26T17:59:52.810Z",
+      "updatedAt": "2025-05-26T17:59:52.810Z",
+      "archived": false
+    },
+    {
+      "id": "900727043",
+      "email": "abinash@hicglobalsolutions.com",
+      "type": "PERSON",
+      "firstName": "HIC",
+      "lastName": "HIC",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-26T17:59:52.632Z",
+      "updatedAt": "2025-05-26T17:59:52.632Z",
+      "archived": false
+    },
+    {
+      "id": "1054895596",
+      "email": "hmendes@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Hellen",
+      "lastName": "Mendes",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.314Z",
+      "updatedAt": "2025-05-02T12:38:06.314Z",
+      "archived": false
+    },
+    {
+      "id": "1080134664",
+      "email": "marcos.weidebach@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Marcos",
+      "lastName": "Weidebach",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.003Z",
+      "updatedAt": "2025-05-02T12:38:08.003Z",
+      "archived": false
+    },
+    {
+      "id": "1083837330",
+      "email": "jonatha.rocha@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Jonatha",
+      "lastName": "Rocha",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.663Z",
+      "updatedAt": "2025-05-02T12:38:08.663Z",
+      "archived": false
+    },
+    {
+      "id": "1119789956",
+      "email": "luiz.melo@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Luiz",
+      "lastName": "Melo",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2024-03-20T20:47:44.157Z",
+      "updatedAt": "2025-11-25T20:08:29.774Z",
+      "archived": false
+    },
+    {
+      "id": "1196931738",
+      "email": "raquel.bueno@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Raquel",
+      "lastName": "Bueno",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.509Z",
+      "updatedAt": "2025-05-02T12:38:06.509Z",
+      "archived": false
+    },
+    {
+      "id": "1232710815",
+      "email": "insightsintegration@00das000006vozjeay.ext",
+      "type": "PERSON",
+      "firstName": "Insights",
+      "lastName": "Integration",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.130Z",
+      "updatedAt": "2025-05-02T12:38:05.130Z",
+      "archived": false
+    },
+    {
+      "id": "1243968609",
+      "email": "alana.rosa@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Alana",
+      "lastName": "Paz",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.824Z",
+      "updatedAt": "2025-05-02T12:38:05.824Z",
+      "archived": false
+    },
+    {
+      "id": "1306820993",
+      "email": "",
+      "type": "QUEUE",
+      "firstName": "",
+      "lastName": "B2C",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:09.120Z",
+      "updatedAt": "2025-05-02T12:38:09.120Z",
+      "archived": false
+    },
+    {
+      "id": "1364202926",
+      "email": "gabriel.oliveira@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Gabriel",
+      "lastName": "de Oliveira",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-07-07T19:29:12.244Z",
+      "updatedAt": "2025-07-07T19:29:12.244Z",
+      "archived": false
+    },
+    {
+      "id": "1373727652",
+      "email": "oggy.castedo@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Oggy",
+      "lastName": "Castedo",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.698Z",
+      "updatedAt": "2025-05-02T12:38:06.698Z",
+      "archived": false
+    },
+    {
+      "id": "1484841101",
+      "email": "iago.mulinari@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Iago",
+      "lastName": "Mulinari",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2024-06-26T14:29:29.640Z",
+      "updatedAt": "2024-11-12T19:23:54.399Z",
+      "archived": false
+    },
+    {
+      "id": "1491350668",
+      "email": "michelle.souza@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Michelle",
+      "lastName": "Ferraz",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.603Z",
+      "updatedAt": "2025-05-02T12:38:06.603Z",
+      "archived": false
+    },
+    {
+      "id": "1612189447",
+      "email": "alexandre.pensin@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Alexandre",
+      "lastName": "Pensin",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.339Z",
+      "updatedAt": "2025-05-02T12:38:05.339Z",
+      "archived": false
+    },
+    {
+      "id": "1629968104",
+      "email": "leonardo.pinheiro@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Leonardo",
+      "lastName": "Pinheiro",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-08-13T19:59:11.080Z",
+      "updatedAt": "2025-08-13T19:59:11.080Z",
+      "archived": false
+    },
+    {
+      "id": "1645997791",
+      "email": "isaac.santos@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Isaac",
+      "lastName": "Dos Santos",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-06-23T13:29:08.971Z",
+      "updatedAt": "2025-06-23T13:29:08.971Z",
+      "archived": false
+    },
+    {
+      "id": "1685367970",
+      "email": "salesforceiqintegration@00das000006vozjeay.ext",
+      "type": "PERSON",
+      "firstName": "SalesforceIQ",
+      "lastName": "Integration",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.227Z",
+      "updatedAt": "2025-05-02T12:38:05.227Z",
+      "archived": false
+    },
+    {
+      "id": "1719216316",
+      "email": "bruna@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Bruna",
+      "lastName": "Dias",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.445Z",
+      "updatedAt": "2025-05-02T12:38:05.445Z",
+      "archived": false
+    },
+    {
+      "id": "1802618010",
+      "email": "noreply@salesforce.com",
+      "type": "PERSON",
+      "firstName": "Segurança",
+      "lastName": "Usuário",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.733Z",
+      "updatedAt": "2025-05-02T12:38:05.733Z",
+      "archived": false
+    },
+    {
+      "id": "1822684589",
+      "email": "",
+      "type": "QUEUE",
+      "firstName": "",
+      "lastName": "Caso de serviço",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.757Z",
+      "updatedAt": "2025-05-02T12:38:08.757Z",
+      "archived": false
+    },
+    {
+      "id": "1824641279",
+      "email": "elements@imaginedone.com.br",
+      "type": "PERSON",
+      "firstName": "Sankhya",
+      "lastName": "Integration",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-09-29T14:29:39.458Z",
+      "updatedAt": "2025-09-29T14:29:39.458Z",
+      "archived": false
+    },
+    {
+      "id": "1856577327",
+      "email": "rodrigo.pereira@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Rodrigo",
+      "lastName": "Fernandes",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-28T18:59:36.498Z",
+      "updatedAt": "2025-06-03T19:59:39.934Z",
+      "archived": false
+    },
+    {
+      "id": "1941338641",
+      "email": "felipe.labes@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Felipe",
+      "lastName": "Labes",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.194Z",
+      "updatedAt": "2025-05-02T12:38:08.194Z",
+      "archived": false
+    },
+    {
+      "id": "1990522735",
+      "email": "",
+      "type": "QUEUE",
+      "firstName": "",
+      "lastName": "Comercial Corporativo",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:09.311Z",
+      "updatedAt": "2025-05-02T12:38:09.311Z",
+      "archived": false
+    },
+    {
+      "id": "1995490457",
+      "email": "mauricio.oliveira@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Mauricio",
+      "lastName": "Oliveira",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-09-09T19:59:15.138Z",
+      "updatedAt": "2025-09-09T19:59:15.138Z",
+      "archived": false
+    },
+    {
+      "id": "2002173070",
+      "email": "bianca.matos@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Bianca",
+      "lastName": "Matos",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.218Z",
+      "updatedAt": "2025-05-02T12:38:06.218Z",
+      "archived": false
+    },
+    {
+      "id": "2011790555",
+      "email": "rodrigo.fernandes@legacyeducacaocorp.com.br",
+      "type": "PERSON",
+      "firstName": "Rodrigo",
+      "lastName": "Fernandes Pereira",
+      "userId": 69864695,
+      "userIdIncludingInactive": 69864695,
+      "createdAt": "2024-08-15T18:29:01.946Z",
+      "updatedAt": "2026-02-02T14:13:13.995Z",
+      "archived": false,
+      "teams": [
+        {
+          "id": "73102843",
+          "name": "Pré-Vendas",
+          "primary": true
+        },
+        {
+          "id": "73294026",
+          "name": "Comercial Legacy",
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "2052188935",
+      "email": "larissa.leal@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Larissa",
+      "lastName": "Leal",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-28T18:59:36.235Z",
+      "updatedAt": "2025-05-28T18:59:36.235Z",
+      "archived": false
+    },
+    {
+      "id": "2083703444",
+      "email": "thierry@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Thierry",
+      "lastName": "Araújo",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:06.115Z",
+      "updatedAt": "2025-05-02T12:38:06.115Z",
+      "archived": false
+    },
+    {
+      "id": "2096185277",
+      "email": "vinicius.ferreira@elements.com.br",
+      "type": "PERSON",
+      "firstName": "Vinicius",
+      "lastName": "Ferreira",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:05.923Z",
+      "updatedAt": "2025-05-02T12:38:05.923Z",
+      "archived": false
+    },
+    {
+      "id": "2137540108",
+      "email": "centro_de_ajuda_padro_21b@00das000006vozjeay.org.force.com",
+      "type": "PERSON",
+      "firstName": "Centro de ajuda padrão",
+      "lastName": "Usuário convidado do site",
+      "userId": null,
+      "userIdIncludingInactive": null,
+      "createdAt": "2025-05-02T12:38:08.098Z",
+      "updatedAt": "2025-05-02T12:38:08.098Z",
+      "archived": false
+    }
+  ]
+}

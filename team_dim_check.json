@@ -1,0 +1,61 @@
+﻿{
+    "value":  [
+                  {
+                      "id":  "f4375d9b-1f22-43e9-9d95-81a5f39743be",
+                      "name":  "Luan Silva",
+                      "role":  "SDR",
+                      "email":  null,
+                      "active":  true,
+                      "created_at":  "2026-02-24T21:29:16.791294+00:00"
+                  },
+                  {
+                      "id":  "f316187d-9b4c-4254-9cc9-423b5a8d4fba",
+                      "name":  "Isaque Inacio",
+                      "role":  "SDR",
+                      "email":  null,
+                      "active":  true,
+                      "created_at":  "2026-02-24T21:29:16.791294+00:00"
+                  },
+                  {
+                      "id":  "20cde009-056e-44c3-b7b9-809e2b042a40",
+                      "name":  "Rodrigo Fernandes",
+                      "role":  "SDR",
+                      "email":  null,
+                      "active":  true,
+                      "created_at":  "2026-02-24T21:29:16.791294+00:00"
+                  },
+                  {
+                      "id":  "0376b480-c94b-499d-be76-c8a7f465fdcb",
+                      "name":  "Joel Rodrigues",
+                      "role":  "Closer",
+                      "email":  null,
+                      "active":  true,
+                      "created_at":  "2026-02-24T21:29:16.791294+00:00"
+                  },
+                  {
+                      "id":  "525e2702-a7fd-43ae-bdc6-92dfc894e95b",
+                      "name":  "Leonardo Padilha",
+                      "role":  "Closer",
+                      "email":  null,
+                      "active":  true,
+                      "created_at":  "2026-02-24T21:29:16.791294+00:00"
+                  },
+                  {
+                      "id":  "38f2bc34-00bb-4f91-b445-84d5a135eb69",
+                      "name":  "Leonardo Souza",
+                      "role":  "Closer",
+                      "email":  null,
+                      "active":  true,
+                      "created_at":  "2026-02-24T21:29:16.791294+00:00"
+                  },
+                  {
+                      "id":  "d237ca20-81c9-4e77-b877-dcfc8e21d734",
+                      "name":  "Sem_Dono",
+                      "role":  "SDR",
+                      "email":  null,
+                      "active":  true,
+                      "created_at":  "2026-02-27T22:28:40.944223+00:00"
+                  }
+              ],
+    "Count":  7
+}

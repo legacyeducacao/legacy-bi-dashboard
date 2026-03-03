@@ -1,0 +1,418 @@
+{
+  "results": [
+    {
+      "label": "Funil - Inteligência Empresarial",
+      "displayOrder": 4,
+      "id": "867910801",
+      "stages": [
+        {
+          "label": "Entrada",
+          "displayOrder": 0,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1299037493",
+          "createdAt": "2026-02-10T20:09:29.555Z",
+          "updatedAt": "2026-02-10T20:12:43.030Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Possível Legado",
+          "displayOrder": 1,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.6"
+          },
+          "id": "1299037495",
+          "createdAt": "2026-02-10T20:09:29.555Z",
+          "updatedAt": "2026-02-10T20:12:43.030Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        }
+      ],
+      "createdAt": "2026-02-10T20:09:29.555Z",
+      "updatedAt": "2026-02-10T20:12:43.030Z",
+      "archived": false
+    },
+    {
+      "label": "Funil Comercial Legacy",
+      "displayOrder": 24,
+      "id": "827389965",
+      "stages": [
+        {
+          "label": "Entrada",
+          "displayOrder": 0,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.1"
+          },
+          "id": "1225098146",
+          "createdAt": "2025-11-19T19:42:03.151Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Filtro 1",
+          "displayOrder": 1,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.1"
+          },
+          "id": "1225098147",
+          "createdAt": "2025-11-19T19:42:03.151Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Filtro 2",
+          "displayOrder": 2,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1225098148",
+          "createdAt": "2025-11-19T19:42:03.151Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Agendado",
+          "displayOrder": 3,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1225098149",
+          "createdAt": "2025-11-19T19:42:03.151Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Reagendamento",
+          "displayOrder": 4,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1239126390",
+          "createdAt": "2025-12-04T12:38:12.888Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Maturação",
+          "displayOrder": 5,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.3"
+          },
+          "id": "1225098150",
+          "createdAt": "2025-11-19T19:42:03.151Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Negociação",
+          "displayOrder": 6,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.7"
+          },
+          "id": "1225098151",
+          "createdAt": "2025-11-19T19:42:03.151Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Assinatura de Contrato",
+          "displayOrder": 7,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.8"
+          },
+          "id": "1225024929",
+          "createdAt": "2025-11-19T20:18:28.787Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Vendido",
+          "displayOrder": 8,
+          "metadata": {
+            "isClosed": "true",
+            "probability": "1.0"
+          },
+          "id": "1225098152",
+          "createdAt": "2025-11-19T19:42:03.151Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Perdido",
+          "displayOrder": 9,
+          "metadata": {
+            "isClosed": "true",
+            "probability": "0.0"
+          },
+          "id": "1226813477",
+          "createdAt": "2025-11-21T13:33:54.594Z",
+          "updatedAt": "2025-12-04T19:38:49.693Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        }
+      ],
+      "createdAt": "2025-11-19T19:42:03.151Z",
+      "updatedAt": "2025-12-04T19:38:49.693Z",
+      "archived": false
+    },
+    {
+      "label": "Funil - Café com Negócios",
+      "displayOrder": 24,
+      "id": "855656582",
+      "stages": [
+        {
+          "label": "Entrada",
+          "displayOrder": 0,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.1"
+          },
+          "id": "1276489564",
+          "createdAt": "2026-01-14T15:54:28.261Z",
+          "updatedAt": "2026-01-15T17:41:58.415Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Contato",
+          "displayOrder": 1,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.8"
+          },
+          "id": "1276489571",
+          "createdAt": "2026-01-14T15:54:28.261Z",
+          "updatedAt": "2026-01-15T17:41:58.415Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Em tratativa",
+          "displayOrder": 2,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1277848693",
+          "createdAt": "2026-01-15T17:41:58.415Z",
+          "updatedAt": "2026-01-15T17:41:58.415Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Vendido",
+          "displayOrder": 3,
+          "metadata": {
+            "isClosed": "true",
+            "probability": "1.0"
+          },
+          "id": "1276489572",
+          "createdAt": "2026-01-14T15:54:28.261Z",
+          "updatedAt": "2026-01-15T17:41:58.415Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Perdido",
+          "displayOrder": 4,
+          "metadata": {
+            "isClosed": "true",
+            "probability": "0.0"
+          },
+          "id": "1276489573",
+          "createdAt": "2026-01-14T15:54:28.261Z",
+          "updatedAt": "2026-01-15T17:41:58.415Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        }
+      ],
+      "createdAt": "2026-01-14T15:54:28.261Z",
+      "updatedAt": "2026-01-15T17:41:58.415Z",
+      "archived": false
+    },
+    {
+      "label": "Funil - Impulsão Empresarial",
+      "displayOrder": 24,
+      "id": "863863411",
+      "stages": [
+        {
+          "label": "Entrada",
+          "displayOrder": 0,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.1"
+          },
+          "id": "1291941748",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Filtro 1",
+          "displayOrder": 1,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.1"
+          },
+          "id": "1291941749",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Filtro 2",
+          "displayOrder": 2,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1291941750",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Agendado",
+          "displayOrder": 3,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1291941751",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Reagendamento",
+          "displayOrder": 4,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.2"
+          },
+          "id": "1291941752",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Maturação",
+          "displayOrder": 5,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.3"
+          },
+          "id": "1291941753",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Negociação",
+          "displayOrder": 6,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.7"
+          },
+          "id": "1291941754",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Assinatura de Contrato",
+          "displayOrder": 7,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.8"
+          },
+          "id": "1291941755",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Vendido",
+          "displayOrder": 8,
+          "metadata": {
+            "isClosed": "true",
+            "probability": "1.0"
+          },
+          "id": "1291941756",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        },
+        {
+          "label": "Perdido",
+          "displayOrder": 9,
+          "metadata": {
+            "isClosed": "true",
+            "probability": "0.0"
+          },
+          "id": "1291941757",
+          "createdAt": "2026-02-02T13:16:36.070Z",
+          "updatedAt": "2026-02-02T13:16:36.070Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        }
+      ],
+      "createdAt": "2026-02-02T13:16:36.070Z",
+      "updatedAt": "2026-02-02T13:16:36.070Z",
+      "archived": false
+    },
+    {
+      "label": "Base Antiga",
+      "displayOrder": 25,
+      "id": "828214049",
+      "stages": [
+        {
+          "label": "Lead Antigo / Importado",
+          "displayOrder": 0,
+          "metadata": {
+            "isClosed": "false",
+            "probability": "0.1"
+          },
+          "id": "1226604340",
+          "createdAt": "2025-11-21T12:34:52.532Z",
+          "updatedAt": "2025-11-21T12:35:17.647Z",
+          "writePermissions": "CRM_PERMISSIONS_ENFORCEMENT",
+          "archived": false
+        }
+      ],
+      "createdAt": "2025-11-21T12:34:52.532Z",
+      "updatedAt": "2025-11-21T12:35:17.647Z",
+      "archived": false
+    }
+  ]
+}

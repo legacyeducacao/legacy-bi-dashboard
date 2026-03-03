@@ -12,31 +12,31 @@ export const KPI_METRICS: Record<string, MetricData> = {
   investment: { id: 'invest', label: 'Investimento Ads', value: 15450, goal: 25000, unit: 'currency' },
   leads: { id: 'leads', label: 'Leads Totais', value: 850, goal: 1200, unit: 'number' },
   cpl: { id: 'cpl', label: 'CPL Médio', value: 18.17, goal: 20.00, unit: 'currency' },
-  
+
   // Marketing Sales/Revenue Attribution
   marketingRevenue: { id: 'mkt_revenue', label: 'Receita Marketing', value: 185000, goal: 300000, unit: 'currency' },
   marketingSales: { id: 'mkt_sales', label: 'Vendas Marketing', value: 12, goal: 20, unit: 'number' },
-  
+
   // Efficiency
-  cac: { id: 'cac', label: 'CAC Blended', value: 1287.50, goal: 1500, unit: 'currency' }, 
+  cac: { id: 'cac', label: 'CAC Blended', value: 1287.50, goal: 1500, unit: 'currency' },
   ltv: { id: 'ltv', label: 'LTV Médio', value: 32000, goal: 30000, unit: 'currency' },
   roas: { id: 'roas', label: 'ROAS Macro', value: 11.9, goal: 12, unit: 'number', suffix: 'x' },
 
   // Marketing Micro
   mqls: { id: 'mqls', label: 'MQLs', value: 210, goal: 350, unit: 'number' },
-  cpmql: { id: 'cpmql', label: 'Custo por MQL', value: 73.57, goal: 80, unit: 'currency' }, 
-  
+  cpmql: { id: 'cpmql', label: 'Custo por MQL', value: 73.57, goal: 80, unit: 'currency' },
+
   // Comercial Macro (Shared & SDR)
   opportunities: { id: 'opps', label: 'Oportunidades', value: 650, goal: 900, unit: 'number' },
   connections: { id: 'connections', label: 'Conexões', value: 325, goal: 450, unit: 'number' },
   meetingsBooked: { id: 'meetings_booked', label: 'Reuniões Agendadas', value: 65, goal: 100, unit: 'number' },
   meetingsHeld: { id: 'meetings_held', label: 'Reuniões Realizadas', value: 48, goal: 85, unit: 'number' },
-  
+
   // Comercial Micro Indicators
   responseTime: { id: 'response_time', label: 'Response Time (min)', value: 12, goal: 15, unit: 'time' },
   connectionRate: { id: 'connection_rate', label: '% Conexão', value: 50.0, goal: 45, unit: 'percentage' }, // 325/650
   conversionConnMeeting: { id: 'conv_conn_meet', label: '% Conexão → Agend.', value: 20.0, goal: 22, unit: 'percentage' }, // 65/325
-  
+
   // Closer Specifics
   sales: { id: 'sales', label: 'Vendas', value: 12, goal: 20, unit: 'number' },
   revenue: { id: 'revenue', label: 'Faturamento Total', value: 185000, goal: 300000, unit: 'currency' },
@@ -69,11 +69,11 @@ export const CLOSER_DATA: RepPerformance[] = [
 
 // Micro View: Marketing Channels Data
 export const MARKETING_CHANNELS_DATA: MarketingChannelStats[] = [
-  { channel: 'Google Ads (Search)', investment: 8500, leads: 280, cpl: 30.35, mqls: 95, sales: 5, revenue: 75000, roas: 8.8 },
-  { channel: 'Meta Ads (Insta/FB)', investment: 5000, leads: 350, cpl: 14.28, mqls: 60, sales: 3, revenue: 45000, roas: 9.0 },
-  { channel: 'LinkedIn Ads', investment: 1950, leads: 50, cpl: 39.00, mqls: 25, sales: 2, revenue: 35000, roas: 17.9 },
-  { channel: 'Orgânico / SEO', investment: 0, leads: 120, cpl: 0, mqls: 20, sales: 1, revenue: 15000, roas: 0 },
-  { channel: 'Indicação / Email', investment: 0, leads: 50, cpl: 0, mqls: 10, sales: 1, revenue: 15000, roas: 0 },
+  { channel: 'Google Ads (Search)', investment: 8500, leads: 280, cpl: 30.35, mqls: 95, sales: 5, revenue: 75000, roas: 8.8, cac: 0, impressions: 0, clicks: 0, cpm: 0, ctr: 0 },
+  { channel: 'Meta Ads (Insta/FB)', investment: 5000, leads: 350, cpl: 14.28, mqls: 60, sales: 3, revenue: 45000, roas: 9.0, cac: 0, impressions: 0, clicks: 0, cpm: 0, ctr: 0 },
+  { channel: 'LinkedIn Ads', investment: 1950, leads: 50, cpl: 39.00, mqls: 25, sales: 2, revenue: 35000, roas: 17.9, cac: 0, impressions: 0, clicks: 0, cpm: 0, ctr: 0 },
+  { channel: 'Orgânico / SEO', investment: 0, leads: 120, cpl: 0, mqls: 20, sales: 1, revenue: 15000, roas: 0, cac: 0, impressions: 0, clicks: 0, cpm: 0, ctr: 0 },
+  { channel: 'Indicação / Email', investment: 0, leads: 50, cpl: 0, mqls: 10, sales: 1, revenue: 15000, roas: 0, cac: 0, impressions: 0, clicks: 0, cpm: 0, ctr: 0 },
 ];
 
 // Micro View: Products Data
@@ -106,11 +106,11 @@ export const DAILY_TRENDS = Array.from({ length: 18 }, (_, i) => {
   if (dailySales > 0 && Math.random() < 0.2) dailySales = 2;
 
   const avgTicket = 15000;
-  const dailyTicket = avgTicket + (Math.random() * 3000 - 1500); 
+  const dailyTicket = avgTicket + (Math.random() * 3000 - 1500);
   const dailyRevenue = dailySales * dailyTicket;
   const dailyInvestment = Math.floor(Math.random() * 300) + 800;
   const dailyActivities = isWeekend ? 0 : Math.floor(Math.random() * 60) + 220;
-  const connectionRate = 0.18 + (Math.random() * 0.06 - 0.03); 
+  const connectionRate = 0.18 + (Math.random() * 0.06 - 0.03);
   const dailyConnected = Math.floor(dailyActivities * connectionRate);
 
   return {

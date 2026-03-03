@@ -1,0 +1,439 @@
+﻿--- Fetching Deals ---
+[
+  {
+    "createdAt": "2024-01-31T05:00:00.000Z",
+    "archived": false,
+    "id": "18558991927",
+    "properties": {
+      "amount": null,
+      "closedate": null,
+      "createdate": "2024-01-31T05:00:00Z",
+      "dealstage": null,
+      "hs_lastmodifieddate": "2025-12-18T14:56:52.659Z",
+      "hs_object_id": "18558991927",
+      "hubspot_owner_id": null,
+      "pipeline": null
+    },
+    "updatedAt": "2025-12-18T14:56:52.659Z"
+  },
+  {
+    "createdAt": "2024-01-31T05:00:00.000Z",
+    "archived": false,
+    "id": "18559535472",
+    "properties": {
+      "amount": null,
+      "closedate": null,
+      "createdate": "2024-01-31T05:00:00Z",
+      "dealstage": null,
+      "hs_lastmodifieddate": "2025-12-18T14:56:52.888Z",
+      "hs_object_id": "18559535472",
+      "hubspot_owner_id": null,
+      "pipeline": null
+    },
+    "updatedAt": "2025-12-18T14:56:52.888Z"
+  },
+  {
+    "createdAt": "2024-01-31T05:00:00.000Z",
+    "archived": false,
+    "id": "18559573119",
+    "properties": {
+      "amount": null,
+      "closedate": null,
+      "createdate": "2024-01-31T05:00:00Z",
+      "dealstage": null,
+      "hs_lastmodifieddate": "2025-12-18T14:56:53.271Z",
+      "hs_object_id": "18559573119",
+      "hubspot_owner_id": null,
+      "pipeline": null
+    },
+    "updatedAt": "2025-12-18T14:56:53.271Z"
+  },
+  {
+    "createdAt": "2024-01-31T05:00:00.000Z",
+    "archived": false,
+    "id": "18559591342",
+    "properties": {
+      "amount": null,
+      "closedate": null,
+      "createdate": "2024-01-31T05:00:00Z",
+      "dealstage": null,
+      "hs_lastmodifieddate": "2025-12-18T14:56:52.565Z",
+      "hs_object_id": "18559591342",
+      "hubspot_owner_id": null,
+      "pipeline": null
+    },
+    "updatedAt": "2025-12-18T14:56:52.565Z"
+  },
+  {
+    "createdAt": "2024-01-31T05:00:00.000Z",
+    "archived": false,
+    "id": "18559647657",
+    "properties": {
+      "amount": null,
+      "closedate": null,
+      "createdate": "2024-01-31T05:00:00Z",
+      "dealstage": null,
+      "hs_lastmodifieddate": "2025-12-18T14:56:52.758Z",
+      "hs_object_id": "18559647657",
+      "hubspot_owner_id": null,
+      "pipeline": null
+    },
+    "updatedAt": "2025-12-18T14:56:52.758Z"
+  },
+  {
+    "createdAt": "2024-01-31T05:00:00.000Z",
+    "archived": false,
+    "id": "18560084064",
+    "properties": {
+      "amount": null,
+      "closedate": null,
+      "createdate": "2024-01-31T05:00:00Z",
+      "dealstage": null,
+      "hs_lastmodifieddate": "2025-12-18T14:56:52.804Z",
+      "hs_object_id": "18560084064",
+      "hubspot_owner_id": null,
+      "pipeline": null
+    },
+    "updatedAt": "2025-12-18T14:56:52.804Z"
+  },
+  {
+    "createdAt": "2025-12-04T17:59:47.169Z",
+    "archived": false,
+    "id": "51112853783",
+    "properties": {
+      "amount": null,
+      "closedate": "2025-12-09T19:24:32.892Z",
+      "createdate": "2025-12-04T17:59:47.169Z",
+      "dealstage": "1226813477",
+      "hs_lastmodifieddate": "2026-01-29T18:24:47.445Z",
+      "hs_object_id": "51112853783",
+      "hubspot_owner_id": "2011790555",
+      "pipeline": "827389965"
+    },
+    "updatedAt": "2026-01-29T18:24:47.445Z"
+  },
+  {
+    "createdAt": "2025-12-05T01:55:17.073Z",
+    "archived": false,
+    "id": "51114906232",
+    "properties": {
+      "amount": null,
+      "closedate": "2025-12-11T14:28:41.006Z",
+      "createdate": "2025-12-05T01:55:17.073Z",
+      "dealstage": "1226813477",
+      "hs_lastmodifieddate": "2026-01-29T17:45:29.189Z",
+      "hs_object_id": "51114906232",
+      "hubspot_owner_id": "2011790555",
+      "pipeline": "827389965"
+    },
+    "updatedAt": "2026-01-29T17:45:29.189Z"
+  },
+  {
+    "createdAt": "2025-12-04T17:59:39.894Z",
+    "archived": false,
+    "id": "51115797143",
+    "properties": {
+      "amount": null,
+      "closedate": "2025-12-05T20:32:51.348Z",
+      "createdate": "2025-12-04T17:59:39.894Z",
+      "dealstage": "1226813477",
+      "hs_lastmodifieddate": "2026-01-29T18:04:20.221Z",
+      "hs_object_id": "51115797143",
+      "hubspot_owner_id": "2011790555",
+      "pipeline": "827389965"
+    },
+    "updatedAt": "2026-01-29T18:04:20.221Z"
+  },
+  {
+    "createdAt": "2025-12-04T17:59:41.429Z",
+    "archived": false,
+    "id": "51115797145",
+    "properties": {
+      "amount": null,
+      "closedate": "2026-01-14T13:59:49.962Z",
+      "createdate": "2025-12-04T17:59:41.429Z",
+      "dealstage": "1226813477",
+      "hs_lastmodifieddate": "2026-01-30T03:04:12.900Z",
+      "hs_object_id": "51115797145",
+      "hubspot_owner_id": "2011790555",
+      "pipeline": "827389965"
+    },
+    "updatedAt": "2026-01-30T03:04:12.900Z"
+  }
+]
+
+--- Fetching Owners (SDRs/Closers) ---
+[
+  {
+    "id": "7707013",
+    "name": " Pr├®-Vendas Revenda"
+  },
+  {
+    "id": "34208890",
+    "name": "Mariana Moreno"
+  },
+  {
+    "id": "68979595",
+    "name": "Kael Carneiro"
+  },
+  {
+    "id": "78938498",
+    "name": "Leonardo Padilha"
+  },
+  {
+    "id": "80486855",
+    "name": "Lucas Leal"
+  },
+  {
+    "id": "82406376",
+    "name": "Luan Rodrigues"
+  },
+  {
+    "id": "84782362",
+    "name": "Marcelo Peixoto"
+  },
+  {
+    "id": "85369321",
+    "name": "Lucca Nicolay"
+  },
+  {
+    "id": "85369712",
+    "name": "Joel Carlos Lemos Rodrigues"
+  },
+  {
+    "id": "85616302",
+    "name": "Anderson Paim"
+  },
+  {
+    "id": "85822345",
+    "name": "Luan Silva"
+  },
+  {
+    "id": "86298935",
+    "name": "Leonardo Santini"
+  },
+  {
+    "id": "86362284",
+    "name": "Leonardo Souza"
+  },
+  {
+    "id": "86857769",
+    "name": "Isaque Inacio"
+  },
+  {
+    "id": "88809210",
+    "name": "Allan Silva"
+  },
+  {
+    "id": "88847178",
+    "name": "Jo├úo Gaspar"
+  },
+  {
+    "id": "137539252",
+    "name": " WhatsApp"
+  },
+  {
+    "id": "267854426",
+    "name": "Micaele Oliveira"
+  },
+  {
+    "id": "287074324",
+    "name": " Comercial Revenda"
+  },
+  {
+    "id": "291903016",
+    "name": "Andr├® Borba"
+  },
+  {
+    "id": "313026096",
+    "name": "Integra├º├úo Usu├írio"
+  },
+  {
+    "id": "314675632",
+    "name": "Formul├írio Landingpage"
+  },
+  {
+    "id": "317279409",
+    "name": "Hiago Bertuol"
+  },
+  {
+    "id": "319719622",
+    "name": "Automated Process"
+  },
+  {
+    "id": "336352571",
+    "name": " Pr├®-Vendas Corporativo"
+  },
+  {
+    "id": "414667614",
+    "name": "Jonathan Cabral"
+  },
+  {
+    "id": "457559915",
+    "name": "Taluana Carvalho"
+  },
+  {
+    "id": "465343294",
+    "name": "Coach de Vendas"
+  },
+  {
+    "id": "546329675",
+    "name": "Suporte Ceres"
+  },
+  {
+    "id": "640356064",
+    "name": "Camila Dutra"
+  },
+  {
+    "id": "657635557",
+    "name": "Isaque Inacio"
+  },
+  {
+    "id": "676735251",
+    "name": "Imagine Done"
+  },
+  {
+    "id": "686697194",
+    "name": "Integra├º├úo Marketing Cloud"
+  },
+  {
+    "id": "702657404",
+    "name": "Allan Silva"
+  },
+  {
+    "id": "754293920",
+    "name": "Murilo Tavares"
+  },
+  {
+    "id": "829085803",
+    "name": "Suporte Elements"
+  },
+  {
+    "id": "843307587",
+    "name": "Cristian Rick"
+  },
+  {
+    "id": "900727043",
+    "name": "HIC HIC"
+  },
+  {
+    "id": "1054895596",
+    "name": "Hellen Mendes"
+  },
+  {
+    "id": "1080134664",
+    "name": "Marcos Weidebach"
+  },
+  {
+    "id": "1083837330",
+    "name": "Jonatha Rocha"
+  },
+  {
+    "id": "1119789956",
+    "name": "Luiz Melo"
+  },
+  {
+    "id": "1196931738",
+    "name": "Raquel Bueno"
+  },
+  {
+    "id": "1232710815",
+    "name": "Insights Integration"
+  },
+  {
+    "id": "1243968609",
+    "name": "Alana Paz"
+  },
+  {
+    "id": "1306820993",
+    "name": " B2C"
+  },
+  {
+    "id": "1364202926",
+    "name": "Gabriel de Oliveira"
+  },
+  {
+    "id": "1373727652",
+    "name": "Oggy Castedo"
+  },
+  {
+    "id": "1484841101",
+    "name": "Iago Mulinari"
+  },
+  {
+    "id": "1491350668",
+    "name": "Michelle Ferraz"
+  },
+  {
+    "id": "1612189447",
+    "name": "Alexandre Pensin"
+  },
+  {
+    "id": "1629968104",
+    "name": "Leonardo Pinheiro"
+  },
+  {
+    "id": "1645997791",
+    "name": "Isaac Dos Santos"
+  },
+  {
+    "id": "1685367970",
+    "name": "SalesforceIQ Integration"
+  },
+  {
+    "id": "1719216316",
+    "name": "Bruna Dias"
+  },
+  {
+    "id": "1802618010",
+    "name": "Seguran├ºa Usu├írio"
+  },
+  {
+    "id": "1822684589",
+    "name": " Caso de servi├ºo"
+  },
+  {
+    "id": "1824641279",
+    "name": "Sankhya Integration"
+  },
+  {
+    "id": "1856577327",
+    "name": "Rodrigo Fernandes"
+  },
+  {
+    "id": "1941338641",
+    "name": "Felipe Labes"
+  },
+  {
+    "id": "1990522735",
+    "name": " Comercial Corporativo"
+  },
+  {
+    "id": "1995490457",
+    "name": "Mauricio Oliveira"
+  },
+  {
+    "id": "2002173070",
+    "name": "Bianca Matos"
+  },
+  {
+    "id": "2011790555",
+    "name": "Rodrigo Fernandes Pereira"
+  },
+  {
+    "id": "2052188935",
+    "name": "Larissa Leal"
+  },
+  {
+    "id": "2083703444",
+    "name": "Thierry Ara├║jo"
+  },
+  {
+    "id": "2096185277",
+    "name": "Vinicius Ferreira"
+  },
+  {
+    "id": "2137540108",
+    "name": "Centro de ajuda padr├úo Usu├írio convidado do site"
+  }
+]

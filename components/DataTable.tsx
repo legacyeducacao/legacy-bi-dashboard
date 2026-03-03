@@ -11,9 +11,10 @@ interface DataTableProps<T> {
   data: T[];
   columns: Column<T>[];
   showBorder?: boolean;
+  rowClassName?: (row: T) => string;
 }
 
-const DataTable = <T,>({ title, data, columns, showBorder = true }: DataTableProps<T>) => {
+const DataTable = <T,>({ title, data, columns, showBorder = true, rowClassName }: DataTableProps<T>) => {
   return (
     <div className={`w-full ${showBorder ? 'bg-white dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none' : ''}`}>
       {title && (
@@ -35,15 +36,19 @@ const DataTable = <T,>({ title, data, columns, showBorder = true }: DataTablePro
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
-            {data.map((item, idx) => (
-              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
-                {columns.map((col, cIdx) => (
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+            {data.map((row, i) => (
+              <tr
+                key={i}
+                className={`group hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors ${rowClassName ? rowClassName(row) : ''}`}
+              >
+                {columns.map((col, j) => (
                   <td
-                    key={cIdx}
-                    className={`px-4 py-3 text-slate-700 dark:text-slate-200 text-${col.align || 'left'}`}
+                    key={j}
+                    className={`px-4 py-3 text-sm text-slate-800 dark:text-slate-200 transition-colors`}
+                    style={{ textAlign: col.align || 'left' }}
                   >
-                    {col.accessor(item)}
+                    {col.accessor(row)}
                   </td>
                 ))}
               </tr>

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hubspot/api-client": "^13.4.0",
     "@supabase/supabase-js": "^2.97.0",
     "dotenv": "^17.3.1",
     "lucide-react": "0.344.0",
