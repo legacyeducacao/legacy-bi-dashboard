@@ -13,7 +13,7 @@ const STAGE_MAP = {
   '1225098147': 'connections',   // Filtro 1
   '1225098148': 'connections',   // Filtro 2
   '1225098149': 'meetings_booked', // Agendado (CORRIGIDO)
-  '1239126390': 'connections',   // Reagendamento
+  '1239126390': 'meetings_booked', // Reagendamento (CONTABILIZAR COMO AGENDADO)
   '1225098150': 'connections',   // Maturação
   '1225098151': 'connections',   // Negociação
   '1225024929': 'no_shows',      // Assinatura de Contrato
@@ -60,6 +60,24 @@ function resolveOwnerByStageHistory(stageHistory) {
   }
   return null;
 }
+
+// ── FUNÇÕES AUXILIARES DE DATA ────────────────────────────────────────────────
+function safeDate(timestamp) {
+  if (!timestamp) return new Date().toISOString();
+  if (!isNaN(timestamp)) return new Date(Number(timestamp)).toISOString();
+  try {
+    const d = new Date(timestamp);
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  } catch(e) {
+    return new Date().toISOString();
+  }
+}
+
+// ── DATA DE HOJE (BASEADA NO FUSO SÃO PAULO) ──────────────────────────────────
+const todayStr = new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}).split(',')[0];
+// formata pra YYYY-MM-DD
+const [month, day, year] = todayStr.split('/');
+const strToday = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 
 // ── PROCESSAMENTO PRINCIPAL ───────────────────────────────────────────────────
 
@@ -123,20 +141,69 @@ for (const item of inputItems) {
                        'INBOUND'].some(k => src.includes(k));
 
     const stageHistory = item.propertiesWithHistory?.dealstage || [];
-    const stagesToProcess = stageHistory.length > 0
-      ? stageHistory
-      : [{ value: props.dealstage, timestamp: props.createdate || new Date().toISOString() }];
+    
+    // Melhoria para Live Webhooks sem propertiesWithHistory:
+    // Se não tivermos o histórico do estágio, a data do evento atual não é a data de criação.
+    let fallbackTimestamp = props.createdate || new Date().toISOString();
+    
+    // Mapeamento de propriedades sistêmicas de entrada em estágio (evita usar lastmodified erro)
+    const ENTRY_DATE_PROPS = {
+        '1225098146': 'hs_v2_date_entered_1225098146', // Entrada
+        '1225098147': 'hs_v2_date_entered_1225098147', // Filtro 1
+        '1225098148': 'hs_v2_date_entered_1225098148', // Filtro 2
+        '1225098149': 'hs_v2_date_entered_1225098149', // Agendado
+        '1239126390': 'hs_v2_date_entered_1239126390'  // Reagendamento
+    };
+
+    if (ENTRY_DATE_PROPS[props.dealstage] && props[ENTRY_DATE_PROPS[props.dealstage]]) {
+        // [FIX DUPLICAÇÃO] Se o N8N não tem history, usa a data exata em que entrou no estágio alvo!
+        fallbackTimestamp = props[ENTRY_DATE_PROPS[props.dealstage]];
+    } else if (WON_STAGES.has(props.dealstage) && props.closedate) {
+        fallbackTimestamp = props.closedate;
+    } else if (props.hs_lastmodifieddate) {
+        fallbackTimestamp = props.hs_lastmodifieddate;
+    }
+
+    let stagesToProcess = [...stageHistory];
+
+    // [SYNTHETIC HISTORY] Se não temos histórico formal (ex: script de sync ou webhook simples), 
+    // tentamos gerar a partir das propriedades de data de entrada dos estágios.
+    if (stagesToProcess.length === 0) {
+        Object.entries(ENTRY_DATE_PROPS).forEach(([stageId, propName]) => {
+            if (props[propName]) {
+                stagesToProcess.push({ value: stageId, timestamp: props[propName] });
+            }
+        });
+        // Se ainda vazio, fallback mínimo (estágio atual)
+        if (stagesToProcess.length === 0) {
+            stagesToProcess.push({ value: props.dealstage, timestamp: fallbackTimestamp });
+        }
+    }
 
     const processed = new Set();
 
     for (const stg of stagesToProcess) {
       const mapped = STAGE_MAP[stg.value];
       if (!mapped) continue;
-      if (processed.has(mapped) && mapped !== 'opportunities') continue;
+      if (processed.has(mapped) && mapped !== 'opportunities' && mapped !== 'meetings_booked') continue;
       processed.add(mapped);
 
-      const dateStr = (stg.timestamp || new Date().toISOString()).split('T')[0];
-      const record  = getOrCreateRecord(dateStr, ownerInfo.name, ownerInfo.role);
+      // We extract the date strictly from the deal stage history timestamp to avoid dumping past events into "today"
+      const dateStr = safeDate(stg.timestamp).split('T')[0];
+      const entryDate = dateStr; // for legacy compatibility if needed in this block
+      // [NOVA REGRA DE SDR] Se a métrica é Agendamento e o campo SDR Responsável existe, o crédito é cravado nele!
+      let metricOwnerInfo = ownerInfo;
+      if (mapped === 'meetings_booked') {
+          const sdrInProp = props.sdr_responsavel ? OWNER_MAP[props.sdr_responsavel] : null;
+          if (sdrInProp && sdrInProp.role === 'SDR') {
+              metricOwnerInfo = sdrInProp;
+          } else if (ownerInfo.role !== 'SDR') {
+              // Se não tem SDR no campo E o dono atual é Closer -> ignoramos esse agendamento do ranking de SDR
+              continue; 
+          }
+      }
+
+      const record  = getOrCreateRecord(dateStr, metricOwnerInfo.name, metricOwnerInfo.role);
 
       if (mapped === 'sales') {
         record.sales   += 1;
@@ -172,15 +239,21 @@ for (const item of inputItems) {
     const bookerInfo = OWNER_MAP[bookedById];
 
     if (bookerInfo) {
-      const bookedDate = (props.hs_createdate || new Date().toISOString()).split('T')[0];
-      getOrCreateRecord(bookedDate, bookerInfo.name, bookerInfo.role).meetings_booked += 1;
+      // Se agendado, a data em que foi agendado normalmente é strToday se considerarmos o momento da ação, ou a data de criação.
+      // Para garantir que apareça nas métricas de HOJE (quando o hook roda), contabilizamos no strToday.
+      const bookedDateStr = props.hs_createdate ? safeDate(props.hs_createdate).split('T')[0] : strToday;
+      // [FIX DUPLICAÇÃO] - Comentando o incremento de meetings_booked aqui, pois ele já é contado 
+      // na transição de estágio do negócio (1225098149 = 'meetings_booked').
+      // getOrCreateRecord(bookedDateStr === strToday ? strToday : bookedDateStr, bookerInfo.name, bookerInfo.role).meetings_booked += 1;
     }
 
     const ownerForResult = closerInfo || bookerInfo;
     if (!ownerForResult) continue;
 
     const startTs   = props.hs_meeting_start_time || props.hs_createdate || new Date().toISOString();
-    const startDate = new Date(startTs).toISOString().split('T')[0];
+    // Usa strToday se o report for consolidar ações diárias no webhook, garantindo que "reuniões dadas como realizadas HOJE" entrem na meta de HOJE.
+    // Assim não perdemos reuniões do passado que o vendedor só marcou como concluída hoje.
+    const startDate = strToday;
     const outcome   = String(props.hs_meeting_outcome || '').toUpperCase();
 
     const rec = getOrCreateRecord(startDate, ownerForResult.name, ownerForResult.role);
@@ -188,11 +261,16 @@ for (const item of inputItems) {
       rec.meetings_held += 1;
     } else if (['NO_SHOW', 'CANCELLED', 'NO_SHOW_SCHEDULED', 'CANCELED'].includes(outcome)) {
       rec.no_shows += 1;
-    } else if (new Date(startTs) < new Date() && outcome === '') {
+    } else if (new Date(safeDate(startTs)) < new Date() && outcome === '') {
       rec.meetings_held += 1;
     }
   }
 }
 
 // ── OUTPUT ÚNICO (COMPATÍVEL COM N8N ATUAL) ──────────────────────────────────
-return Object.values(aggregated).map(item => ({ json: item }));
+// Filtra apenas para o dia de hoje, já que o gatilho traz negócios que podem 
+// ter histórico de 2025/2024 mas que só queremos reportar as métricas de HOJE.
+
+return Object.values(aggregated)
+  .filter(item => item.date === strToday)
+  .map(item => ({ json: item }));
