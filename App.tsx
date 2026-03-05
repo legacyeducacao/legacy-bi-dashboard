@@ -231,9 +231,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    // Refresh every 5 minutes automatically
-    const interval = setInterval(loadData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
 
   // --- Derived Data for Filters ---
