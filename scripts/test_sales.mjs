@@ -240,10 +240,7 @@ function transformDeals(deals) {
       const mapped  = STAGE_MAP[stageId];
       if (!mapped) continue;
 
-      let dateStr = (stg.timestamp || new Date().toISOString()).split('T')[0];
-      if (mapped === 'sales' && props.closedate) {
-        dateStr = props.closedate.split('T')[0];
-      }
+      const dateStr = (stg.timestamp || new Date().toISOString()).split('T')[0];
       const rec     = getRecord(dateStr, ownerInfo.name, ownerInfo.role);
 
       if (mapped === 'sales' && !seen.has('sales')) {
@@ -345,7 +342,7 @@ async function upsertTeamMember(name, role) {
 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 
-async function main() {
+async function main() { const startDate = '2026-03-01'; const deals = await fetchAllDeals(startDate); const { qualified } = transformDeals(deals); console.log('Qualified sales:', qualified.filter(q => q.sales > 0)); return;
   console.log('🚀 RETROATIVO 30 DIAS — HubSpot → Supabase');
   console.log('='.repeat(60));
 

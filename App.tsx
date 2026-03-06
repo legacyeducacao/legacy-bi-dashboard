@@ -749,151 +749,165 @@ const App: React.FC = () => {
 
   // --- Views Components ---
 
-  const OverviewView = () => (
-    <div className="flex flex-col h-full gap-6 animate-in fade-in duration-500 overflow-y-auto custom-scrollbar pr-1 pb-6">
+  const OverviewView = () => {
+    const dynamicFunnelData = useMemo(() => {
+      return [
+        { name: 'Leads', value: activeKPIs.leads?.value || 0 },
+        { name: 'MQLs', value: activeKPIs.mqls?.value || 0 },
+        { name: 'Oportunidades', value: activeKPIs.opportunities?.value || 0 },
+        { name: 'Conexões', value: activeKPIs.connections?.value || 0 },
+        { name: 'Agendadas', value: activeKPIs.meetingsBooked?.value || 0 },
+        { name: 'Realizadas', value: activeKPIs.meetingsHeld?.value || 0 },
+        { name: 'Vendas', value: activeKPIs.sales?.value || 0 },
+      ].filter(item => item.value > 0);
+    }, [activeKPIs]);
 
-      {/* 1. Primary KPIs - Dedicated Row for perfect balance */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 flex-shrink-0 mb-2">
-        {activeKPIs.investment && <MetricCard metric={activeKPIs.investment} context={data.context} inverse />}
-        {activeKPIs.revenue && <MetricCard metric={activeKPIs.revenue} context={data.context} />}
-        {activeKPIs.roas && <MetricCard metric={activeKPIs.roas} context={data.context} />}
-        {activeKPIs.leads && <MetricCard metric={activeKPIs.leads} context={data.context} />}
+    return (
+      <div className="flex flex-col h-full gap-6 animate-in fade-in duration-500 overflow-y-auto custom-scrollbar pr-1 pb-6">
+
+        {/* 1. Primary KPIs - Dedicated Row for perfect balance */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 flex-shrink-0 mb-2">
+          {activeKPIs.investment && <MetricCard metric={activeKPIs.investment} context={data.context} inverse />}
+          {activeKPIs.revenue && <MetricCard metric={activeKPIs.revenue} context={data.context} />}
+          {activeKPIs.roas && <MetricCard metric={activeKPIs.roas} context={data.context} />}
+          {activeKPIs.leads && <MetricCard metric={activeKPIs.leads} context={data.context} />}
+        </div>
+
+        {/* 2. Marketing & Efficiency Cluster */}
+        <div className="bg-slate-50/50 dark:bg-slate-900/10 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/50 flex flex-col gap-4">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-2 h-6 bg-slate-400/50 rounded-full"></div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Marketing & Eficiência</h4>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+            {activeKPIs.ticket && <div className="h-full"><MetricCard metric={activeKPIs.ticket} context={data.context} variant="compact" /></div>}
+            {activeKPIs.cpl && <div className="h-full"><MetricCard metric={activeKPIs.cpl} context={data.context} variant="compact" inverse /></div>}
+            {activeKPIs.cac && <div className="h-full"><MetricCard metric={activeKPIs.cac} context={data.context} variant="compact" inverse /></div>}
+            {activeKPIs.salesInbound && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.salesInbound}
+                  context={data.context}
+                  variant="compact"
+                  customComparison={{
+                    label: 'Inbound (Entrada)',
+                    value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesInbound.value / activeKPIs.sales.value) * 100 : 0,
+                    suffix: '%'
+                  }}
+                />
+              </div>
+            )}
+            {activeKPIs.salesOutbound && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.salesOutbound}
+                  context={data.context}
+                  variant="compact"
+                  customComparison={{
+                    label: 'Outbound (Ativo)',
+                    value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesOutbound.value / activeKPIs.sales.value) * 100 : 0,
+                    suffix: '%'
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 2. Unified Commercial Funnel Cluster */}
+        <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/50 flex flex-col gap-4">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-2 h-6 bg-primary rounded-full"></div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Funil Comercial</h4>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {activeKPIs.connections && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.connections}
+                  context={data.context}
+                  variant="funnel"
+                  customComparison={{
+                    label: 'Taxa Conv.',
+                    value: activeKPIs.leads?.value > 0 ? (activeKPIs.connections.value / activeKPIs.leads.value) * 100 : 0,
+                    suffix: '%'
+                  }}
+                />
+              </div>
+            )}
+            {activeKPIs.meetingsBooked && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.meetingsBooked}
+                  context={data.context}
+                  variant="funnel"
+                  customComparison={{
+                    label: 'Taxa Agend.',
+                    value: activeKPIs.connections?.value > 0 ? (activeKPIs.meetingsBooked.value / activeKPIs.connections.value) * 100 : 0,
+                    suffix: '%'
+                  }}
+                />
+              </div>
+            )}
+            {activeKPIs.meetingsHeld && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.meetingsHeld}
+                  context={data.context}
+                  variant="funnel"
+                  customComparison={{
+                    label: 'Taxa de Presença',
+                    value: activeKPIs.meetingsBooked?.value > 0 ? (activeKPIs.meetingsHeld.value / activeKPIs.meetingsBooked.value) * 100 : 0,
+                    suffix: '%'
+                  }}
+                />
+              </div>
+            )}
+            {activeKPIs.sales && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.sales}
+                  context={data.context}
+                  variant="funnel"
+                  customComparison={{
+                    label: 'Taxa de Fechamento',
+                    value: activeKPIs.meetingsHeld?.value > 0 ? (activeKPIs.sales.value / activeKPIs.meetingsHeld.value) * 100 : 0,
+                    suffix: '%'
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 3. Charts Cluster */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[400px]">
+          <div className="lg:col-span-2 flex flex-col">
+            <GoalAchievementChart
+              title="Performance de Faturamento"
+              currentData={filteredTrends}
+              dataKey="revenue"
+              goal={activeKPIs.revenue?.goal || 0}
+              totalDays={data.context.totalDays}
+              currentDay={data.context.currentDay}
+              isDarkMode={isDark}
+              className="flex-1"
+              unit="currency"
+            />
+          </div>
+          <div className="lg:col-span-1 flex flex-col">
+            <FunnelChart
+              data={dynamicFunnelData}
+              isDarkMode={isDark}
+              className="h-full"
+            />
+          </div>
+        </div>
       </div>
-
-      {/* 2. Marketing & Efficiency Cluster */}
-      <div className="bg-slate-50/50 dark:bg-slate-900/10 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/50 flex flex-col gap-4">
-        <div className="flex items-center gap-2 px-1">
-          <div className="w-2 h-6 bg-slate-400/50 rounded-full"></div>
-          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Marketing & Eficiência</h4>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-          {activeKPIs.ticket && <div className="h-full"><MetricCard metric={activeKPIs.ticket} context={data.context} variant="compact" /></div>}
-          {activeKPIs.cpl && <div className="h-full"><MetricCard metric={activeKPIs.cpl} context={data.context} variant="compact" inverse /></div>}
-          {activeKPIs.cac && <div className="h-full"><MetricCard metric={activeKPIs.cac} context={data.context} variant="compact" inverse /></div>}
-          {activeKPIs.salesInbound && (
-            <div className="h-full">
-              <MetricCard
-                metric={activeKPIs.salesInbound}
-                context={data.context}
-                variant="compact"
-                customComparison={{
-                  label: 'Inbound (Entrada)',
-                  value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesInbound.value / activeKPIs.sales.value) * 100 : 0,
-                  suffix: '%'
-                }}
-              />
-            </div>
-          )}
-          {activeKPIs.salesOutbound && (
-            <div className="h-full">
-              <MetricCard
-                metric={activeKPIs.salesOutbound}
-                context={data.context}
-                variant="compact"
-                customComparison={{
-                  label: 'Outbound (Ativo)',
-                  value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesOutbound.value / activeKPIs.sales.value) * 100 : 0,
-                  suffix: '%'
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 2. Unified Commercial Funnel Cluster */}
-      <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/50 flex flex-col gap-4">
-        <div className="flex items-center gap-2 px-1">
-          <div className="w-2 h-6 bg-primary rounded-full"></div>
-          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Funil Comercial</h4>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {activeKPIs.connections && (
-            <div className="h-full">
-              <MetricCard
-                metric={activeKPIs.connections}
-                context={data.context}
-                variant="funnel"
-                customComparison={{
-                  label: 'Taxa Conv.',
-                  value: activeKPIs.leads?.value > 0 ? (activeKPIs.connections.value / activeKPIs.leads.value) * 100 : 0,
-                  suffix: '%'
-                }}
-              />
-            </div>
-          )}
-          {activeKPIs.meetingsBooked && (
-            <div className="h-full">
-              <MetricCard
-                metric={activeKPIs.meetingsBooked}
-                context={data.context}
-                variant="funnel"
-                customComparison={{
-                  label: 'Taxa Agend.',
-                  value: activeKPIs.connections?.value > 0 ? (activeKPIs.meetingsBooked.value / activeKPIs.connections.value) * 100 : 0,
-                  suffix: '%'
-                }}
-              />
-            </div>
-          )}
-          {activeKPIs.meetingsHeld && (
-            <div className="h-full">
-              <MetricCard
-                metric={activeKPIs.meetingsHeld}
-                context={data.context}
-                variant="funnel"
-                customComparison={{
-                  label: 'Taxa de Presença',
-                  value: activeKPIs.meetingsBooked?.value > 0 ? (activeKPIs.meetingsHeld.value / activeKPIs.meetingsBooked.value) * 100 : 0,
-                  suffix: '%'
-                }}
-              />
-            </div>
-          )}
-          {activeKPIs.sales && (
-            <div className="h-full">
-              <MetricCard
-                metric={activeKPIs.sales}
-                context={data.context}
-                variant="funnel"
-                customComparison={{
-                  label: 'Taxa de Fechamento',
-                  value: activeKPIs.meetingsHeld?.value > 0 ? (activeKPIs.sales.value / activeKPIs.meetingsHeld.value) * 100 : 0,
-                  suffix: '%'
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 3. Charts Cluster */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[400px]">
-        <div className="lg:col-span-2 flex flex-col">
-          <GoalAchievementChart
-            title="Performance de Faturamento"
-            currentData={filteredTrends}
-            dataKey="revenue"
-            goal={activeKPIs.revenue?.goal || 0}
-            totalDays={data.context.totalDays}
-            currentDay={data.context.currentDay}
-            isDarkMode={isDark}
-            className="flex-1"
-            unit="currency"
-          />
-        </div>
-        <div className="lg:col-span-1 flex flex-col">
-          <FunnelChart
-            data={data.funnelData}
-            isDarkMode={isDark}
-            className="h-full"
-          />
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const AnalysisView = () => {
     // 1. Analyze all metrics
