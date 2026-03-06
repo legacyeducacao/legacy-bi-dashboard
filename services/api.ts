@@ -105,10 +105,24 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          supabase.from('fact_daily_marketing')
             .select('date, cost, leads, mqls, impressions, clicks, campaign_name, dim_channels(name), dim_products(name)')
             .order('date', { ascending: true }),
-         supabase.from('fact_team_activities').select('*, dim_team(name, role)').order('date', { ascending: true }),
+         // Filtro: últimos 90 dias para garantir que os dados do mês atual sempre apareçam
+         // limit(5000) supera o limite padrão de 1000 registros do Supabase
+         // Filtro: últimos 35 dias para garantir que os dados do mês atual sempre apareçam
+         // Invertemos a ordem para DESC para garantir que os dados mais recentes 
+         // venham primeiro caso atinja o limite de 1000 registros do Supabase.
+         supabase.from('fact_team_activities')
+            .select('date, team_member_id, opportunities, connections, meetings_booked, meetings_held, no_shows, sales, revenue, response_time_sum, response_time_count, inbound_count, outbound_count, dim_team(name, role)')
+            .gte('date', (() => { const d = new Date(); d.setDate(d.getDate() - 35); return d.toISOString().split('T')[0]; })())
+            .order('date', { ascending: false })
+            .limit(2000),
          supabase.from('marketing_channels').select('*'),
          supabase.from('marketing_products').select('*')
       ]);
+
+      // Re-ordena teamData para ascendente para processamento de tendências
+      const sortedTeamData = (teamData || []).sort((a: any, b: any) =>
+         new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
 
       // Normaliza os dados raw com nome de canal e produto
       const rawMarketingData = (rawMarketingRaw || []).map((row: any) => ({
@@ -131,7 +145,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             trendsMap.set(dateKey, {
                date: dateKey, cost: 0, leads: 0, mqls: 0,
                revenue: 0, sales: 0, connections: 0,
-               opportunities: 0, meetings_booked: 0, meetings_held: 0
+               opportunities: 0, meetings_booked: 0, meetings_held: 0,
+               inbound: 0, outbound: 0, no_shows: 0
             });
          }
          return trendsMap.get(dateKey);
@@ -144,9 +159,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          existing.mqls += Number(row.mqls) || 0;
       });
 
-      (teamData || []).forEach((row: any) => {
+      (sortedTeamData || []).forEach((row: any) => {
          const existing = getOrCreateTrend(row.date);
-         const repName = row.dim_team?.name || row.rep_name || 'Sem_Dono';
          existing.revenue += Number(row.revenue) || 0;
          existing.sales += Number(row.sales) || 0;
          existing.connections += Number(row.connections) || 0;

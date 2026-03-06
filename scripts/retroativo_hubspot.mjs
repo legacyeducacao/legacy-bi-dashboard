@@ -26,14 +26,23 @@ const STAGE_MAP = {
   '1225098146': 'opportunities',
   '1225098147': 'connections',
   '1225098148': 'connections',
-  '1225098149': 'meetings_booked',
-  '1239126390': 'connections',
-  '1225098150': 'connections',
-  '1225098151': 'connections',
+  '1225098149': 'meetings_booked',   // Agendado → conta como Agendada (NÃO conta Reagendamento)
+  '1239126390': 'connections',        // Reagendamento → só conexão, NÃO é Agendada
+  '1225098150': 'connections',        // Maturação → conexão (meetings_held tratado via MEETINGS_HELD_STAGES)
+  '1225098151': 'connections',        // Negociação
   '1225024929': 'no_shows',
   '1225098152': 'sales',
   '1226813477': 'connections'
 };
+
+// Estágios que implicam que a reunião foi realizada
+// Tratado SEPARADAMENTE do STAGE_MAP para não interferir com outros contadores
+const MEETINGS_HELD_STAGES = new Set([
+  '1225098150', // Maturação (deal passou pela reunião, entrou em negociação)
+  '1225098151', // Negociação
+  '1225024929', // Assinatura de Contrato
+  '1225098152'  // Vendido
+]);
 
 const STAGE_NAMES = {
   '1225098146':'Entrada','1225098147':'Filtro 1','1225098148':'Filtro 2',
@@ -111,15 +120,26 @@ async function fetchAllDeals(startDate) {
       properties: [
         'dealname','amount','dealstage','pipeline','hubspot_owner_id',
         'createdate','closedate','hs_analytics_source','origem_do_lead',
+        'inbound_ou_outbound', 'reuniao_ocorrida',
         'response_time_1_ligacao',
         ...REVENUE_FIELDS
       ],
-      filterGroups: [{
-        filters: [
-          { propertyName: 'pipeline',    operator: 'EQ', value: PIPELINE_ID },
-          { propertyName: 'createdate',  operator: 'GTE', value: `${startDate}T00:00:00.000Z` }
-        ]
-      }],
+      filterGroups: [
+        {
+          filters: [
+            { propertyName: 'pipeline',   operator: 'EQ',  value: PIPELINE_ID },
+            { propertyName: 'createdate', operator: 'GTE', value: `${startDate}T00:00:00.000Z` }
+          ]
+        },
+        // Também captura deals fechados (Vendido) no mês atual, mesmo criados antes do período
+        {
+          filters: [
+            { propertyName: 'pipeline',   operator: 'EQ',  value: PIPELINE_ID },
+            { propertyName: 'dealstage',  operator: 'EQ',  value: '1225098152' },
+            { propertyName: 'closedate',  operator: 'GTE', value: `${startDate}T00:00:00.000Z` }
+          ]
+        }
+      ],
       propertiesWithHistory: ['hubspot_owner_id','dealstage'],
       ...(after ? { after } : {})
     };
@@ -187,9 +207,23 @@ function transformDeals(deals) {
 
     const amountVal  = parseFloat(props.amount) || 0;
     const respTimeMs = parseFloat(props.response_time_1_ligacao) || 0;
-    const src        = String(props.hs_analytics_source || props.origem_do_lead || '').toUpperCase();
-    const isInbound  = ['PAID_SOCIAL','PAID_SEARCH','ORGANIC_SEARCH','ORGANIC_SOCIAL',
-                        'EMAIL_MARKETING','REFERRALS','INBOUND'].some(k => src.includes(k));
+    
+    // Inbound/Outbound: usa campo dedicado `inbound_ou_outbound` se disponível
+    // Fallback para hs_analytics_source
+    const inboundField = String(props.inbound_ou_outbound || '').toLowerCase();
+    let isInbound;
+    if (inboundField === 'inbound') {
+      isInbound = true;
+    } else if (inboundField === 'outbound') {
+      isInbound = false;
+    } else {
+      const src = String(props.hs_analytics_source || props.origem_do_lead || '').toUpperCase();
+      isInbound = ['PAID_SOCIAL','PAID_SEARCH','ORGANIC_SEARCH','ORGANIC_SOCIAL',
+                   'EMAIL_MARKETING','REFERRALS','INBOUND'].some(k => src.includes(k));
+    }
+
+    // Verifica se reunião ocorreu pelo campo dedicado
+    const reuniaoOcorrida = props.reuniao_ocorrida === 'true' || props.reuniao_ocorrida === true;
 
     const stageHistory   = item.propertiesWithHistory?.dealstage || [];
     const stagesToProcess = stageHistory.length > 0
@@ -197,31 +231,53 @@ function transformDeals(deals) {
       : [{ value: props.dealstage, timestamp: props.createdate || new Date().toISOString() }];
 
     const seen = new Set();
+    let dealBookedDate = null;   // Data em que foi agendado (para evitar dupla contagem)
+    let dealHeldDate   = null;   // Data em que a reunião foi realizada
+
     for (const stg of stagesToProcess) {
-      const mapped = STAGE_MAP[stg.value];
+      const stageId = stg.value;
+      const mapped  = STAGE_MAP[stageId];
       if (!mapped) continue;
-      if (seen.has(mapped) && mapped !== 'opportunities') continue;
-      seen.add(mapped);
 
       const dateStr = (stg.timestamp || new Date().toISOString()).split('T')[0];
       const rec     = getRecord(dateStr, ownerInfo.name, ownerInfo.role);
 
-      if (mapped === 'sales') {
+      if (mapped === 'sales' && !seen.has('sales')) {
+        seen.add('sales');
         rec.sales += 1; rec.revenue += amountVal;
-      } else if (mapped === 'opportunities') {
+      } else if (mapped === 'opportunities' && !seen.has('opportunities')) {
+        seen.add('opportunities');
         rec.opportunities += 1;
         if (respTimeMs > 0) {
           rec.response_time_sum   += respTimeMs > 10000 ? respTimeMs/60000 : respTimeMs;
           rec.response_time_count += 1;
         }
         isInbound ? rec.inbound++ : rec.outbound++;
-      } else if (mapped === 'no_shows') {
+      } else if (mapped === 'no_shows' && !seen.has('no_shows')) {
+        seen.add('no_shows');
         rec.no_shows += 1;
-      } else if (mapped === 'meetings_booked') {
+      } else if (mapped === 'meetings_booked' && !dealBookedDate) {
+        // Agendado — conta apenas uma vez por deal
+        dealBookedDate = dateStr;
         rec.meetings_booked += 1;
-      } else {
-        rec[mapped] += 1;
+      } else if (mapped === 'connections' && !seen.has(`conn_${stageId}`)) {
+        seen.add(`conn_${stageId}`);
+        rec.connections += 1;
       }
+
+      // Verifica se este estágio implica que a reunião foi realizada
+      if (MEETINGS_HELD_STAGES.has(stageId) && !dealHeldDate) {
+        dealHeldDate = dateStr;
+      }
+    }
+
+    // Registra meetings_held: estágio Maturação (ou campo reuniao_ocorrida)
+    if (reuniaoOcorrida && !dealHeldDate) {
+      dealHeldDate = (props.createdate || new Date().toISOString()).split('T')[0];
+    }
+    if (dealHeldDate) {
+      const rec = getRecord(dealHeldDate, ownerInfo.name, ownerInfo.role);
+      rec.meetings_held += 1;
     }
   }
 

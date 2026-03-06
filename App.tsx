@@ -504,7 +504,11 @@ const App: React.FC = () => {
 
     // Helper to safely initialize KPI objects if they don't exist yet
     const safeKpi = (key: string, label: string, unit: 'currency' | 'number' | 'percentage' | 'time') => {
-      if (!newKPIs[key]) newKPIs[key] = { id: key, label, value: 0, goal: 0, unit };
+      if (!newKPIs[key]) {
+        newKPIs[key] = { id: key, label, value: 0, goal: 0, unit };
+      } else {
+        newKPIs[key].unit = unit;
+      }
       return newKPIs[key];
     };
 
