@@ -150,6 +150,7 @@ async function fetchAllDeals(startDate) {
     });
     if (!res.ok) throw new Error(`HubSpot ${res.status}: ${await res.text()}`);
     const data = await res.json();
+    console.log(`  [Debug] Page result count: ${data.results?.length || 0} | Total in HS: ${data.total}`);
     all.push(...(data.results || []));
     after = data.paging?.next?.after || null;
     process.stdout.write(`\r  Fetched ${all.length} deals...`);
@@ -245,6 +246,7 @@ function transformDeals(deals) {
       if (mapped === 'sales' && !seen.has('sales')) {
         seen.add('sales');
         rec.sales += 1; rec.revenue += amountVal;
+        isInbound ? rec.inbound++ : rec.outbound++;
       } else if (mapped === 'opportunities' && !seen.has('opportunities')) {
         seen.add('opportunities');
         rec.opportunities += 1;
@@ -252,7 +254,6 @@ function transformDeals(deals) {
           rec.response_time_sum   += respTimeMs > 10000 ? respTimeMs/60000 : respTimeMs;
           rec.response_time_count += 1;
         }
-        isInbound ? rec.inbound++ : rec.outbound++;
       } else if (mapped === 'no_shows' && !seen.has('no_shows')) {
         seen.add('no_shows');
         rec.no_shows += 1;

@@ -569,8 +569,8 @@ const App: React.FC = () => {
     // Apply Closer Filter logic to KPIs
     safeKpi('marketingSales', 'Vendas MKT', 'number');
     safeKpi('marketingRevenue', 'Faturamento MKT', 'currency');
-    safeKpi('salesInbound', 'Leads Inbound', 'number');
-    safeKpi('salesOutbound', 'Leads Outbound', 'number');
+    safeKpi('salesInbound', 'Vendas Inbound', 'number');
+    safeKpi('salesOutbound', 'Vendas Outbound', 'number');
 
     if (filters.closerId !== 'all') {
       safeKpi('meetingsHeld', 'Reuniões Realizadas', 'number').value = sum(filteredClosers, 'meetingsHeld');
@@ -619,8 +619,8 @@ const App: React.FC = () => {
     }
 
     // Use assertive Inbound/Outbound counts from our dual-sync pipeline
-    safeKpi('salesInbound', 'Leads Inbound', 'number').value = sum(filteredTrends, 'inbound');
-    safeKpi('salesOutbound', 'Leads Outbound', 'number').value = sum(filteredTrends, 'outbound');
+    safeKpi('salesInbound', 'Vendas Inbound', 'number').value = sum(filteredTrends, 'inbound');
+    safeKpi('salesOutbound', 'Vendas Outbound', 'number').value = sum(filteredTrends, 'outbound');
 
     // Ensure common indicators are always correctly initialized for Display if DB is missing them
     const ensureKPI = (key: string, label: string, unit: any, goal: number) => {
@@ -635,8 +635,8 @@ const App: React.FC = () => {
     ensureKPI('connections', 'Conexões', 'number', 450);
     ensureKPI('meetingsBooked', 'Reuniões Agendadas', 'number', 100);
     ensureKPI('meetingsHeld', 'Reuniões Realizadas', 'number', 85);
-    ensureKPI('salesInbound', 'Leads Inbound', 'number', 15);
-    ensureKPI('salesOutbound', 'Leads Outbound', 'number', 5);
+    ensureKPI('salesInbound', 'Vendas Inbound', 'number', 15);
+    ensureKPI('salesOutbound', 'Vendas Outbound', 'number', 5);
 
     return newKPIs;
   }, [data.kpis, filters, filteredTrends, filteredSDRs, filteredClosers, filteredChannels, filteredProducts]);

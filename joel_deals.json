@@ -1,0 +1,92 @@
+[
+  {
+    "id": "54351411757",
+    "properties": {
+      "amount": "23000",
+      "closedate": "2026-03-03T19:24:36.545Z",
+      "createdate": "2026-01-22T20:46:25.856Z",
+      "dealname": "Colégio Rosalina Prim",
+      "dealstage": "1225098152",
+      "faturamento_mensal": null,
+      "hs_lastmodifieddate": "2026-03-03T19:24:44.078Z",
+      "hs_object_id": "54351411757",
+      "hubspot_owner_id": "85369712"
+    },
+    "createdAt": "2026-01-22T20:46:25.856Z",
+    "updatedAt": "2026-03-03T19:24:44.078Z",
+    "archived": false,
+    "url": "https://app.hubspot.com/contacts/45614141/record/0-3/54351411757"
+  },
+  {
+    "id": "55194428544",
+    "properties": {
+      "amount": "29400",
+      "closedate": "2026-02-11T17:51:05.774Z",
+      "createdate": "2026-01-31T16:08:14.106Z",
+      "dealname": "Pai E Filho Forros de PVC e Drywall",
+      "dealstage": "1239126390",
+      "faturamento_mensal": null,
+      "hs_lastmodifieddate": "2026-03-03T17:09:51.466Z",
+      "hs_object_id": "55194428544",
+      "hubspot_owner_id": "85369712"
+    },
+    "createdAt": "2026-01-31T16:08:14.106Z",
+    "updatedAt": "2026-03-03T17:09:51.466Z",
+    "archived": false,
+    "url": "https://app.hubspot.com/contacts/45614141/record/0-3/55194428544"
+  },
+  {
+    "id": "56758625338",
+    "properties": {
+      "amount": "32000.00",
+      "closedate": null,
+      "createdate": "2026-02-21T05:15:23.690Z",
+      "dealname": "JLR ILUMINAÇÃO [ImE]",
+      "dealstage": "1225098147",
+      "faturamento_mensal": null,
+      "hs_lastmodifieddate": "2026-03-03T14:54:11.239Z",
+      "hs_object_id": "56758625338",
+      "hubspot_owner_id": "85369712"
+    },
+    "createdAt": "2026-02-21T05:15:23.690Z",
+    "updatedAt": "2026-03-03T14:54:11.239Z",
+    "archived": false,
+    "url": "https://app.hubspot.com/contacts/45614141/record/0-3/56758625338"
+  },
+  {
+    "id": "56619008898",
+    "properties": {
+      "amount": "28500",
+      "closedate": "2026-03-09T17:03:30.871Z",
+      "createdate": "2026-02-19T12:48:20.195Z",
+      "dealname": "OnlyBlue Gestão Financeira [IMPULSÃO -> Legado]",
+      "dealstage": "1225098150",
+      "faturamento_mensal": null,
+      "hs_lastmodifieddate": "2026-03-03T14:40:49.890Z",
+      "hs_object_id": "56619008898",
+      "hubspot_owner_id": "85369712"
+    },
+    "createdAt": "2026-02-19T12:48:20.195Z",
+    "updatedAt": "2026-03-03T14:40:49.890Z",
+    "archived": false,
+    "url": "https://app.hubspot.com/contacts/45614141/record/0-3/56619008898"
+  },
+  {
+    "id": "53255024762",
+    "properties": {
+      "amount": "35000",
+      "closedate": "2026-01-27T13:55:35.847Z",
+      "createdate": "2026-01-05T13:35:22.193Z",
+      "dealname": "Gabevida Laboratório",
+      "dealstage": "1239126390",
+      "faturamento_mensal": null,
+      "hs_lastmodifieddate": "2026-03-03T14:39:00.381Z",
+      "hs_object_id": "53255024762",
+      "hubspot_owner_id": "85369712"
+    },
+    "createdAt": "2026-01-05T13:35:22.193Z",
+    "updatedAt": "2026-03-03T14:39:00.381Z",
+    "archived": false,
+    "url": "https://app.hubspot.com/contacts/45614141/record/0-3/53255024762"
+  }
+]
