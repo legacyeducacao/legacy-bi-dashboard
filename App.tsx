@@ -282,8 +282,9 @@ const App: React.FC = () => {
     }
     if (filters.period === 'this_month') {
       const now = new Date();
-      const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-      return raw.filter((r: any) => r.date >= startOfMonth);
+      // Ensure local timezone month matching
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      return raw.filter((r: any) => r.date.startsWith(currentMonth));
     }
     if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
       return raw.filter((r: any) => r.date >= filters.customStartDate && r.date <= filters.customEndDate);
@@ -368,8 +369,8 @@ const App: React.FC = () => {
     }
     if (filters.period === 'this_month') {
       const now = new Date();
-      const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-      return raw.filter((r: any) => r.date >= startOfMonth);
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      return raw.filter((r: any) => r.date.startsWith(currentMonth));
     }
     if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
       return raw.filter((r: any) => r.date >= filters.customStartDate && r.date <= filters.customEndDate);
@@ -476,8 +477,8 @@ const App: React.FC = () => {
 
     if (filters.period === 'this_month') {
       const now = new Date();
-      const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-      return data.dailyTrends.filter(t => t.date >= startOfMonth);
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      return data.dailyTrends.filter(t => t.date.startsWith(currentMonth));
     }
 
     if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {

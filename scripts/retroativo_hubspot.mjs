@@ -200,7 +200,16 @@ function transformDeals(deals) {
     }
 
     const ownerHistory = item.propertiesWithHistory?.hubspot_owner_id || [];
-    let ownerInfo = resolveOwner(ownerHistory, String(props.hubspot_owner_id || ''));
+    const sdrHistory = item.propertiesWithHistory?.sdr_responsavel || [];
+    let currentOwnerId = String(props.hubspot_owner_id || '');
+    let currentSDRId = String(props.sdr_responsavel || '');
+
+    // Resolve SDR first, if not found, Resolve General Owner
+    let ownerInfo = resolveOwner(sdrHistory, currentSDRId);
+    if (!ownerInfo) {
+       ownerInfo = resolveOwner(ownerHistory, currentOwnerId);
+    }
+    
     if (!ownerInfo && WON_STAGES.has(props.dealstage)) {
       ownerInfo = resolveOwnerByStage(item.propertiesWithHistory?.dealstage || []);
     }
@@ -288,12 +297,55 @@ function transformDeals(deals) {
   return { qualified: Object.values(aggregated), rejected };
 }
 
-// ── SUPABASE UPSERT ───────────────────────────────────────────────────────────
+// ── SUPABASE DELETE + INSERT (evita duplicação) ───────────────────────────────
 
-async function supabaseUpsert(table, rows, conflictCols) {
+async function supabaseDeletePeriod(table, startDate, endDate) {
+  // Delete all rows in the date range to avoid duplicates on re-run
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?date=gte.${startDate}&date=lte.${endDate}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey':       SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error(`  ❌ Supabase DELETE error on ${table}: ${res.status}: ${err.substring(0,200)}`);
+  }
+  return res.status;
+}
+
+async function supabaseInsert(table, rows) {
   if (rows.length === 0) return 0;
 
   // Batch in groups of 50 to respect Supabase limits
+  const BATCH = 50;
+  let total = 0;
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey':       SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal'
+      },
+      body: JSON.stringify(batch)
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error(`  ❌ Supabase INSERT error on ${table}: ${res.status}: ${err.substring(0,200)}`);
+    } else {
+      total += batch.length;
+    }
+  }
+  return total;
+}
+
+// Keep old name for rejected_leads_log (uses deal_id conflict key via UPSERT)
+async function supabaseUpsert(table, rows, conflictCols) {
+  if (rows.length === 0) return 0;
   const BATCH = 50;
   let total = 0;
   for (let i = 0; i < rows.length; i += BATCH) {
@@ -361,8 +413,8 @@ async function main() {
   console.log(`  ✅ Qualificados:  ${qualified.length} registros de atividade`);
   console.log(`  ❌ Rejeitados:    ${rejected.length} deals abaixo de 70K`);
 
-  // 3. Upsert membros do time e monta rows para fact_team_activities
-  console.log('\n💾 Upserting fact_team_activities...');
+  // 3. Monta rows para fact_team_activities
+  console.log('\n💾 Salvando fact_team_activities (DELETE + INSERT)...');
   const memberCache = {};
   const activityRows = [];
 
@@ -391,7 +443,10 @@ async function main() {
     });
   }
 
-  const savedActivities = await supabaseUpsert('fact_team_activities', activityRows, ['date','team_member_id']);
+  // DELETE the period first to prevent duplicates, then INSERT fresh
+  const deleteStatus = await supabaseDeletePeriod('fact_team_activities', start, end);
+  console.log(`  🗑️  Dados do período ${start}→${end} deletados (status: ${deleteStatus})`);
+  const savedActivities = await supabaseInsert('fact_team_activities', activityRows);
   console.log(`  ✅ ${savedActivities} registros de atividade salvos!`);
 
   // 4. Salva leads rejeitados
