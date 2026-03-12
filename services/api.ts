@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChannelStats, MarketingProductStats } from '../types';
+import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChannelStats, MarketingProductStats, FollowUpDeal } from '../types';
 
 export interface DashboardData {
    kpis: Record<string, MetricData>;
@@ -13,6 +13,7 @@ export interface DashboardData {
    funnelData: FunnelStage[];
    lastUpdated: Date;
    rawTeamData?: any[];
+   rawDeals: FollowUpDeal[];
 }
 
 const KEY_MAP: Record<string, string> = {
@@ -94,7 +95,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          { data: rawMarketingRaw, error: marketingError },
          { data: teamData, error: teamError },
          { data: channelsData, error: channelsError },
-         { data: productsData, error: productsError }
+         { data: productsData, error: productsError },
+         { data: dealsData, error: dealsError }
       ] = await Promise.all([
          supabase.from('kpis').select('*'),
          // Totais por dia (para o gráfico de tendência)
@@ -116,7 +118,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             .order('date', { ascending: false })
             .limit(2000),
          supabase.from('marketing_channels').select('*'),
-         supabase.from('marketing_products').select('*')
+         supabase.from('marketing_products').select('*'),
+         supabase.from('deals_followup').select('*')
       ]);
 
       // Re-ordena teamData para ascendente para processamento de tendências
@@ -298,7 +301,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          context,
          funnelData,
          lastUpdated: new Date(),
-         rawTeamData: teamData || []
+         rawTeamData: teamData || [],
+         rawDeals: dealsData || []
       };
 
    } catch (error) {
@@ -314,7 +318,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          context: { currentDay: 1, totalDays: 30 },
          funnelData: [],
          lastUpdated: new Date(),
-         rawTeamData: []
+         rawTeamData: [],
+         rawDeals: []
       };
    }
 };

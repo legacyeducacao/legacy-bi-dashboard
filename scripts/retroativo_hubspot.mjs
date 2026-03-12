@@ -121,7 +121,8 @@ async function fetchAllDeals(startDate) {
         'dealname','amount','dealstage','pipeline','hubspot_owner_id',
         'createdate','closedate','hs_analytics_source','origem_do_lead',
         'inbound_ou_outbound', 'reuniao_ocorrida',
-        'response_time_1_ligacao',
+        'response_time_1_ligacao', 'sdr_responsavel', 'hs_lastmodifieddate',
+        ...Object.keys(STAGE_MAP).map(id => `hs_v2_date_entered_${id}`),
         ...REVENUE_FIELDS
       ],
       filterGroups: [
@@ -140,7 +141,7 @@ async function fetchAllDeals(startDate) {
           ]
         }
       ],
-      propertiesWithHistory: ['hubspot_owner_id','dealstage'],
+      // propertiesWithHistory is discarded as it's not supported by /search API
       ...(after ? { after } : {})
     };
     const res  = await fetch('https://api.hubapi.com/crm/v3/objects/deals/search', {
@@ -164,6 +165,7 @@ async function fetchAllDeals(startDate) {
 function transformDeals(deals) {
   const aggregated = {};
   const rejected   = [];
+  const activeDeals = [];
 
   function getRecord(date, name, role) {
     const key = `${date}|${name}`;
@@ -231,14 +233,37 @@ function transformDeals(deals) {
       isInbound = ['PAID_SOCIAL','PAID_SEARCH','ORGANIC_SEARCH','ORGANIC_SOCIAL',
                    'EMAIL_MARKETING','REFERRALS','INBOUND'].some(k => src.includes(k));
     }
+    
+    activeDeals.push({
+      deal_id: String(item.id || ''),
+      deal_name: props.dealname || '',
+      owner_id: ownerInfo.name, // using name to display on UI easily
+      stage_id: props.dealstage,
+      amount: amountVal,
+      created_date: props.createdate?.split('T')[0] || null
+    });
 
     // Verifica se reunião ocorreu pelo campo dedicado
     const reuniaoOcorrida = props.reuniao_ocorrida === 'true' || props.reuniao_ocorrida === true;
 
-    const stageHistory   = item.propertiesWithHistory?.dealstage || [];
-    const stagesToProcess = stageHistory.length > 0
-      ? stageHistory
-      : [{ value: props.dealstage, timestamp: props.createdate || new Date().toISOString() }];
+    const stagesToProcess = [];
+    let currentStageProcessed = false;
+    for (const stageId of Object.keys(STAGE_MAP)) {
+      const enterDateProp = props[`hs_v2_date_entered_${stageId}`];
+      if (enterDateProp) {
+        stagesToProcess.push({ value: stageId, timestamp: enterDateProp });
+        if (stageId === props.dealstage) currentStageProcessed = true;
+      }
+    }
+    
+    if (!currentStageProcessed && props.dealstage && props.dealstage !== '') {
+      stagesToProcess.push({ 
+        value: props.dealstage, 
+        timestamp: props.hs_lastmodifieddate || props.createdate || new Date().toISOString() 
+      });
+    }
+    
+    stagesToProcess.sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
     const seen = new Set();
     let dealBookedDate = null;   // Data em que foi agendado (para evitar dupla contagem)
@@ -294,7 +319,7 @@ function transformDeals(deals) {
     }
   }
 
-  return { qualified: Object.values(aggregated), rejected };
+  return { qualified: Object.values(aggregated), rejected, activeDeals };
 }
 
 // ── SUPABASE DELETE + INSERT (evita duplicação) ───────────────────────────────
@@ -409,9 +434,10 @@ async function main() {
 
   // 2. Transforma (aplica filtro 70K + atribuição de owner)
   console.log('\n🔄 Transformando dados...');
-  const { qualified, rejected } = transformDeals(deals);
+  const { qualified, rejected, activeDeals } = transformDeals(deals);
   console.log(`  ✅ Qualificados:  ${qualified.length} registros de atividade`);
   console.log(`  ❌ Rejeitados:    ${rejected.length} deals abaixo de 70K`);
+  console.log(`  💼 Ativos Gerais: ${activeDeals.length} deals para tabela de follow-up`);
 
   // 3. Monta rows para fact_team_activities
   console.log('\n💾 Salvando fact_team_activities (DELETE + INSERT)...');
@@ -449,11 +475,17 @@ async function main() {
   const savedActivities = await supabaseInsert('fact_team_activities', activityRows);
   console.log(`  ✅ ${savedActivities} registros de atividade salvos!`);
 
-  // 4. Salva leads rejeitados
+  // 4. Salva leads rejeitados e negócios ativos
   if (rejected.length > 0) {
     console.log('\n🚫 Salvando rejected_leads_log...');
     const savedRejected = await supabaseUpsert('rejected_leads_log', rejected, ['deal_id']);
     console.log(`  ✅ ${savedRejected} leads rejeitados registrados.`);
+  }
+
+  if (activeDeals.length > 0) {
+    console.log('\n💼 Salvando fact_deals para follow-up...');
+    const savedDeals = await supabaseUpsert('fact_deals', activeDeals, ['deal_id']);
+    console.log(`  ✅ ${savedDeals} negócios salvos.`);
   }
 
   // 5. Resumo final
@@ -461,7 +493,8 @@ async function main() {
   console.log('✅ RETROATIVO CONCLUÍDO!');
   console.log(`  Período:         ${start} → ${end}`);
   console.log(`  Deals no funil:  ${deals.length}`);
-  console.log(`  Qualificados:    ${qualified.length} registros → Supabase`);
+  console.log(`  Qualificados:    ${qualified.length} registros → Supabase fact_team_activities`);
+  console.log(`  Negócios Follow: ${activeDeals.length} → Supabase fact_deals`);
   console.log(`  Rejeitados 70K:  ${rejected.length} → rejected_leads_log`);
   console.log('='.repeat(60));
 }

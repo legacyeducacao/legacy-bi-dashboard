@@ -1,0 +1,38 @@
+[
+  {
+    "parameters": {
+      "jsCode": "// Dicionário de Nomes dos Vendedores\nconst OWNER_MAP = {\n  '86857769': 'Isaque Inacio',\n  '85822345': 'Luan Silva',\n  '1856577327': 'Rodrigo Fernandes',\n  '69864695': 'Rodrigo Fernandes',\n  '2011790555': 'Rodrigo Fernandes',\n  '78938498': 'Leonardo Padilha',\n  '86362284': 'Leonardo Souza',\n  '85369712': 'Joel Carlos'\n};\n\n// Fases que queremos na tabela do Closer\nconst FOLLOW_UP_STAGES = [\n  '1225098151', // Negociação\n  '1225024929', // Assinatura de Contrato\n  '1225098152'  // Vendido\n];\n\nlet inputDeals = items[0].json.results ? items[0].json.results : items.map(i => i.json);\nlet activeDeals = [];\n\nfor (const deal of inputDeals) {\n    const props = deal.properties || deal;\n    \n    // Se o deal estiver em uma das fases de fechamento\n    if (FOLLOW_UP_STAGES.includes(props.dealstage)) {\n        activeDeals.push({\n            json: {\n                deal_id: deal.id,\n                deal_name: props.dealname || 'Negócio sem nome',\n                owner_id: OWNER_MAP[props.hubspot_owner_id] || props.hubspot_owner_id || 'Sem Dono',\n                stage_id: props.dealstage,\n                amount: parseFloat(props.amount) || 0,\n                created_date: (props.createdate || new Date().toISOString()).split('T')[0]\n            }\n        });\n    }\n}\n\nreturn activeDeals;"
+    },
+    "id": "2d94892c-473d-495c-9c98-c92dfa1e1273",
+    "name": "Filtrar Follow-Up",
+    "type": "n8n-nodes-base.code",
+    "typeVersion": 2,
+    "position": [
+      1260,
+      1000
+    ]
+  },
+  {
+    "parameters": {
+      "operation": "executeQuery",
+      "query": "INSERT INTO fact_deals (deal_id, deal_name, owner_id, stage_id, amount, created_date)\nVALUES ($1, $2, $3, $4, $5, $6)\nON CONFLICT (deal_id) DO UPDATE SET\n  deal_name = EXCLUDED.deal_name,\n  owner_id = EXCLUDED.owner_id,\n  stage_id = EXCLUDED.stage_id,\n  amount = EXCLUDED.amount,\n  created_date = EXCLUDED.created_date;",
+      "options": {
+        "queryReplacement": "={{ $json.deal_id }}\n{{ $json.deal_name }}\n{{ $json.owner_id }}\n{{ $json.stage_id }}\n{{ $json.amount }}\n{{ $json.created_date }}"
+      }
+    },
+    "id": "e3e8f3c7-ef5d-4f19-9c59-86ab7aa8202d",
+    "name": "Upsert Follow Up",
+    "type": "n8n-nodes-base.postgres",
+    "typeVersion": 2.6,
+    "position": [
+      1480,
+      1000
+    ],
+    "credentials": {
+      "postgres": {
+        "id": "2fZ1rEm8wKQ6Ja8o",
+        "name": "Postgres account"
+      }
+    }
+  }
+]

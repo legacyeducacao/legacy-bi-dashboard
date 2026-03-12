@@ -55,6 +55,12 @@ const MetricCard: React.FC<MetricCardProps> = ({
   const markerLabel = isSnapshot ? 'Meta' : 'Ritmo Ideal';
   const markerValueStr = formatValue(analysis.provisioned, metric.unit, metric.prefix, metric.suffix);
 
+  // Calculate "Falta Dia" (Daily shortfall to reach goal)
+  const remainingDays = Math.max(1, context.totalDays - context.currentDay);
+  const shortfall = Math.max(0, metric.goal - metric.value);
+  const dailyShortfall = shortfall / remainingDays;
+  const showFaltaDia = metric.goal > 0 && metric.unit !== 'percentage' && !inverse && shortfall > 0;
+
   // UX Colors
   // Success = Emerald (Green), Danger = Rose (Red), Projection/Neutral = Blue
   const statusColor = isOnTrack ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400';
@@ -123,24 +129,34 @@ const MetricCard: React.FC<MetricCardProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className={`grid ${(!customComparison && showFaltaDia) ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pt-1`}>
               <div className="flex flex-col border-l-2 border-slate-300 dark:border-slate-700 pl-2">
-                <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">{markerLabel}</span>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{markerValueStr}</span>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 whitespace-nowrap">{markerLabel}</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none truncate">{markerValueStr}</span>
               </div>
+              
+              {(!customComparison && showFaltaDia) && (
+                <div className="flex flex-col border-l-2 border-amber-500/30 pl-2">
+                  <span className="text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-500 font-bold mb-0.5 whitespace-nowrap">Falta / Dia</span>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none truncate">
+                    {formatValue(dailyShortfall, metric.unit, metric.prefix, metric.suffix)}
+                  </span>
+                </div>
+              )}
+
               <div className={`flex flex-col items-end border-r-2 ${isOnTrack ? 'border-emerald-500/30' : 'border-rose-500/30'} pr-2`}>
                 {customComparison ? (
                   <>
-                    <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right">{customComparison.label}</span>
-                    <span className="text-sm font-bold leading-none text-slate-700 dark:text-slate-200">
+                    <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right whitespace-nowrap">{customComparison.label}</span>
+                    <span className="text-sm font-bold leading-none text-slate-700 dark:text-slate-200 truncate">
                       {formatValue(customComparison.value, customComparison.unit || metric.unit, '', customComparison.suffix || '')}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right">Projeção</span>
+                    <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right whitespace-nowrap">Projeção</span>
                     <div className={`flex items-baseline gap-1 ${statusColor}`}>
-                      <span className="text-sm font-bold leading-none">{formatValue(analysis.projection, metric.unit, metric.prefix, metric.suffix)}</span>
+                      <span className="text-sm font-bold leading-none truncate">{formatValue(analysis.projection, metric.unit, metric.prefix, metric.suffix)}</span>
                       <span className="text-[10px] font-bold opacity-80">({analysis.projectionPercent.toFixed(0)}%)</span>
                     </div>
                   </>

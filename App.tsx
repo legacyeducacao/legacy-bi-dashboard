@@ -307,13 +307,15 @@ const App: React.FC = () => {
       const repName = r.dim_team?.name || r.rep_name || 'Sem_Dono';
       const role = r.dim_team?.role || r.role || 'SDR';
       if (!teamMap.has(repName)) {
-        teamMap.set(repName, { id: repName.replace(/\s+/g, ''), name: repName, role, opportunities: 0, connections: 0, meetingsBooked: 0, meetingsHeld: 0, no_shows: 0, responseTimeSum: 0, responseTimeCount: 0 });
+        teamMap.set(repName, { id: repName.replace(/\s+/g, ''), name: repName, role, opportunities: 0, connections: 0, meetingsBooked: 0, meetingsHeld: 0, no_shows: 0, responseTimeSum: 0, responseTimeCount: 0, sales: 0, revenue: 0 });
       }
       const t = teamMap.get(repName);
       t.opportunities += Number(r.opportunities) || 0;
       t.connections += Number(r.connections) || 0;
       t.meetingsBooked += Number(r.meetings_booked) || 0;
       t.meetingsHeld += Number(r.meetings_held) || 0;
+      t.sales += Number(r.sales) || 0;
+      t.revenue += Number(r.revenue) || 0;
       t.no_shows += Number(r.no_shows) || 0;
       t.responseTimeSum += Number(r.response_time_sum) || 0;
       t.responseTimeCount += Number(r.response_time_count) || 0;
@@ -325,7 +327,7 @@ const App: React.FC = () => {
         return nm !== 'SISTEMA_APOIO' && nm !== 'SISTEMA APOIO' && String(r.role).toUpperCase() === 'SDR';
       })
       .map((r: any) => ({
-        id: r.id, name: r.name, role: 'SDR' as const, opportunities: r.opportunities, connections: r.connections, meetingsBooked: r.meetingsBooked, meetingsHeld: r.meetingsHeld, noShowCount: r.no_shows || Math.max(0, r.meetingsBooked - r.meetingsHeld), responseTime: r.responseTimeCount > 0 ? (r.responseTimeSum / r.responseTimeCount) : 0
+        id: r.id, name: r.name, role: 'SDR' as const, opportunities: r.opportunities, connections: r.connections, meetingsBooked: r.meetingsBooked, meetingsHeld: r.meetingsHeld, sales: r.sales, revenue: r.revenue, noShowCount: r.no_shows || Math.max(0, r.meetingsBooked - r.meetingsHeld), responseTime: r.responseTimeCount > 0 ? (r.responseTimeSum / r.responseTimeCount) : 0
       }));
 
     return arr.filter(s => filters.sdrId === 'all' || s.id === filters.sdrId);
@@ -563,8 +565,10 @@ const App: React.FC = () => {
       newKPIs.opportunities.value = sum(filteredSDRs, 'opportunities');
       newKPIs.connections.value = sum(filteredSDRs, 'connections');
       newKPIs.meetingsBooked.value = sum(filteredSDRs, 'meetingsBooked');
+      newKPIs.sales.value = sum(filteredSDRs, 'sales');
+      newKPIs.revenue.value = sum(filteredSDRs, 'revenue');
       newKPIs.responseTime.value = avg(filteredSDRs, 'responseTime');
-      // Goal scaling (simple heuristic: divide goal by number of total reps? or keep global? keeping global goal usually shows how much this rep contributes)
+      // Goal scaling
     }
 
     // Apply Closer Filter logic to KPIs
@@ -1201,10 +1205,12 @@ const App: React.FC = () => {
         <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-indigo-500 pl-2">
           Comercial Macro (Pré-Vendas)
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
           {activeKPIs.opportunities && <MetricCard metric={activeKPIs.opportunities} context={data.context} />}
           {activeKPIs.connections && <MetricCard metric={activeKPIs.connections} context={data.context} />}
           {activeKPIs.meetingsBooked && <MetricCard metric={activeKPIs.meetingsBooked} context={data.context} />}
+          {activeKPIs.sales && <MetricCard metric={activeKPIs.sales} context={data.context} />}
+          {activeKPIs.revenue && <MetricCard metric={activeKPIs.revenue} context={data.context} />}
           {activeKPIs.responseTime && <MetricCard metric={activeKPIs.responseTime} context={data.context} inverse showPace={false} customComparison={{ value: 15, label: 'SLA Máximo (min)' }} />}
         </div>
       </div>
@@ -1265,7 +1271,7 @@ const App: React.FC = () => {
       </div>
 
       {/* 3.3.2 Comercial Micro (Pace Chart + Breakdown) */}
-      <div className="flex flex-col gap-3 flex-1 min-h-0">
+      <div className="flex flex-col gap-3 flex-1 min-h-[400px]">
         <div className="flex justify-between items-center">
           <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-teal-500 pl-2">
             Análise Micro: Ritmo & Faturamento
@@ -1275,34 +1281,52 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-4">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-4 h-full">
           {/* Goal Achievement Chart */}
-          <div className="lg:col-span-2 h-full min-h-[300px]">
+          <div className="lg:col-span-1 h-full min-h-[300px] flex flex-col">
             <GoalAchievementChart
-              title="Atingimento de Meta (Ritmo) - Faturamento"
+              title="Atingimento (Ritmo) - Faturamento"
               currentData={filteredTrends}
               dataKey="revenue"
               goal={activeKPIs.revenue?.goal || 0}
               totalDays={data.context.totalDays}
               currentDay={data.context.currentDay}
               isDarkMode={isDark}
-              className="h-full"
+              className="flex-1"
               unit="currency"
             />
           </div>
 
-          {/* Sales Breakdown */}
-          <div className="lg:col-span-1 h-full min-h-[300px]">
-            <DonutChart
-              title="Faturamento por Tipo"
-              data={[
-                { name: 'Vendas Diretas', value: 135000 },
-                { name: 'Parcerias', value: 50000 },
-                { name: 'Recorrência', value: 30000 }
+          {/* Follow-up / Pipeline Table */}
+          <div className="lg:col-span-2 h-full min-h-[300px] flex flex-col overflow-hidden">
+            <DataTable<import('./types').FollowUpDeal>
+              title="Follow-up: Deals Ativos em Negociação / Assinatura / Vendido"
+              data={data.rawDeals
+                .filter(deal => {
+                  if (filters.closerId !== 'all') {
+                    const closerInfo = data.closerData.find(c => c.id === filters.closerId);
+                    if (closerInfo && deal.owner_id !== closerInfo.name) return false;
+                  }
+                  return true;
+                })
+                .sort((a,b) => b.amount - a.amount)
+              }
+              columns={[
+                { header: 'Negócio', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white truncate max-w-[200px] block">{row.deal_name}</span> },
+                { header: 'Fase', accessor: (row) => {
+                  const map: Record<string,any> = {
+                    '1225098151': { name: 'Negociação', color: 'bg-amber-100 text-amber-600' },
+                    '1225024929': { name: 'Assinatura', color: 'bg-indigo-100 text-indigo-600' },
+                    '1225098152': { name: 'Vendido', color: 'bg-emerald-100 text-emerald-600' }
+                  };
+                  const stage = map[row.stage_id] || { name: 'Desconhecido', color: 'bg-slate-100 text-slate-600' };
+                  return <span className={`px-2 py-0.5 rounded text-xs font-bold ${stage.color}`}>{stage.name}</span>;
+                }},
+                { header: 'Closer', accessor: (row) => row.owner_id },
+                { header: 'Entrada', accessor: (row) => row.created_date ? new Date(row.created_date + 'T00:00:00-03:00').toLocaleDateString('pt-BR') : '-' },
+                { header: 'Valor', accessor: (row) => formatValue(row.amount, 'currency'), align: 'right' }
               ]}
-              isDarkMode={isDark}
-              className="h-full"
-              unit="currency"
+              showBorder={true}
             />
           </div>
         </div>

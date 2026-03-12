@@ -46,6 +46,15 @@ export interface FunnelStage {
   conversionRate?: number; // Conversion from previous step
 }
 
+export interface FollowUpDeal {
+  deal_id: string;
+  deal_name: string;
+  owner_id: string;
+  stage_id: string;
+  amount: number;
+  created_date: string;
+}
+
 // Marketing Micro Data - Channels
 export interface MarketingChannelStats {
   channel: string;

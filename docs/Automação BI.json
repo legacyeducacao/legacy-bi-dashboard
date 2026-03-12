@@ -1,0 +1,550 @@
+{
+  "name": "Automação BI",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# CAMPANHAS - hoje\n",
+        "height": 300,
+        "width": 1528
+      },
+      "id": "4aa3b0bb-0162-4071-80df-b612a487e6c2",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        992,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v23.0",
+        "node": "=act_{{ $item(\"0\").$node[\"Set Variáveis1\"].json[\"metaAct\"] }}",
+        "edge": "insights",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "time_increment",
+                "value": "1"
+              },
+              {
+                "name": "level",
+                "value": "campaign"
+              },
+              {
+                "name": "fields",
+                "value": "=campaign_name,\nadset_name,\nad_name,\nspend,\nimpressions,\nreach,\nactions"
+              },
+              {
+                "name": "limit",
+                "value": "3000"
+              },
+              {
+                "name": "time_range",
+                "value": "={\n  \"since\":\"{{ $item(\"0\").$node[\"Set Variáveis1\"].json[\"desde\"] }}\",\n  \"until\":\"{{ $item(\"0\").$node[\"Set Variáveis1\"].json[\"até\"] }}\"\n} "
+              }
+            ]
+          }
+        }
+      },
+      "id": "247cd59c-a7b3-485a-a682-03de8dd87097",
+      "name": "Dados de Ontem3",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        1472,
+        480
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "8vXpWuUZLQ5g5Ygc",
+          "name": "API n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "30135616-a1ea-4196-abb1-367e88b1d882",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        496
+      ],
+      "id": "d37f0860-ba7e-4233-bcd8-7e51b9f283f1",
+      "name": "Webhook",
+      "webhookId": "30135616-a1ea-4196-abb1-367e88b1d882"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1904,
+        480
+      ],
+      "id": "d0065ff4-4045-4ead-a414-04f2c1589a6a",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// =============================================================================\n// N8N Meta Ads Transformer - Versão 2.1\n// Convenção de nome de campanha: {numero} - [{Produto}] - [segmento] - ...\n// Exemplo: \"075 - [Legado] - [CAD] - [CBO] - Formulário Nativo [FLN]\"\n// =============================================================================\n\n/**\n * Extrai o nome do produto do nome da campanha.\n * Regras (em ordem de prioridade):\n * 1. Primeiro colchete após o número inicial: \"075 - [Legado] - ...\" → \"Legado\"\n * 2. Qualquer [conteúdo] no nome da campanha (primeiro match)\n * 3. Fallback: 'Institucional'\n */\nfunction extractProductName(campaignName) {\n  if (!campaignName) return 'Institucional';\n\n  // Padrão principal: número(s) + hífen + [Produto]\n  // Ex: \"075 - [Legado] - ...\" ou \"12 - [Impulsão] ...\"\n  const mainPattern = /^\\d+\\s*[-–]\\s*\\[([^\\]]+)\\]/;\n  const mainMatch = campaignName.match(mainPattern);\n  if (mainMatch) return mainMatch[1].trim();\n\n  // Fallback: qualquer [conteúdo] no nome (pega o primeiro)\n  const anyBracket = /\\[([^\\]]+)\\]/;\n  const bracketMatch = campaignName.match(anyBracket);\n  if (bracketMatch) {\n    const val = bracketMatch[1].trim();\n    // Ignora siglas curtas (3 letras ou menos) como [CAD], [CBO], [FLN]\n    if (val.length > 3) return val;\n  }\n\n  return 'Institucional';\n}\n\n// =============================================================================\n// Processamento principal\n// =============================================================================\n\nconst results = {};\nlet inputItems = [];\n\nif (Array.isArray(items)) {\n    for (const item of items) {\n        if (item.json) {\n            if (Array.isArray(item.json)) inputItems.push(...item.json);\n            else if (item.json.data && Array.isArray(item.json.data)) inputItems.push(...item.json.data);\n            else inputItems.push(item.json);\n        } else {\n            inputItems.push(item);\n        }\n    }\n} else {\n    if (items.json) {\n        if (Array.isArray(items.json)) inputItems = items.json;\n        else inputItems = [items.json];\n    } else {\n        inputItems = [items];\n    }\n}\n\ninputItems = inputItems.flat();\n\nfor (const ad of inputItems) {\n    if (!ad || !ad.campaign_name) continue;\n\n    const date = ad.date_start;\n    const campaignName = ad.campaign_name;\n\n    // Extrai produto pela convenção de nomenclatura\n    const productName = extractProductName(campaignName);\n\n    // Métricas básicas\n    const cost = parseFloat(ad.spend) || 0;\n    const impressions = parseInt(ad.impressions) || 0;\n    let clicks = parseInt(ad.clicks) || 0;\n\n    // Extrai leads das actions\n    let leads = 0;\n    let mqls = 0; // Inicializa MQLs\n    if (ad.actions && Array.isArray(ad.actions)) {\n        if (clicks === 0) {\n            const clickAction = ad.actions.find(a => a.action_type === 'link_click');\n            if (clickAction) clicks = parseInt(clickAction.value) || 0;\n        }\n\n        // Fontes de lead e MQL\n        const leadObj      = ad.actions.find(a => a.action_type === 'lead');\n        const leadGrouped  = ad.actions.find(a => a.action_type === 'onsite_conversion.lead_grouped');\n        const offsiteReg   = ad.actions.find(a => a.action_type === 'offsite_complete_registration_add_meta_leads');\n        const pixelCustom  = ad.actions.find(a => a.action_type === 'offsite_conversion.fb_pixel_custom');\n        \n        // MQLs: Leads Nativos são MQLs automáticos (para Legado)\n        // Procuramos também por conversões personalizadas que contenham 'mql'\n        const mqlActions = ad.actions.filter(a => \n            a.action_type.toLowerCase().includes('mql') || \n            a.action_type.toLowerCase().includes('qualified')\n        );\n\n        let nativeMqls = 0;\n        if (leadObj)     nativeMqls += parseInt(leadObj.value) || 0;\n        if (leadGrouped) nativeMqls += parseInt(leadGrouped.value) || 0;\n\n        let customMqls = 0;\n        mqlActions.forEach(a => {\n            // Evita somar lead nativo de novo se ele tiver 'mql' no nome (raro, mas segurança)\n            if (a.action_type !== 'lead' && a.action_type !== 'onsite_conversion.lead_grouped') {\n                customMqls += parseInt(a.value) || 0;\n            }\n        });\n\n        // Pega o maior valor entre os eventos primários de leads (evita dupla contagem)\n        let maxLeads = 0;\n        if (leadObj)     maxLeads = Math.max(maxLeads, parseInt(leadObj.value)    || 0);\n        if (leadGrouped) maxLeads = Math.max(maxLeads, parseInt(leadGrouped.value)|| 0);\n\n        if (maxLeads > 0) {\n            leads = maxLeads;\n        } else if (offsiteReg) {\n            leads = parseInt(offsiteReg.value) || 0;\n        } else if (pixelCustom) {\n            leads = parseInt(pixelCustom.value) || 0;\n        }\n\n        // Lógica de MQL final\n        if (productName === 'Legado') {\n            // Nativo = MQL. Web = Custom Conversion.\n            mqls = nativeMqls + customMqls;\n        } else {\n            // Fallback para outros produtos: apenas se houver evento explícito de MQL\n            mqls = customMqls;\n        }\n    }\n\n\n    // Agrupa por data + campanha para manter granularidade total\n    const key = `${date}|${campaignName}`;\n    \n    if (!results[key]) {\n        results[key] = {\n            date,\n            channel_name: 'Meta Ads',\n            product_name: productName,\n            campaign_name: campaignName,\n            cost: 0,\n            impressions: 0,\n            clicks: 0,\n            leads: 0,\n            mqls: 0\n        };\n    }\n\n    results[key].cost += cost;\n    results[key].impressions += impressions;\n    results[key].clicks += clicks;\n    results[key].leads += leads;\n    results[key].mqls += mqls;\n}\n\n// Formata output para o N8N\nreturn Object.values(results).map(item => {\n    item.cost = Math.round(item.cost * 100) / 100;\n    return { json: item };\n});\n"
+      },
+      "id": "c34f4581-2c74-47b9-b083-18d413f8f967",
+      "name": "Code3",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================\n-- N8N Postgres Node - \"Execute Query\"\n-- Upsert de dados do Meta Ads em fact_daily_marketing\n-- ============================================================\n-- Parâmetros (queryParams no nó):\n-- $1 = {{ $json.date }}\n-- $2 = {{ $json.product_name }}\n-- $3 = {{ $json.cost }}\n-- $4 = {{ $json.impressions }}\n-- $5 = {{ $json.clicks }}\n-- $6 = {{ $json.leads }}\n-- $7 = {{ $json.channel_name }}\n-- $8 = {{ $json.campaign_name }}\n-- $9 = {{ $json.mqls }}\n-- ============================================================\n\nWITH upsert_product AS (\n  -- Cria o produto se não existir, ou atualiza (retorna ID em ambos os casos)\n  INSERT INTO dim_products (name)\n  VALUES ($2)\n  ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name\n  RETURNING id\n)\nINSERT INTO fact_daily_marketing (\n  date,\n  channel_id,\n  product_id,\n  campaign_name,\n  cost,\n  impressions,\n  clicks,\n  leads,\n  mqls\n)\nSELECT\n  $1::DATE,\n  (SELECT id FROM dim_channels WHERE name = $7 LIMIT 1),\n  (SELECT id FROM upsert_product),\n  $8,\n  $3::NUMERIC,\n  $4::INTEGER,\n  $5::INTEGER,\n  $6::INTEGER,\n  $9::INTEGER\nON CONFLICT (date, channel_id, product_id, campaign_name)\nDO UPDATE SET\n  cost        = EXCLUDED.cost,\n  impressions = EXCLUDED.impressions,\n  clicks      = EXCLUDED.clicks,\n  leads       = EXCLUDED.leads,\n  mqls        = EXCLUDED.mqls;\n",
+        "options": {
+          "queryReplacement": "=={{ $json.date }}, {{ $json.product_name }}, {{ $json.cost }}, {{ $json.impressions }}, {{ $json.clicks }}, {{ $json.leads }}, {{ $json.channel_name }}, {{ $json.campaign_name }}, {{ $json.mqls }}\n"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2096,
+        480
+      ],
+      "id": "e421da32-0954-4513-a361-7eb19e7d1e70",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "2fZ1rEm8wKQ6Ja8o",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "18df9941-85bc-4990-8b08-575a4fee231d",
+              "name": "metaAct",
+              "value": "746137414111847",
+              "type": "string"
+            },
+            {
+              "id": "fe2eac3e-db11-4a7b-9a6e-6c7cab970f27",
+              "name": "desde",
+              "value": "={{$today.minus({ days: 0 }).toFormat('yyyy-MM-dd')}}",
+              "type": "string"
+            },
+            {
+              "id": "3087bf5e-938c-4a74-8313-bc02c38226a5",
+              "name": "até",
+              "value": "={{$today.minus({days: 0}).toFormat('yyyy-MM-dd')}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2fd80b21-ea15-49ac-87e1-e5702c5fdcff",
+      "name": "Set Variáveis1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# HUBSPOT - Hoje",
+        "height": 444,
+        "width": 1528
+      },
+      "id": "081b98e7-c30a-4790-9cf0-3db85949b8e9",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        992,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * N8N HUBSPOT TRANSFORMER v7.1 (Simplified)\n * Funil Comercial Legacy — Pipeline 827389965\n *\n * MODIFICAÇÃO ATUAL:\n * - Filtro de 70k e leads rejeitados REMOVIDOS temporariamente a pedido.\n * - Correção de \"Agendado\" (1225098149) mantida: agora mapeia para meetings_booked em vez de sales.\n * - Output volta a ser único (apenas fact_team_activities).\n */\n\nconst STAGE_MAP = {\n  '1225098146': 'opportunities', // Entrada\n  '1225098147': 'connections',   // Filtro 1\n  '1225098148': 'connections',   // Filtro 2\n  '1225098149': 'meetings_booked', // Agendado (CORRIGIDO)\n  '1239126390': 'meetings_booked', // Reagendamento (CONTABILIZAR COMO AGENDADO)\n  '1225098150': 'connections',   // Maturação\n  '1225098151': 'connections',   // Negociação\n  '1225024929': 'no_shows',      // Assinatura de Contrato\n  '1225098152': 'sales',         // Vendido\n  '1226813477': 'connections'    // Perdido\n};\n\n// Estágios que representam venda realizada (Agendado removido)\nconst WON_STAGES = new Set(['1225098152']);\n\n// Membros ativos do time\nconst OWNER_MAP = {\n  '86857769':   { name: 'Isaque Inacio',    role: 'SDR'    },\n  '85822345':   { name: 'Luan Silva',        role: 'SDR'    },\n  '1856577327': { name: 'Rodrigo Fernandes', role: 'SDR'    },\n  '69864695':   { name: 'Rodrigo Fernandes', role: 'SDR'    },\n  '2011790555': { name: 'Rodrigo Fernandes', role: 'SDR'    },\n  '78938498':   { name: 'Leonardo Padilha',  role: 'Closer' },\n  '86362284':   { name: 'Leonardo Souza',    role: 'Closer' },\n  '85369712':   { name: 'Joel Carlos',       role: 'Closer' }\n};\n\n// ── FUNÇÕES DE OWNER ─────────────────────────────────────────────────────────\n\nfunction resolveActiveOwner(ownerHistory, currentOwnerId) {\n  const sorted = [...(ownerHistory || [])].sort(\n    (a, b) => new Date(b.timestamp) - new Date(a.timestamp)\n  );\n  for (const entry of sorted) {\n    if (OWNER_MAP[entry.value]) return OWNER_MAP[entry.value];\n  }\n  if (OWNER_MAP[currentOwnerId]) return OWNER_MAP[currentOwnerId];\n  return null;\n}\n\nfunction resolveOwnerByStageHistory(stageHistory) {\n  const sorted = [...(stageHistory || [])].sort(\n    (a, b) => new Date(b.timestamp) - new Date(a.timestamp)\n  );\n  for (const entry of sorted) {\n    if (!WON_STAGES.has(entry.value)) continue;\n    const userId = String(entry.updatedByUserId || '');\n    if (OWNER_MAP[userId]) return OWNER_MAP[userId];\n  }\n  return null;\n}\n\n// ── FUNÇÕES AUXILIARES DE DATA ────────────────────────────────────────────────\nfunction safeDate(timestamp) {\n  if (!timestamp) return new Date().toISOString();\n  if (!isNaN(timestamp)) return new Date(Number(timestamp)).toISOString();\n  try {\n    const d = new Date(timestamp);\n    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();\n  } catch(e) {\n    return new Date().toISOString();\n  }\n}\n\n// ── DATA DE HOJE (BASEADA NO FUSO SÃO PAULO) ──────────────────────────────────\nconst todayStr = new Date().toLocaleString(\"en-US\", {timeZone: \"America/Sao_Paulo\"}).split(',')[0];\n// formata pra YYYY-MM-DD\nconst [month, day, year] = todayStr.split('/');\nconst strToday = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;\n\n// ── PROCESSAMENTO PRINCIPAL ───────────────────────────────────────────────────\n\nconst aggregated = {};\n\n// Normaliza input do n8n\nlet inputItems = Array.isArray(items)\n  ? items.flatMap(i => i.json || i)\n  : [items.json || items];\n\nif (inputItems.some(i => i.results)) {\n  inputItems = inputItems.flatMap(i => i.results || [i]);\n}\n\nfunction getAggregationKey(date, name) { return `${date}|${name}`; }\n\nfunction getOrCreateRecord(date, name, role) {\n  const key = getAggregationKey(date, name);\n  if (!aggregated[key]) {\n    aggregated[key] = {\n      date, rep_name: name, role,\n      opportunities: 0, connections: 0,\n      meetings_booked: 0, meetings_held: 0, no_shows: 0,\n      sales: 0, revenue: 0.00,\n      response_time_sum: 0, response_time_count: 0,\n      inbound: 0, outbound: 0\n    };\n  }\n  return aggregated[key];\n}\n\nfor (const item of inputItems) {\n  const props = item.properties || item;\n\n  // ── CASO 1: NEGÓCIO (DEAL) ─────────────────────────────────────────────────\n  if (props.dealstage !== undefined) {\n\n    // [REMOVIDA A LÓGICA DE QUALIFICAÇÃO DE RECEITA AQUI]\n    // Todos os deals passam direto agora\n\n    const currentOwnerId = String(props.hubspot_owner_id || '');\n    const ownerHistory   = item.propertiesWithHistory?.hubspot_owner_id || [];\n\n    let ownerInfo = resolveActiveOwner(ownerHistory, currentOwnerId);\n\n    if (!ownerInfo && WON_STAGES.has(props.dealstage)) {\n      const stageHistory = item.propertiesWithHistory?.dealstage || [];\n      ownerInfo = resolveOwnerByStageHistory(stageHistory);\n    }\n\n    if (!ownerInfo) continue; // Sem membro ativo identificável → ignora\n\n    const amountVal  = parseFloat(props.amount) || 0;\n    const respTimeMs = parseFloat(props.response_time_1_ligacao) || 0;\n\n    const src = String(\n      props.hs_analytics_source || props.origem_do_lead || ''\n    ).toUpperCase();\n    const isInbound = ['PAID_SOCIAL', 'PAID_SEARCH', 'ORGANIC_SEARCH',\n                       'ORGANIC_SOCIAL', 'EMAIL_MARKETING', 'REFERRALS',\n                       'INBOUND'].some(k => src.includes(k));\n\n    const stageHistory = item.propertiesWithHistory?.dealstage || [];\n    \n    // Melhoria para Live Webhooks sem propertiesWithHistory:\n    // Se não tivermos o histórico do estágio, a data do evento atual não é a data de criação.\n    let fallbackTimestamp = props.createdate || new Date().toISOString();\n    \n    // Mapeamento de propriedades sistêmicas de entrada em estágio (evita usar lastmodified erro)\n    const ENTRY_DATE_PROPS = {\n        '1225098146': 'hs_v2_date_entered_1225098146', // Entrada\n        '1225098147': 'hs_v2_date_entered_1225098147', // Filtro 1\n        '1225098148': 'hs_v2_date_entered_1225098148', // Filtro 2\n        '1225098149': 'hs_v2_date_entered_1225098149', // Agendado\n        '1239126390': 'hs_v2_date_entered_1239126390'  // Reagendamento\n    };\n\n    if (ENTRY_DATE_PROPS[props.dealstage] && props[ENTRY_DATE_PROPS[props.dealstage]]) {\n        // [FIX DUPLICAÇÃO] Se o N8N não tem history, usa a data exata em que entrou no estágio alvo!\n        fallbackTimestamp = props[ENTRY_DATE_PROPS[props.dealstage]];\n    } else if (WON_STAGES.has(props.dealstage) && props.closedate) {\n        fallbackTimestamp = props.closedate;\n    } else if (props.hs_lastmodifieddate) {\n        fallbackTimestamp = props.hs_lastmodifieddate;\n    }\n\n    let stagesToProcess = [...stageHistory];\n\n    // [SYNTHETIC HISTORY] Se não temos histórico formal (ex: script de sync ou webhook simples), \n    // tentamos gerar a partir das propriedades de data de entrada dos estágios.\n    if (stagesToProcess.length === 0) {\n        Object.entries(ENTRY_DATE_PROPS).forEach(([stageId, propName]) => {\n            if (props[propName]) {\n                stagesToProcess.push({ value: stageId, timestamp: props[propName] });\n            }\n        });\n        // Se ainda vazio, fallback mínimo (estágio atual)\n        if (stagesToProcess.length === 0) {\n            stagesToProcess.push({ value: props.dealstage, timestamp: fallbackTimestamp });\n        }\n    }\n\n    const processed = new Set();\n\n    for (const stg of stagesToProcess) {\n      const mapped = STAGE_MAP[stg.value];\n      if (!mapped) continue;\n      if (processed.has(mapped) && mapped !== 'opportunities' && mapped !== 'meetings_booked') continue;\n      processed.add(mapped);\n\n      // We extract the date strictly from the deal stage history timestamp to avoid dumping past events into \"today\"\n      const dateStr = safeDate(stg.timestamp).split('T')[0];\n      const entryDate = dateStr; // for legacy compatibility if needed in this block\n      // [NOVA REGRA DE SDR] Se a métrica é Agendamento e o campo SDR Responsável existe, o crédito é cravado nele!\n      let metricOwnerInfo = ownerInfo;\n      if (mapped === 'meetings_booked') {\n          const sdrInProp = props.sdr_responsavel ? OWNER_MAP[props.sdr_responsavel] : null;\n          if (sdrInProp && sdrInProp.role === 'SDR') {\n              metricOwnerInfo = sdrInProp;\n          } else if (ownerInfo.role !== 'SDR') {\n              // Se não tem SDR no campo E o dono atual é Closer -> ignoramos esse agendamento do ranking de SDR\n              continue; \n          }\n      }\n\n      const record  = getOrCreateRecord(dateStr, metricOwnerInfo.name, metricOwnerInfo.role);\n\n      if (mapped === 'sales') {\n        record.sales   += 1;\n        record.revenue += amountVal;\n      } else if (mapped === 'opportunities') {\n        record.opportunities += 1;\n        if (respTimeMs > 0) {\n          record.response_time_sum   += respTimeMs > 10000 ? respTimeMs / 60000 : respTimeMs;\n          record.response_time_count += 1;\n        }\n        if (isInbound) record.inbound  += 1;\n        else           record.outbound += 1;\n      } else if (mapped === 'no_shows') {\n        record.no_shows += 1;\n      } else if (mapped === 'meetings_booked') {\n        record.meetings_booked += 1;\n      } else {\n        record[mapped] += 1;\n      }\n    }\n  }\n\n  // ── CASO 2: REUNIÃO (MEETING) ──────────────────────────────────────────────\n  else if (\n    props.hs_meeting_start_time ||\n    props.hs_meeting_outcome !== undefined ||\n    item.type === 'MEETING'\n  ) {\n    const closerId   = String(props.hubspot_owner_id || '');\n    const bookedById = String(props.hs_created_by || props.hubspot_owner_id || '');\n\n    const closerInfo = OWNER_MAP[closerId];\n    const bookerInfo = OWNER_MAP[bookedById];\n\n    if (bookerInfo) {\n      // Se agendado, a data em que foi agendado normalmente é strToday se considerarmos o momento da ação, ou a data de criação.\n      // Para garantir que apareça nas métricas de HOJE (quando o hook roda), contabilizamos no strToday.\n      const bookedDateStr = props.hs_createdate ? safeDate(props.hs_createdate).split('T')[0] : strToday;\n      // [FIX DUPLICAÇÃO] - Comentando o incremento de meetings_booked aqui, pois ele já é contado \n      // na transição de estágio do negócio (1225098149 = 'meetings_booked').\n      // getOrCreateRecord(bookedDateStr === strToday ? strToday : bookedDateStr, bookerInfo.name, bookerInfo.role).meetings_booked += 1;\n    }\n\n    const ownerForResult = closerInfo || bookerInfo;\n    if (!ownerForResult) continue;\n\n    const startTs   = props.hs_meeting_start_time || props.hs_createdate || new Date().toISOString();\n    // Usa strToday se o report for consolidar ações diárias no webhook, garantindo que \"reuniões dadas como realizadas HOJE\" entrem na meta de HOJE.\n    // Assim não perdemos reuniões do passado que o vendedor só marcou como concluída hoje.\n    const startDate = strToday;\n    const outcome   = String(props.hs_meeting_outcome || '').toUpperCase();\n\n    const rec = getOrCreateRecord(startDate, ownerForResult.name, ownerForResult.role);\n    if (['COMPLETED', 'BUSY', 'REALIZADA'].includes(outcome)) {\n      rec.meetings_held += 1;\n    } else if (['NO_SHOW', 'CANCELLED', 'NO_SHOW_SCHEDULED', 'CANCELED'].includes(outcome)) {\n      rec.no_shows += 1;\n    } else if (new Date(safeDate(startTs)) < new Date() && outcome === '') {\n      rec.meetings_held += 1;\n    }\n  }\n}\n\n// ── OUTPUT ÚNICO (COMPATÍVEL COM N8N ATUAL) ──────────────────────────────────\n// Filtra apenas para o dia de hoje, já que o gatilho traz negócios que podem \n// ter histórico de 2025/2024 mas que só queremos reportar as métricas de HOJE.\n\nreturn Object.values(aggregated)\n  .filter(item => item.date === strToday)\n  .map(item => ({ json: item }));\n"
+      },
+      "id": "f92424de-3b8f-4661-9a1e-08310a6b8943",
+      "name": "Code2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT upsert_team_activity(\n  $1,  -- p_date\n  $2,  -- p_name\n  $3,  -- p_role\n  $4,  -- p_opportunities\n  $5,  -- p_connections\n  $6,  -- p_meetings_booked\n  $7,  -- p_meetings_held\n  $8,  -- p_no_shows\n  $9,  -- p_sales\n  $10, -- p_revenue\n  $11, -- p_response_time_sum\n  $12, -- p_response_time_count\n  $13, -- p_inbound_count\n  $14  -- p_outbound_count\n);\n",
+        "options": {
+          "queryReplacement": "={{ $json.date }}\n{{ $json.rep_name }}\n{{ $json.role }}\n{{ $json.opportunities }}\n{{ $json.connections }}\n{{ $json.meetings_booked }}\n{{ $json.meetings_held }}\n{{ $json.no_shows }}\n{{ $json.sales }}\n{{ $json.revenue }}\n{{ $json.response_time_sum }}\n{{ $json.response_time_count }}\n{{ $json.inbound }}\n{{ $json.outbound }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2144,
+        816
+      ],
+      "id": "6cf6f8dd-e845-4dce-b07c-2c03417c9819",
+      "name": "Execute a SQL query3",
+      "credentials": {
+        "postgres": {
+          "id": "2fZ1rEm8wKQ6Ja8o",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1536,
+        816
+      ],
+      "id": "2bb1e504-7e16-47b4-9e7d-93aee59be1b7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotAppToken",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  \"filterGroups\": [\n    {\n      \"filters\": [\n        {\n          \"propertyName\": \"hs_lastmodifieddate\",\n          \"operator\": \"GTE\",\n          \"value\": $today.minus({days: 0}).toMillis()\n        }\n      ]\n    }\n  ],\n  \"properties\": [\n    \"dealname\",\n    \"dealstage\",\n    \"amount\",\n    \"hubspot_owner_id\",\n    \"closedate\",\n    \"createdate\",\n    \"faturamento_mensal\",\n    \"hs_analytics_source\",\n    \"origem_do_lead\",\n    \"response_time_1_ligacao\"\n  ],\n  \"sorts\": [\n    {\n      \"propertyName\": \"hs_lastmodifieddate\",\n      \"direction\": \"DESCENDING\"\n    }\n  ],\n  \"limit\": 50\n})\n}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1024,
+        816
+      ],
+      "id": "e86e5894-83fd-4363-a9fa-a26c3c068792",
+      "name": "Search Deals",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "VyZmAXWBpIKrMgOS",
+          "name": "HubSpot App Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/meetings/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotAppToken",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  \"filterGroups\": [\n    {\n      \"filters\": [\n        {\n          \"propertyName\": \"hs_lastmodifieddate\",\n          \"operator\": \"GTE\",\n          \"value\": $today.minus({days: 0}).toMillis()\n        }\n      ]\n    }\n  ],\n  \"sorts\": [\n    {\n      \"propertyName\": \"hs_lastmodifieddate\",\n      \"direction\": \"DESCENDING\"\n    }\n  ],\n  \"limit\": 200\n})\n}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1024,
+        992
+      ],
+      "id": "cc3277b3-fb24-4a5c-b71a-6c1127e0c6a8",
+      "name": "Search Meetings",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "VyZmAXWBpIKrMgOS",
+          "name": "HubSpot App Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1952,
+        816
+      ],
+      "id": "38bb994e-f1c3-4200-b621-3bfc57f5c7dc",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        784,
+        864
+      ],
+      "id": "724a4f0e-373d-4ae5-8a91-e18f52980d40",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/batch/read",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotAppToken",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  \"properties\": [\"amount\", \"dealname\", \"hubspot_owner_id\", \"dealstage\", \"response_time_1_ligacao\", \"hs_analytics_source\"],\n  \"propertiesWithHistory\": [\"dealstage\", \"hubspot_owner_id\"],\n  \"inputs\": ($input.first().json.results || []).map(deal => ({ \"id\": deal.id }))\n})\n}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1248,
+        816
+      ],
+      "id": "a9cfc728-d25c-4d14-a7f2-c7baea8aca1d",
+      "name": "BatchRead",
+      "executeOnce": false,
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "VyZmAXWBpIKrMgOS",
+          "name": "HubSpot App Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 8,12,17 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 59 23 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        656
+      ],
+      "id": "ef1344bb-71ca-4bed-a8bc-807518fd1b0d",
+      "name": "Schedule Trigger1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Dados de Ontem3": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Variáveis1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Deals",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Meetings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Variáveis1": {
+      "main": [
+        [
+          {
+            "node": "Dados de Ontem3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Deals": {
+      "main": [
+        [
+          {
+            "node": "BatchRead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Meetings": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search Deals",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Meetings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BatchRead": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Set Variáveis1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Deals",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Meetings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "5889e11f-02c7-4003-9eda-3969aeb867ec",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "18c8f90efc1295bbc9c0bad6b85a7481eceeac1ec117c5c5fbb526c82f82c905"
+  },
+  "id": "nzdOdH8KlqQHgkgZgjpBj",
+  "tags": [
+    {
+      "updatedAt": "2026-02-19T14:09:19.998Z",
+      "createdAt": "2026-02-19T14:09:19.998Z",
+      "id": "iXhznpiFu7xgKJVE",
+      "name": "Aula tamplate"
+    }
+  ]
+}
