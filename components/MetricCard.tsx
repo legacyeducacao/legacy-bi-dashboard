@@ -129,35 +129,35 @@ const MetricCard: React.FC<MetricCardProps> = ({
               </div>
             </div>
 
-            <div className={`grid ${(!customComparison && showFaltaDia) ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pt-1`}>
-              <div className="flex flex-col border-l-2 border-slate-300 dark:border-slate-700 pl-2">
-                <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 whitespace-nowrap">{markerLabel}</span>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none truncate">{markerValueStr}</span>
+            <div className={`flex w-full justify-between items-end gap-1 pt-1`}>
+              <div className="flex flex-col border-l-2 border-slate-300 dark:border-slate-700 pl-1.5 min-w-0 flex-[1.2]">
+                <span className="text-[8.5px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 truncate">{markerLabel}</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-none truncate">{markerValueStr}</span>
               </div>
               
               {(!customComparison && showFaltaDia) && (
-                <div className="flex flex-col border-l-2 border-amber-500/30 pl-2">
-                  <span className="text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-500 font-bold mb-0.5 whitespace-nowrap">Falta / Dia</span>
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none truncate">
+                <div className="flex flex-col border-l-2 border-amber-500/30 pl-1.5 min-w-0 flex-1">
+                  <span className="text-[8.5px] uppercase tracking-wider text-amber-600 dark:text-amber-500 font-bold mb-0.5 truncate">Falta / Dia</span>
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-none truncate">
                     {formatValue(dailyShortfall, metric.unit, metric.prefix, metric.suffix)}
                   </span>
                 </div>
               )}
 
-              <div className={`flex flex-col items-end border-r-2 ${isOnTrack ? 'border-emerald-500/30' : 'border-rose-500/30'} pr-2`}>
+              <div className={`flex flex-col items-end border-r-2 ${isOnTrack ? 'border-emerald-500/30' : 'border-rose-500/30'} pr-1.5 min-w-0 flex-[1.3]`}>
                 {customComparison ? (
                   <>
-                    <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right whitespace-nowrap">{customComparison.label}</span>
-                    <span className="text-sm font-bold leading-none text-slate-700 dark:text-slate-200 truncate">
+                    <span className="text-[8.5px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right truncate w-full">{customComparison.label}</span>
+                    <span className="text-xs font-bold leading-none text-slate-700 dark:text-slate-200 truncate max-w-full">
                       {formatValue(customComparison.value, customComparison.unit || metric.unit, '', customComparison.suffix || '')}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right whitespace-nowrap">Projeção</span>
-                    <div className={`flex items-baseline gap-1 ${statusColor}`}>
-                      <span className="text-sm font-bold leading-none truncate">{formatValue(analysis.projection, metric.unit, metric.prefix, metric.suffix)}</span>
-                      <span className="text-[10px] font-bold opacity-80">({analysis.projectionPercent.toFixed(0)}%)</span>
+                    <span className="text-[8.5px] uppercase tracking-wider text-slate-500 font-bold mb-0.5 text-right w-full truncate">Projeção</span>
+                    <div className={`flex items-baseline justify-end gap-1 ${statusColor} w-full min-w-0`}>
+                      <span className="text-xs font-bold leading-none truncate">{formatValue(analysis.projection, metric.unit, metric.prefix, metric.suffix)}</span>
+                      <span className="text-[9px] font-bold opacity-80 flex-shrink-0">({analysis.projectionPercent.toFixed(0)}%)</span>
                     </div>
                   </>
                 )}

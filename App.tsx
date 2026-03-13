@@ -1303,10 +1303,40 @@ const App: React.FC = () => {
               title="Follow-up: Deals Ativos em Negociação / Assinatura / Vendido"
               data={data.rawDeals
                 .filter(deal => {
+                  // Closer Filter
                   if (filters.closerId !== 'all') {
                     const closerInfo = data.closerData.find(c => c.id === filters.closerId);
                     if (closerInfo && deal.owner_id !== closerInfo.name) return false;
                   }
+
+                  // Period / Date Filter 
+                  const comparisonDate = (deal.stage_id === '1225098152' && deal.closed_date) 
+                    ? deal.closed_date 
+                    : deal.created_date;
+
+                  if (!comparisonDate) return true;
+                  
+                  if (filters.period === 'today') {
+                    const now = new Date();
+                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    if (comparisonDate !== todayStr) return false;
+                  } else if (filters.period === 'this_month') {
+                    const now = new Date();
+                    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    if (!comparisonDate.startsWith(currentMonth)) return false;
+                  } else if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
+                    if (comparisonDate < filters.customStartDate || comparisonDate > filters.customEndDate) return false;
+                  } else if (filters.period === '7d' || filters.period === '15d' || filters.period === '30d') {
+                    let days = 30;
+                    if (filters.period === '7d') days = 7;
+                    else if (filters.period === '15d') days = 15;
+                    
+                    const now = new Date();
+                    now.setDate(now.getDate() - days);
+                    const cutoff = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    if (comparisonDate < cutoff) return false;
+                  }
+
                   return true;
                 })
                 .sort((a,b) => b.amount - a.amount)

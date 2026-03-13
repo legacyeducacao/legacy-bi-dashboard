@@ -197,9 +197,32 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       }
 
       const now = new Date();
+      
+      // Calculate total business days in the month
+      const maxDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      let totalBusinessDays = 0;
+      for (let d = 1; d <= maxDaysInMonth; d++) {
+         const date = new Date(now.getFullYear(), now.getMonth(), d);
+         const dayOfWeek = date.getDay();
+         if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Sunday, 6 = Saturday
+            totalBusinessDays++;
+         }
+      }
+
+      // Calculate current business day up to today
+      const currentDayInMonth = now.getDate();
+      let currentBusinessDay = 0;
+      for (let d = 1; d <= currentDayInMonth; d++) {
+         const date = new Date(now.getFullYear(), now.getMonth(), d);
+         const dayOfWeek = date.getDay();
+         if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            currentBusinessDay++;
+         }
+      }
+
       const context: PeriodContext = {
-         currentDay: now.getDate(),
-         totalDays: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+         currentDay: currentBusinessDay || 1, // Fallback to 1 to avoid division by zero
+         totalDays: totalBusinessDays || 1
       };
 
       const dailyTrends = (trendsData || []).map((row: any, idx: number) => ({
