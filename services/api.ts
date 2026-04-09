@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChannelStats, MarketingProductStats, FollowUpDeal } from '../types';
 
 export interface DashboardData {
@@ -41,14 +41,7 @@ const KEY_MAP: Record<string, string> = {
    'sales_outbound': 'salesOutbound'
 };
 
-const OWNER_MAP: Record<string, { name: string, role: string }> = {
-   '86857769': { name: 'Isaque Inacio', role: 'SDR' },
-   '85822345': { name: 'Luan Silva', role: 'SDR' },
-   '1856577327': { name: 'Rodrigo Fernandes', role: 'SDR' },
-   '78938498': { name: 'Leonardo Padilha', role: 'CLOSER' },
-   '86362284': { name: 'Leonardo Souza', role: 'CLOSER' },
-   '85369712': { name: 'Joel Carlos', role: 'CLOSER' }
-};
+// Team members are loaded from Supabase dim_team table (synced from Pipedrive)
 
 const N8N_META_ADS_WEBHOOK = 'https://automacao-n8n.zs0trp.easypanel.host/webhook/30135616-a1ea-4196-abb1-367e88b1d882';
 
@@ -85,6 +78,26 @@ export const triggerMetaAdsAutomation = async (): Promise<void> => {
 
 
 export const fetchDashboardData = async (): Promise<DashboardData> => {
+   const emptyData: DashboardData = {
+      kpis: {},
+      dailyTrends: [],
+      rawMarketingData: [],
+      sdrData: [],
+      closerData: [],
+      channels: [],
+      products: [],
+      context: { currentDay: 1, totalDays: 30 },
+      funnelData: [],
+      lastUpdated: new Date(),
+      rawTeamData: [],
+      rawDeals: []
+   };
+
+   if (!isSupabaseConfigured) {
+      console.warn("Supabase not configured. Returning empty data.");
+      return emptyData;
+   }
+
    try {
       console.log("Fetching data with Architecture V2...");
 
@@ -330,20 +343,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
    } catch (error) {
       console.error("Supabase API Error:", error);
-      return {
-         kpis: {},
-         dailyTrends: [],
-         rawMarketingData: [],
-         sdrData: [],
-         closerData: [],
-         channels: [],
-         products: [],
-         context: { currentDay: 1, totalDays: 30 },
-         funnelData: [],
-         lastUpdated: new Date(),
-         rawTeamData: [],
-         rawDeals: []
-      };
+      return emptyData;
    }
 };
 
