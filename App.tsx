@@ -100,7 +100,7 @@ const App: React.FC = () => {
 
   // Filter State
   const [filters, setFilters] = useState<FilterState>({
-    period: 'this_month',
+    period: '30d',
     customStartDate: '',
     customEndDate: '',
     sdrId: 'all',
