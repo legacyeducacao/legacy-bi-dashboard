@@ -458,9 +458,12 @@ const App: React.FC = () => {
       entry.investment += row.cost || 0;
       entry.leads += row.leads || 0;
       entry.mqls += row.mqls || 0;
+      entry.sales += row.sales || 0;
+      entry.revenue += row.revenue || 0;
     });
     return Array.from(map.values()).map(p => ({
       ...p,
+      cpl: p.leads > 0 ? p.investment / p.leads : 0,
       roas: p.investment > 0 ? p.revenue / p.investment : 0,
     }));
   }, [filteredRawMarketing, filters.product]);
@@ -1092,16 +1095,18 @@ const App: React.FC = () => {
               customComparison={{ value: activeKPIs.cpl?.value || 0, label: 'CPL Médio', unit: 'currency' }}
             />
           )}
-          {activeKPIs.cpmMacro && (
+          {activeKPIs.marketingSales && (
             <MetricCard
-              metric={activeKPIs.cpmMacro}
+              metric={activeKPIs.marketingSales}
               context={data.context}
+              customComparison={{ value: activeKPIs.cac?.value || 0, label: 'CAC', unit: 'currency' }}
             />
           )}
-          {activeKPIs.ctrMacro && (
+          {activeKPIs.marketingRevenue && (
             <MetricCard
-              metric={activeKPIs.ctrMacro}
+              metric={activeKPIs.marketingRevenue}
               context={data.context}
+              customComparison={{ value: activeKPIs.roas?.value || 0, label: 'ROAS', suffix: 'x' }}
             />
           )}
         </div>
@@ -1147,10 +1152,11 @@ const App: React.FC = () => {
                         { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
                         { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
                         { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
-                        { header: 'CPM', accessor: (row) => formatValue(row.cpm, 'currency'), align: 'right' },
-                        { header: 'CTR', accessor: (row) => `${row.ctr.toFixed(2)}%`, align: 'right' },
+                        { header: 'MQLs', accessor: (row) => row.mqls, align: 'right' },
+                        { header: 'Vendas', accessor: (row) => row.sales, align: 'right' },
+                        { header: 'Faturamento', accessor: (row) => formatValue(row.revenue, 'currency'), align: 'right' },
                         { header: 'CAC', accessor: (row) => formatValue(row.cac, 'currency'), align: 'right' },
-                        { header: 'ROAS', accessor: (row) => <span className={row.roas > 10 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
+                        { header: 'ROAS', accessor: (row) => <span className={row.roas > 5 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
                       ]}
                     />
                   </div>
@@ -1162,16 +1168,16 @@ const App: React.FC = () => {
                         data={filteredCampaigns}
                         showBorder={false}
                         columns={[
-                          { header: 'Campanha', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white">{row.campaign}</span> },
-                          { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
+                          { header: 'Campanha', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white truncate max-w-[250px] block" title={row.campaign}>{row.campaign}</span> },
+                          { header: 'Invest.', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
+                          { header: 'Impr.', accessor: (row) => new Intl.NumberFormat('pt-BR').format(row.impressions), align: 'right' },
                           { header: 'Cliques', accessor: (row) => row.clicks, align: 'right' },
-                          { header: 'CPC', accessor: (row) => formatValue(row.cpc, 'currency'), align: 'right' },
                           { header: 'CTR', accessor: (row) => `${row.ctr.toFixed(2)}%`, align: 'right' },
-                          { header: 'Leads', accessor: (row) => row.campaign.toLowerCase().includes('nativo') ? '-' : row.leads, align: 'right' },
+                          { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
                           { header: 'MQLs', accessor: (row) => row.mqls, align: 'right' },
-                          { header: 'CPL (MQL)', accessor: (row) => formatValue((row as any).cpl_mql, 'currency'), align: 'right' },
                           { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
-                          { header: 'ROAS', accessor: (row) => <span className={row.roas > 10 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
+                          { header: 'Vendas', accessor: (row) => row.sales || 0, align: 'right' },
+                          { header: 'ROAS', accessor: (row) => <span className={row.roas > 5 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
                         ]}
                       />
                     </div>

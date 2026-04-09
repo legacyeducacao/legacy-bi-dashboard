@@ -16,154 +16,298 @@ export interface DashboardData {
    rawDeals: FollowUpDeal[];
 }
 
+// --- Pipedrive Config ---
+const PIPEDRIVE_API_TOKEN = '5c2736352c0e6fba7e37522b059ea812f64a3296';
+const PIPEDRIVE_BASE = 'https://api.pipedrive.com/v1';
+const PIPELINE_VENDAS = 2;
+
+const STAGE_MAP: Record<number, string> = {
+   6: 'Oportunidades', 7: 'Filtro 1', 8: 'Filtro 2', 9: 'Agendado',
+   22: 'Reagendamento', 10: 'Maturação', 20: 'Negociação',
+   21: 'Envio de Contrato', 11: 'Vendido'
+};
+
+// Custom field keys from Pipedrive
+const FIELD_CANAL_ORIGEM = 'af9399eff946d6d06390b9c1f7eec1af620a89a5';
+const FIELD_SDR_RESPONSAVEL = '17d4f2deba2b2d6302b1f5ac1a2d18abc855fc3c';
+
+const ORIGIN_MAP: Record<number, string> = {
+   49: 'Outbound', 50: 'Allbound', 51: 'Inbound', 52: 'Eventos', 53: 'Indicação', 54: 'Upsell'
+};
+
+// SDR users (pre-vendas): Isaque, Luan, Rodrigo
+// Closer users (fechamento): Joel, Leonardo (Padilha), Leonardo Souza
+const USER_ROLES: Record<number, { name: string; role: 'SDR' | 'Closer' }> = {
+   25959419: { name: 'Isaque Inacio', role: 'SDR' },
+   25955327: { name: 'Luan Gabriel', role: 'SDR' },
+   25955316: { name: 'Rodrigo Fernandes', role: 'SDR' },
+   25909798: { name: 'João Vitor Gaspar', role: 'SDR' },
+   25963379: { name: 'Paim', role: 'SDR' },
+   25952137: { name: 'Joel Carlos', role: 'Closer' },
+   25952181: { name: 'Leonardo Padilha', role: 'Closer' },
+   25959529: { name: 'Leonardo Souza', role: 'Closer' },
+   25839024: { name: 'Allan Silva', role: 'Closer' },
+};
+
 const N8N_META_ADS_WEBHOOK = 'https://automacao-n8n.zs0trp.easypanel.host/webhook/30135616-a1ea-4196-abb1-367e88b1d882';
 
 export const triggerMetaAdsAutomation = async (): Promise<void> => {
    const now = new Date();
    const todayLocal = new Date(now.getTime() - 3 * 60 * 60 * 1000);
    const todayStr = todayLocal.toISOString().split('T')[0];
-
    const response = await fetch(N8N_META_ADS_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-         action: 'sync_meta_ads',
-         timestamp: now.toISOString(),
-         date: todayStr,
-         date_preset: 'today'
-      })
+      body: JSON.stringify({ action: 'sync_meta_ads', timestamp: now.toISOString(), date: todayStr, date_preset: 'today' })
    });
-
-   if (!response.ok) {
-      throw new Error(`n8n webhook failed: ${response.status} ${response.statusText}`);
-   }
+   if (!response.ok) throw new Error(`n8n webhook failed: ${response.status}`);
 };
 
+// --- Helpers ---
 const safeNumber = (val: any): number => {
    if (typeof val === 'number') return val;
    if (!val) return 0;
-   const str = String(val);
-   const clean = str
-      .replace(/[^\d,.-]/g, '')
-      .replace(/\.(?=\d{3}(,|$))/g, '')
-      .replace(',', '.');
+   const clean = String(val).replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(,|$))/g, '').replace(',', '.');
    const num = Number(clean);
    return isNaN(num) ? 0 : num;
 };
 
-/** Extract product name from campaign_name pattern like "[Legado]" or "[IE]" */
 const extractProductFromCampaign = (campaignName: string): string => {
    const match = campaignName.match(/\[([^\]]+)\]/);
    if (!match) return 'Outros';
    const tag = match[1].trim();
    const map: Record<string, string> = {
-      'Legado': 'Executória',
-      'IE': 'Inteligência Empresarial',
-      'Imersão': 'Impulsão Empresarial',
-      'TESTE': 'Teste',
+      'Legado': 'Executória', 'IE': 'Inteligência Empresarial',
+      'Imersão': 'Impulsão Empresarial', 'TESTE': 'Teste',
    };
    return map[tag] || tag;
 };
 
-export const fetchDashboardData = async (): Promise<DashboardData> => {
-   const emptyData: DashboardData = {
-      kpis: {},
-      dailyTrends: [],
-      rawMarketingData: [],
-      sdrData: [],
-      closerData: [],
-      channels: [],
-      products: [],
-      context: { currentDay: 1, totalDays: 30 },
-      funnelData: [],
-      lastUpdated: new Date(),
-      rawTeamData: [],
-      rawDeals: []
-   };
+// --- Pipedrive API ---
+async function fetchPipedriveDeals(status: 'open' | 'won' | 'lost' | 'all_not_deleted', pipelineId?: number): Promise<any[]> {
+   const allDeals: any[] = [];
+   let start = 0;
+   const limit = 500;
 
-   if (!isSupabaseConfigured) {
-      console.warn("Supabase not configured. Returning empty data.");
-      return emptyData;
+   while (true) {
+      const params = new URLSearchParams({
+         api_token: PIPEDRIVE_API_TOKEN,
+         limit: String(limit),
+         start: String(start),
+         status,
+         ...(pipelineId ? { pipeline_id: String(pipelineId) } : {})
+      });
+
+      const res = await fetch(`${PIPEDRIVE_BASE}/deals?${params}`);
+      if (!res.ok) break;
+
+      const json = await res.json();
+      if (!json.success || !json.data) break;
+
+      allDeals.push(...json.data);
+
+      if (!json.additional_data?.pagination?.more_items_in_collection) break;
+      start += limit;
    }
 
+   return allDeals;
+}
+
+// --- Main fetch ---
+export const fetchDashboardData = async (): Promise<DashboardData> => {
+   const emptyData: DashboardData = {
+      kpis: {}, dailyTrends: [], rawMarketingData: [], sdrData: [], closerData: [],
+      channels: [], products: [], context: { currentDay: 1, totalDays: 30 },
+      funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: []
+   };
+
    try {
-      console.log("Fetching dashboard data...");
+      console.log("Fetching dashboard data (Pipedrive + Supabase)...");
 
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const firstOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-      const lastOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`;
+      // --- 1. Fetch Pipedrive data ---
+      const [wonDeals, openDeals] = await Promise.all([
+         fetchPipedriveDeals('won', PIPELINE_VENDAS),
+         fetchPipedriveDeals('open', PIPELINE_VENDAS),
+      ]);
 
-      // If current month has no data, use last month with data (March 2026)
-      const { data: latestRow } = await supabase
-         .from('fact_daily_marketing')
-         .select('date')
-         .order('date', { ascending: false })
-         .limit(1);
+      // --- 2. Fetch Supabase marketing data ---
+      // Determine data month from latest Supabase data
+      let dataFirstOfMonth: string, dataLastOfMonth: string;
+      let dataYear: number, dataMonth: number;
 
-      const latestDate = latestRow?.[0]?.date || firstOfMonth;
-      const latestDateObj = new Date(latestDate + 'T00:00:00');
-      const dataYear = latestDateObj.getFullYear();
-      const dataMonth = latestDateObj.getMonth();
-      const dataFirstOfMonth = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-01`;
-      const dataLastOfMonth = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-${new Date(dataYear, dataMonth + 1, 0).getDate()}`;
+      if (isSupabaseConfigured) {
+         const { data: latestRow } = await supabase
+            .from('fact_daily_marketing').select('date').order('date', { ascending: false }).limit(1);
+         const latestDate = latestRow?.[0]?.date;
+         if (latestDate) {
+            const d = new Date(latestDate + 'T00:00:00');
+            dataYear = d.getFullYear();
+            dataMonth = d.getMonth();
+         } else {
+            dataYear = new Date().getFullYear();
+            dataMonth = new Date().getMonth();
+         }
+      } else {
+         dataYear = new Date().getFullYear();
+         dataMonth = new Date().getMonth();
+      }
 
-      // Fetch all marketing data for the data month (up to 5000 rows)
-      const { data: rawRows, error: rawError } = await supabase
-         .from('fact_daily_marketing')
-         .select('*')
-         .gte('date', dataFirstOfMonth)
-         .lte('date', dataLastOfMonth)
-         .order('date', { ascending: true })
-         .limit(5000);
+      dataFirstOfMonth = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-01`;
+      dataLastOfMonth = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-${new Date(dataYear, dataMonth + 1, 0).getDate()}`;
 
-      if (rawError) throw rawError;
+      let marketingRows: any[] = [];
+      if (isSupabaseConfigured) {
+         const { data: rawRows } = await supabase
+            .from('fact_daily_marketing').select('*')
+            .gte('date', dataFirstOfMonth).lte('date', dataLastOfMonth)
+            .order('date', { ascending: true }).limit(5000);
+         marketingRows = rawRows || [];
+      }
 
-      const rows = rawRows || [];
-      console.log(`Loaded ${rows.length} marketing rows for ${dataFirstOfMonth} to ${dataLastOfMonth}`);
+      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open`);
 
-      // --- Aggregate totals for KPIs ---
-      let totalCost = 0, totalLeads = 0, totalMqls = 0, totalVendas = 0, totalFaturamento = 0;
-      let totalRm = 0, totalRr = 0, totalImpressions = 0, totalClicks = 0;
+      // --- 3. Filter Pipedrive deals by data month ---
+      const monthPrefix = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}`;
 
-      rows.forEach((r: any) => {
+      const monthWonDeals = wonDeals.filter(d => d.won_time?.startsWith(monthPrefix));
+      const monthOpenDeals = openDeals; // Open deals are always current
+
+      // --- 4. Aggregate marketing totals ---
+      let totalCost = 0, totalLeads = 0, totalMqls = 0, totalImpressions = 0, totalClicks = 0;
+      let mktVendas = 0, mktFaturamento = 0, mktRm = 0, mktRr = 0;
+
+      marketingRows.forEach((r: any) => {
          totalCost += safeNumber(r.cost);
          totalLeads += safeNumber(r.leads);
          totalMqls += safeNumber(r.mqls);
-         totalVendas += safeNumber(r.vendas);
-         totalFaturamento += safeNumber(r.faturamento);
-         totalRm += safeNumber(r.rm);
-         totalRr += safeNumber(r.rr);
          totalImpressions += safeNumber(r.impressions);
          totalClicks += safeNumber(r.clicks);
+         mktVendas += safeNumber(r.vendas);
+         mktFaturamento += safeNumber(r.faturamento);
+         mktRm += safeNumber(r.rm);
+         mktRr += safeNumber(r.rr);
       });
 
+      // --- 5. Aggregate Pipedrive commercial data ---
+      const totalSales = monthWonDeals.length;
+      const totalRevenue = monthWonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+
+      // Inbound vs Outbound from Canal de Origem
+      let salesInbound = 0, salesOutbound = 0;
+      monthWonDeals.forEach(d => {
+         const originId = d[FIELD_CANAL_ORIGEM];
+         const origin = ORIGIN_MAP[originId] || '';
+         if (origin === 'Inbound' || origin === 'Allbound') salesInbound++;
+         else if (origin === 'Outbound') salesOutbound++;
+         else salesInbound++; // Default to inbound for Eventos, Indicação, Upsell, etc
+      });
+
+      // Funnel stages from open deals
+      const stageCountMap: Record<string, number> = {};
+      monthOpenDeals.forEach(d => {
+         const stage = STAGE_MAP[d.stage_id] || 'Outro';
+         stageCountMap[stage] = (stageCountMap[stage] || 0) + 1;
+      });
+
+      // Connections = deals that passed beyond 'Oportunidades' stage (stage_order >= 2)
+      const connections = monthOpenDeals.filter(d => d.stage_order_nr >= 2).length + totalSales;
+      // Meetings booked = deals in 'Agendado' or beyond (stage_order >= 4)
+      const meetingsBooked = monthOpenDeals.filter(d => d.stage_order_nr >= 4).length + totalSales;
+      // Meetings held = deals in 'Maturação' or beyond (stage_order >= 6) - they passed the meeting
+      const meetingsHeld = monthOpenDeals.filter(d => d.stage_order_nr >= 6).length + totalSales;
+
+      // --- 6. Build team data from Pipedrive ---
+      const teamMap = new Map<string, any>();
+
+      const initTeamMember = (userId: number) => {
+         const info = USER_ROLES[userId] || { name: `User ${userId}`, role: 'SDR' as const };
+         if (!teamMap.has(info.name)) {
+            teamMap.set(info.name, {
+               id: info.name.replace(/\s+/g, ''),
+               name: info.name,
+               role: info.role,
+               opportunities: 0, connections: 0, meetingsBooked: 0,
+               meetingsHeld: 0, sales: 0, revenue: 0, noShowCount: 0
+            });
+         }
+         return teamMap.get(info.name);
+      };
+
+      // Count opportunities from open deals by owner
+      monthOpenDeals.forEach(d => {
+         const member = initTeamMember(d.user_id?.id || d.user_id);
+         member.opportunities++;
+         if (d.stage_order_nr >= 2) member.connections++;
+         if (d.stage_order_nr >= 4) member.meetingsBooked++;
+         if (d.stage_order_nr >= 6) member.meetingsHeld++;
+      });
+
+      // Count won deals by owner
+      monthWonDeals.forEach(d => {
+         const member = initTeamMember(d.user_id?.id || d.user_id);
+         member.sales++;
+         member.revenue += d.value || 0;
+         member.meetingsHeld++;
+         member.meetingsBooked++;
+         member.connections++;
+      });
+
+      const allTeamMembers = Array.from(teamMap.values());
+
+      const sdrData: RepPerformance[] = allTeamMembers
+         .filter(m => m.role === 'SDR')
+         .map(m => ({
+            id: m.id, name: m.name, role: 'SDR' as const,
+            opportunities: m.opportunities, connections: m.connections,
+            meetingsBooked: m.meetingsBooked, meetingsHeld: m.meetingsHeld,
+            noShowCount: Math.max(0, m.meetingsBooked - m.meetingsHeld),
+            sales: m.sales, revenue: m.revenue, responseTime: 0
+         }));
+
+      const closerData: RepPerformance[] = allTeamMembers
+         .filter(m => m.role === 'Closer')
+         .map(m => ({
+            id: m.id, name: m.name, role: 'Closer' as const,
+            sales: m.sales, revenue: m.revenue,
+            meetingsBooked: m.meetingsBooked, meetingsHeld: m.meetingsHeld,
+            noShowCount: Math.max(0, m.meetingsBooked - m.meetingsHeld)
+         }));
+
+      // --- 7. Build KPIs ---
       const cpl = totalLeads > 0 ? totalCost / totalLeads : 0;
       const cpmql = totalMqls > 0 ? totalCost / totalMqls : 0;
-      const cac = totalVendas > 0 ? totalCost / totalVendas : 0;
-      const roas = totalCost > 0 ? totalFaturamento / totalCost : 0;
-      const ticket = totalVendas > 0 ? totalFaturamento / totalVendas : 0;
-      const noShowRate = totalRm > 0 ? ((totalRm - totalRr) / totalRm) * 100 : 0;
+      const cac = totalSales > 0 ? totalCost / totalSales : 0;
+      const roas = totalCost > 0 ? totalRevenue / totalCost : 0;
+      const ticket = totalSales > 0 ? totalRevenue / totalSales : 0;
+      const noShowRate = meetingsBooked > 0 ? ((meetingsBooked - meetingsHeld) / meetingsBooked) * 100 : 0;
+      const convMeetSale = meetingsHeld > 0 ? (totalSales / meetingsHeld) * 100 : 0;
+      const convAgendConect = connections > 0 ? (meetingsBooked / connections) * 100 : 0;
+      const convRealizAgend = meetingsBooked > 0 ? (meetingsHeld / meetingsBooked) * 100 : 0;
 
-      // --- Build KPIs (computed from data) ---
       const kpis: Record<string, MetricData> = {
          investment: { id: 'investment', label: 'Investimento', value: totalCost, goal: 120000, unit: 'currency' },
          leads: { id: 'leads', label: 'Leads', value: totalLeads, goal: 800, unit: 'number' },
          cpl: { id: 'cpl', label: 'CPL', value: cpl, goal: 150, unit: 'currency' },
          mqls: { id: 'mqls', label: 'MQLs', value: totalMqls, goal: 700, unit: 'number' },
          cpmql: { id: 'cpmql', label: 'Custo por MQL', value: cpmql, goal: 180, unit: 'currency' },
-         sales: { id: 'sales', label: 'Vendas', value: totalVendas, goal: 60, unit: 'number' },
-         revenue: { id: 'revenue', label: 'Faturamento', value: totalFaturamento, goal: 1500000, unit: 'currency' },
-         ticket: { id: 'ticket', label: 'Ticket Médio', value: ticket, goal: 20000, unit: 'currency' },
-         meetingsBooked: { id: 'meetingsBooked', label: 'Reuniões Agendadas', value: totalRm, goal: 600, unit: 'number' },
-         meetingsHeld: { id: 'meetingsHeld', label: 'Reuniões Realizadas', value: totalRr, goal: 350, unit: 'number' },
+         sales: { id: 'sales', label: 'Vendas Total', value: totalSales, goal: 20, unit: 'number' },
+         revenue: { id: 'revenue', label: 'Faturamento', value: totalRevenue, goal: 600000, unit: 'currency' },
+         ticket: { id: 'ticket', label: 'Ticket Médio', value: ticket, goal: 25000, unit: 'currency' },
+         connections: { id: 'connections', label: 'Conexões', value: connections, goal: 300, unit: 'number' },
+         meetingsBooked: { id: 'meetingsBooked', label: 'Reuniões Agendadas', value: meetingsBooked, goal: 150, unit: 'number' },
+         meetingsHeld: { id: 'meetingsHeld', label: 'Reuniões Realizadas', value: meetingsHeld, goal: 100, unit: 'number' },
          noShowRate: { id: 'noShowRate', label: 'Taxa No-Show', value: noShowRate, goal: 30, unit: 'percentage' },
-         cac: { id: 'cac', label: 'CAC', value: cac, goal: 2500, unit: 'currency' },
-         roas: { id: 'roas', label: 'ROAS', value: roas, goal: 10, unit: 'number', suffix: 'x' },
+         cac: { id: 'cac', label: 'CAC', value: cac, goal: 6000, unit: 'currency' },
+         roas: { id: 'roas', label: 'ROAS', value: roas, goal: 5, unit: 'number', suffix: 'x' },
+         salesInbound: { id: 'salesInbound', label: 'Vendas Inbound', value: salesInbound, goal: 15, unit: 'number' },
+         salesOutbound: { id: 'salesOutbound', label: 'Vendas Outbound', value: salesOutbound, goal: 5, unit: 'number' },
+         conversionMeetingSale: { id: 'conversionMeetingSale', label: 'Conv. Venda/Realizada', value: convMeetSale, goal: 20, unit: 'percentage' },
+         opportunities: { id: 'opportunities', label: 'Oportunidades', value: monthOpenDeals.length + totalSales, goal: 500, unit: 'number' },
+         marketingSales: { id: 'marketingSales', label: 'Vendas MKT', value: totalSales, goal: 20, unit: 'number' },
+         marketingRevenue: { id: 'marketingRevenue', label: 'Faturamento MKT', value: totalRevenue, goal: 600000, unit: 'currency' },
       };
 
-      // --- Business day context ---
+      // --- 8. Business day context ---
       const maxDaysInMonth = new Date(dataYear, dataMonth + 1, 0).getDate();
       let totalBusinessDays = 0;
       for (let d = 1; d <= maxDaysInMonth; d++) {
@@ -171,8 +315,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          if (date.getDay() !== 0 && date.getDay() !== 6) totalBusinessDays++;
       }
 
-      // Use latest data date as "current day" reference
-      const latestDay = latestDateObj.getDate();
+      // Find latest data day
+      const latestMarketingDate = marketingRows.length > 0 ? marketingRows[marketingRows.length - 1].date : dataLastOfMonth;
+      const latestDay = new Date(latestMarketingDate + 'T00:00:00').getDate();
       let currentBusinessDay = 0;
       for (let d = 1; d <= latestDay; d++) {
          const date = new Date(dataYear, dataMonth, d);
@@ -184,9 +329,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          totalDays: totalBusinessDays || 1
       };
 
-      // --- Daily trends (aggregate per day) ---
+      // --- 9. Daily trends ---
       const trendsMap = new Map<string, any>();
-      rows.forEach((r: any) => {
+      marketingRows.forEach((r: any) => {
          const dateKey = r.date;
          if (!trendsMap.has(dateKey)) {
             trendsMap.set(dateKey, {
@@ -206,29 +351,38 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          t.clicks += safeNumber(r.clicks);
       });
 
+      // Enrich trends with Pipedrive won deals by date
+      monthWonDeals.forEach(d => {
+         const dateKey = d.won_time?.substring(0, 10);
+         if (!dateKey) return;
+         if (!trendsMap.has(dateKey)) {
+            trendsMap.set(dateKey, {
+               date: dateKey, cost: 0, leads: 0, mqls: 0, vendas: 0,
+               faturamento: 0, rm: 0, rr: 0, impressions: 0, clicks: 0
+            });
+         }
+         const t = trendsMap.get(dateKey);
+         t.vendas++;
+         t.faturamento += d.value || 0;
+      });
+
       const dailyTrends = Array.from(trendsMap.values())
          .sort((a, b) => a.date.localeCompare(b.date))
          .map((row, idx) => ({
             day: `Dia ${parseInt(row.date.split('-')[2], 10)}`,
             dayIndex: idx + 1,
             date: row.date,
-            leads: row.leads,
-            mqls: row.mqls,
+            leads: row.leads, mqls: row.mqls,
             investment: row.cost,
-            revenue: row.faturamento,
-            sales: row.vendas,
-            connections: 0,
-            opportunities: 0,
-            meetings_booked: row.rm,
-            meetings_held: row.rr,
-            impressions: row.impressions,
-            clicks: row.clicks,
-            inbound: 0,
-            outbound: 0
+            revenue: row.faturamento, sales: row.vendas,
+            connections: 0, opportunities: 0,
+            meetings_booked: row.rm, meetings_held: row.rr,
+            impressions: row.impressions, clicks: row.clicks,
+            inbound: 0, outbound: 0
          }));
 
-      // --- Raw marketing data for tables/filters ---
-      const rawMarketingData = rows.map((r: any) => ({
+      // --- 10. Raw marketing data ---
+      const rawMarketingData = marketingRows.map((r: any) => ({
          date: r.date,
          channel: 'Meta Ads',
          product: extractProductFromCampaign(r.campaign_name || ''),
@@ -243,35 +397,30 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          revenue: safeNumber(r.faturamento),
       }));
 
-      // --- Channel stats (single channel for now: Meta Ads) ---
+      // --- 11. Channel stats ---
       const channels: MarketingChannelStats[] = [{
          channel: 'Meta Ads',
-         investment: totalCost,
-         leads: totalLeads,
-         cpl: cpl,
-         mqls: totalMqls,
-         sales: totalVendas,
-         revenue: totalFaturamento,
-         roas: roas,
-         cac: cac,
-         impressions: totalImpressions,
-         clicks: totalClicks,
+         investment: totalCost, leads: totalLeads, cpl,
+         mqls: totalMqls, sales: totalSales, revenue: totalRevenue,
+         roas, cac,
+         impressions: totalImpressions, clicks: totalClicks,
          cpm: totalImpressions > 0 ? (totalCost / totalImpressions) * 1000 : 0,
          ctr: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
       }];
 
-      // --- Product stats (grouped by campaign tag) ---
+      // --- 12. Product stats ---
       const productMap = new Map<string, any>();
       rawMarketingData.forEach((r: any) => {
          const prod = r.product;
          if (!productMap.has(prod)) {
-            productMap.set(prod, { product: prod, investment: 0, leads: 0, cpl: 0, sales: 0, revenue: 0, roas: 0 });
+            productMap.set(prod, { product: prod, investment: 0, leads: 0, mqls: 0, sales: 0, revenue: 0, roas: 0, cpl: 0 });
          }
          const p = productMap.get(prod);
          p.investment += r.cost;
          p.leads += r.leads;
-         p.sales += r.vendas;
-         p.revenue += r.faturamento;
+         p.mqls += r.mqls;
+         p.sales += r.sales;
+         p.revenue += r.revenue;
       });
       const products: MarketingProductStats[] = Array.from(productMap.values()).map(p => ({
          ...p,
@@ -279,71 +428,73 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          roas: p.investment > 0 ? p.revenue / p.investment : 0,
       }));
 
-      // --- Funnel ---
+      // --- 13. Funnel data ---
       const funnelData: FunnelStage[] = [
-         { name: 'Impressões', value: totalImpressions },
-         { name: 'Cliques', value: totalClicks },
          { name: 'Leads', value: totalLeads },
          { name: 'MQLs', value: totalMqls },
-         { name: 'Agendadas', value: totalRm },
-         { name: 'Realizadas', value: totalRr },
-         { name: 'Vendas', value: totalVendas },
+         { name: 'Conexões', value: connections },
+         { name: 'Agendadas', value: meetingsBooked },
+         { name: 'Realizadas', value: meetingsHeld },
+         { name: 'Vendas', value: totalSales },
       ].filter(item => item.value > 0);
 
+      // --- 14. Raw deals for follow-up table ---
+      const rawDeals: FollowUpDeal[] = [...monthOpenDeals, ...monthWonDeals]
+         .filter(d => d.stage_order_nr >= 6 || d.status === 'won') // Maturação+ or won
+         .map(d => ({
+            deal_id: String(d.id),
+            deal_name: d.title || 'Sem título',
+            owner_id: d.owner_name || USER_ROLES[d.user_id?.id || d.user_id]?.name || 'Desconhecido',
+            stage_id: STAGE_MAP[d.stage_id] || `Stage ${d.stage_id}`,
+            amount: d.value || 0,
+            created_date: d.add_time?.substring(0, 10) || '',
+            closed_date: d.won_time?.substring(0, 10) || '',
+            status: d.status,
+         })) as any[];
+
       return {
-         kpis,
-         dailyTrends,
-         rawMarketingData,
-         sdrData: [],
-         closerData: [],
-         channels,
-         products,
-         context,
-         funnelData,
-         lastUpdated: new Date(),
-         rawTeamData: [],
-         rawDeals: []
+         kpis, dailyTrends, rawMarketingData, sdrData, closerData,
+         channels, products, context, funnelData,
+         lastUpdated: new Date(), rawTeamData: allTeamMembers, rawDeals
       };
 
    } catch (error) {
-      console.error("Supabase API Error:", error);
+      console.error("Dashboard API Error:", error);
       return emptyData;
    }
 };
 
 export const uploadMarketingSector = async (parsedData: any[]) => {
+   if (!isSupabaseConfigured) return false;
    const rows = parsedData.map(row => ({
-      date: row['Data'] || row['date'] || row['data'],
+      date: row['Data'] || row['date'],
       channel_id: row['channel_id'] || null,
       product_id: row['product_id'] || null,
-      campaign_name: row['Campanha'] || row['campaign'] || row['campanha'] || 'Diversos',
-      cost: safeNumber(row['Investimento'] || row['investment'] || row['cost'] || 0),
+      campaign_name: row['Campanha'] || row['campaign'] || 'Diversos',
+      cost: safeNumber(row['Investimento'] || row['cost'] || 0),
       leads: safeNumber(row['Leads'] || row['leads'] || 0),
       mqls: safeNumber(row['MQLs'] || row['mqls'] || 0),
       impressions: safeNumber(row['Impressoes'] || row['impressions'] || 0),
       clicks: safeNumber(row['Cliques'] || row['clicks'] || 0),
       vendas: safeNumber(row['Vendas'] || row['vendas'] || 0),
       faturamento: safeNumber(row['Faturamento'] || row['faturamento'] || 0),
-      rm: safeNumber(row['RM'] || row['rm'] || 0),
-      rr: safeNumber(row['RR'] || row['rr'] || 0),
    })).filter(r => r.date);
-
    const { error } = await supabase.from('fact_daily_marketing').insert(rows);
    if (error) throw error;
    return true;
 };
 
 export const uploadCommercialSector = async (_parsedData: any[]) => {
-   console.warn('uploadCommercialSector: Pipedrive integration pending');
+   console.warn('Commercial data comes from Pipedrive automatically');
    return true;
 };
 
 export const uploadGoalsSector = async (_parsedData: any[]) => {
-   console.warn('uploadGoalsSector: KPIs are computed from marketing data');
+   console.warn('KPIs are computed from Pipedrive + Supabase data');
    return true;
 };
 
 export const updateKPIGoals = async (_kpis: any[]) => {
-   console.warn('updateKPIGoals: KPIs are computed from marketing data');
+   console.warn('KPI goals are defined in code');
    return true;
 };
