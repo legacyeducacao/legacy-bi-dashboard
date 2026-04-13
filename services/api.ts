@@ -161,11 +161,17 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
    try {
       console.log("Fetching dashboard data (Pipedrive + Supabase)...");
 
-      // --- 1. Fetch Pipedrive data (deals + activities) ---
-      const [wonDeals, openDeals] = await Promise.all([
-         fetchPipedriveDeals('won', PIPELINE_VENDAS),
-         fetchPipedriveDeals('open', PIPELINE_VENDAS),
-      ]);
+      // --- 1. Fetch Pipedrive data (deals + activities) - graceful on failure ---
+      let wonDeals: any[] = [];
+      let openDeals: any[] = [];
+      try {
+         [wonDeals, openDeals] = await Promise.all([
+            fetchPipedriveDeals('won', PIPELINE_VENDAS),
+            fetchPipedriveDeals('open', PIPELINE_VENDAS),
+         ]);
+      } catch (e) {
+         console.warn('Pipedrive deals fetch failed (rate limit?), continuing with Supabase data only');
+      }
 
       // --- 2. Fetch Supabase marketing data ---
       // Determine data month from latest Supabase data
@@ -202,8 +208,30 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       }
 
       // --- 2b. Fetch Pipedrive activities for the month ---
-      const allActivities = await fetchPipedriveActivities(dataFirstOfMonth, dataLastOfMonth);
-      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open | Activities: ${allActivities.length}`);
+      let allActivities: any[] = [];
+      try {
+         allActivities = await fetchPipedriveActivities(dataFirstOfMonth, dataLastOfMonth);
+      } catch (e) {
+         console.warn('Pipedrive activities fetch failed (rate limit?), continuing without');
+      }
+
+      // --- 2c. Fetch Supabase leads and qualifications ---
+      let supabaseLeads: any[] = [];
+      let supabaseQualificacoes: any[] = [];
+      if (isSupabaseConfigured) {
+         const [leadsRes, qualsRes] = await Promise.all([
+            supabase.from('formularios_anuncios').select('*')
+               .not('Nome', 'is', null)
+               .limit(5000),
+            supabase.from('qualificacao_do_lead_na_3C_ao_encerrar_chamada').select('*')
+               .gte('created_at', dataFirstOfMonth)
+               .limit(5000),
+         ]);
+         supabaseLeads = leadsRes.data || [];
+         supabaseQualificacoes = qualsRes.data || [];
+      }
+
+      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open | Activities: ${allActivities.length} | Leads: ${supabaseLeads.length} | Qualificações: ${supabaseQualificacoes.length}`);
 
       // --- 3. Filter Pipedrive deals by data month ---
       const monthPrefix = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}`;
@@ -212,23 +240,38 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const monthOpenDeals = openDeals; // Open deals are always current
 
       // --- 4. Aggregate marketing totals ---
-      let totalCost = 0, totalLeads = 0, totalMqls = 0, totalImpressions = 0, totalClicks = 0;
-      let mktVendas = 0, mktFaturamento = 0, mktRm = 0, mktRr = 0;
+      let totalCost = 0, totalImpressions = 0, totalClicks = 0;
+      let mktVendas = 0, mktFaturamento = 0;
 
       marketingRows.forEach((r: any) => {
          totalCost += safeNumber(r.cost);
-         totalLeads += safeNumber(r.leads);
-         totalMqls += safeNumber(r.mqls);
          totalImpressions += safeNumber(r.impressions);
          totalClicks += safeNumber(r.clicks);
          mktVendas += safeNumber(r.vendas);
          mktFaturamento += safeNumber(r.faturamento);
-         mktRm += safeNumber(r.rm);
-         mktRr += safeNumber(r.rr);
       });
 
+      // Leads from Supabase formularios_anuncios (real form submissions)
+      const totalLeads = supabaseLeads.length || safeNumber(marketingRows.reduce((s: number, r: any) => s + safeNumber(r.leads), 0));
+
+      // MQLs from Supabase qualificações (leads that were called and qualified)
+      const qualifiedStatuses = ['Ganho', 'Sessão Estratégica Agendada', 'Ligação Agendada', 'Lead Qualificado / Filtro 2'];
+      const totalMqls = supabaseQualificacoes.filter((q: any) =>
+         qualifiedStatuses.includes(q['Qualificação'])
+      ).length || safeNumber(marketingRows.reduce((s: number, r: any) => s + safeNumber(r.mqls), 0));
+
+      // Extract sales/meetings from qualificações when Pipedrive is unavailable
+      const sessionsFromQuals = supabaseQualificacoes.filter((q: any) =>
+         q['Qualificação'] === 'Sessão Estratégica Agendada'
+      ).length;
+      const winsFromQuals = supabaseQualificacoes.filter((q: any) =>
+         q['Qualificação'] === 'Ganho'
+      ).length;
+
       // --- 5. Aggregate Pipedrive commercial data ---
-      const totalSales = monthWonDeals.length;
+      // Use Pipedrive data if available, fallback to Supabase qualificações
+      const pipedriveAvailable = monthWonDeals.length > 0 || monthOpenDeals.length > 0;
+      const totalSales = pipedriveAvailable ? monthWonDeals.length : winsFromQuals;
       const totalRevenue = monthWonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
 
       // Inbound vs Outbound from Canal de Origem
@@ -249,7 +292,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       });
 
       // Connections = deals that passed beyond 'Oportunidades' stage (stage_order >= 2)
-      const connections = monthOpenDeals.filter(d => d.stage_order_nr >= 2).length + totalSales;
+      const connectionsFromDeals = monthOpenDeals.filter(d => d.stage_order_nr >= 2).length + totalSales;
+      // Fallback: connections from qualificações (total calls made)
+      const connections = pipedriveAvailable ? connectionsFromDeals : supabaseQualificacoes.length;
 
       // --- 5b. Aggregate activity data for meetings, no-shows, rescheduled ---
       let meetingsBooked = 0;   // All meeting-type activities (scheduled)
@@ -257,74 +302,119 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       let totalNoShows = 0;     // Activities of type no_show
       let totalRescheduled = 0; // Activities of type reagendado
 
-      allActivities.forEach(act => {
-         const type = act.type || '';
-         if (MEETING_TYPES.has(type)) {
-            meetingsBooked++;
-            if (act.done) meetingsHeld++;
-         }
-         if (type === NO_SHOW_TYPE) {
-            totalNoShows++;
-            // No-shows also count as booked meetings that didn't happen
-            meetingsBooked++;
-         }
-         if (type === RESCHEDULED_TYPE) {
-            totalRescheduled++;
-         }
-      });
+      if (allActivities.length > 0) {
+         // Use real Pipedrive activity data
+         allActivities.forEach(act => {
+            const type = act.type || '';
+            if (MEETING_TYPES.has(type)) {
+               meetingsBooked++;
+               if (act.done) meetingsHeld++;
+            }
+            if (type === NO_SHOW_TYPE) {
+               totalNoShows++;
+               meetingsBooked++;
+            }
+            if (type === RESCHEDULED_TYPE) {
+               totalRescheduled++;
+            }
+         });
+      } else if (supabaseQualificacoes.length > 0) {
+         // Fallback: derive meeting metrics from Supabase qualificações
+         meetingsBooked = sessionsFromQuals + winsFromQuals;
+         meetingsHeld = winsFromQuals;
+         totalNoShows = supabaseQualificacoes.filter((q: any) =>
+            q['Qualificação'] === 'Não qualificada' || q['Qualificação'] === 'Caixa Postal'
+         ).length;
+      }
 
-      // --- 6. Build team data from Pipedrive (deals + activities) ---
+      // --- 6. Build team data from Pipedrive (deals + activities) + Supabase fallback ---
       const teamMap = new Map<string, any>();
 
-      const initTeamMember = (userId: number) => {
-         const info = USER_ROLES[userId] || { name: `User ${userId}`, role: 'SDR' as const };
-         if (!teamMap.has(info.name)) {
-            teamMap.set(info.name, {
-               id: info.name.replace(/\s+/g, ''),
-               name: info.name,
-               role: info.role,
+      const initTeamMemberByName = (name: string, role: 'SDR' | 'Closer') => {
+         if (!teamMap.has(name)) {
+            teamMap.set(name, {
+               id: name.replace(/\s+/g, ''),
+               name,
+               role,
                opportunities: 0, connections: 0, meetingsBooked: 0,
                meetingsHeld: 0, sales: 0, revenue: 0, noShowCount: 0,
                rescheduled: 0,
             });
          }
-         return teamMap.get(info.name);
+         return teamMap.get(name);
       };
 
-      // Count opportunities and connections from deals
-      monthOpenDeals.forEach(d => {
-         const member = initTeamMember(d.user_id?.id || d.user_id);
-         member.opportunities++;
-         if (d.stage_order_nr >= 2) member.connections++;
-      });
+      const initTeamMember = (userId: number) => {
+         const info = USER_ROLES[userId] || { name: `User ${userId}`, role: 'SDR' as const };
+         return initTeamMemberByName(info.name, info.role);
+      };
 
-      // Count won deals by owner
-      monthWonDeals.forEach(d => {
-         const member = initTeamMember(d.user_id?.id || d.user_id);
-         member.sales++;
-         member.revenue += d.value || 0;
-         member.connections++;
-      });
+      if (pipedriveAvailable) {
+         // Count opportunities and connections from deals
+         monthOpenDeals.forEach(d => {
+            const member = initTeamMember(d.user_id?.id || d.user_id);
+            member.opportunities++;
+            if (d.stage_order_nr >= 2) member.connections++;
+         });
 
-      // Enrich team members with REAL activity data (meetings, no-shows, rescheduled)
-      allActivities.forEach(act => {
-         const userId = act.assigned_to_user_id || act.user_id;
-         if (!userId) return;
-         const member = initTeamMember(userId);
-         const type = act.type || '';
+         // Count won deals by owner
+         monthWonDeals.forEach(d => {
+            const member = initTeamMember(d.user_id?.id || d.user_id);
+            member.sales++;
+            member.revenue += d.value || 0;
+            member.connections++;
+         });
 
-         if (MEETING_TYPES.has(type)) {
-            member.meetingsBooked++;
-            if (act.done) member.meetingsHeld++;
-         }
-         if (type === NO_SHOW_TYPE) {
-            member.noShowCount++;
-            member.meetingsBooked++; // Was booked but didn't happen
-         }
-         if (type === RESCHEDULED_TYPE) {
-            member.rescheduled++;
-         }
-      });
+         // Enrich team members with REAL activity data (meetings, no-shows, rescheduled)
+         allActivities.forEach(act => {
+            const userId = act.assigned_to_user_id || act.user_id;
+            if (!userId) return;
+            const member = initTeamMember(userId);
+            const type = act.type || '';
+
+            if (MEETING_TYPES.has(type)) {
+               member.meetingsBooked++;
+               if (act.done) member.meetingsHeld++;
+            }
+            if (type === NO_SHOW_TYPE) {
+               member.noShowCount++;
+               member.meetingsBooked++;
+            }
+            if (type === RESCHEDULED_TYPE) {
+               member.rescheduled++;
+            }
+         });
+      } else if (supabaseQualificacoes.length > 0) {
+         // Fallback: build team data from Supabase qualificações
+         // Map agent names from discadora to proper names/roles
+         const AGENT_MAP: Record<string, { name: string; role: 'SDR' | 'Closer' }> = {
+            'isaque': { name: 'Isaque Inacio', role: 'SDR' },
+            'luan': { name: 'Luan Gabriel', role: 'SDR' },
+            'rodrigo': { name: 'Rodrigo Fernandes', role: 'SDR' },
+            'paim': { name: 'Paim', role: 'SDR' },
+            'joao': { name: 'João Vitor Gaspar', role: 'SDR' },
+         };
+
+         supabaseQualificacoes.forEach((q: any) => {
+            const agentRaw = (q.Agente || '').toLowerCase().trim();
+            const agentInfo = AGENT_MAP[agentRaw] || { name: q.Agente || 'Desconhecido', role: 'SDR' as const };
+            const member = initTeamMemberByName(agentInfo.name, agentInfo.role);
+            member.connections++;
+
+            const qual = q['Qualificação'] || '';
+            if (qual === 'Sessão Estratégica Agendada' || qual === 'Ligação Agendada') {
+               member.meetingsBooked++;
+            }
+            if (qual === 'Ganho') {
+               member.sales++;
+               member.meetingsHeld++;
+               member.meetingsBooked++;
+            }
+            if (qual === 'Não qualificada' || qual === 'Caixa Postal') {
+               member.noShowCount++;
+            }
+         });
+      }
 
       // Convert to flat format that App.tsx expects (snake_case fields for rawTeamData)
       const allTeamMembers = Array.from(teamMap.values()).map(m => ({
