@@ -17,8 +17,9 @@ export interface DashboardData {
 }
 
 // --- Pipedrive Config ---
-const PIPEDRIVE_API_TOKEN = '5c2736352c0e6fba7e37522b059ea812f64a3296';
-const PIPEDRIVE_BASE = 'https://api.pipedrive.com/v1';
+// API token is now server-side only (in Vercel env vars)
+// Frontend calls go through /api/pipedrive proxy
+const PIPEDRIVE_PROXY = '/api/pipedrive';
 const PIPELINE_VENDAS = 2;
 
 const STAGE_MAP: Record<number, string> = {
@@ -83,25 +84,36 @@ const extractProductFromCampaign = (campaignName: string): string => {
    return map[tag] || tag;
 };
 
-// --- Pipedrive API ---
+// Activity types that represent meetings (booked / held)
+const MEETING_TYPES = new Set(['sessao_estrategica', 'reuniao_de_fechamento', 'meeting']);
+const NO_SHOW_TYPE = 'no_show';
+const RESCHEDULED_TYPE = 'reagendado';
+
+// --- Pipedrive API (via serverless proxy) ---
+async function fetchPipedriveEndpoint(endpoint: string, params: Record<string, string>): Promise<any> {
+   const searchParams = new URLSearchParams({ endpoint, ...params });
+   const res = await fetch(`${PIPEDRIVE_PROXY}?${searchParams}`);
+   if (!res.ok) {
+      console.warn(`Pipedrive proxy error (${endpoint}):`, res.status);
+      return { success: false, data: null };
+   }
+   return res.json();
+}
+
 async function fetchPipedriveDeals(status: 'open' | 'won' | 'lost' | 'all_not_deleted', pipelineId?: number): Promise<any[]> {
    const allDeals: any[] = [];
    let start = 0;
    const limit = 500;
 
    while (true) {
-      const params = new URLSearchParams({
-         api_token: PIPEDRIVE_API_TOKEN,
+      const params: Record<string, string> = {
          limit: String(limit),
          start: String(start),
          status,
          ...(pipelineId ? { pipeline_id: String(pipelineId) } : {})
-      });
+      };
 
-      const res = await fetch(`${PIPEDRIVE_BASE}/deals?${params}`);
-      if (!res.ok) break;
-
-      const json = await res.json();
+      const json = await fetchPipedriveEndpoint('deals', params);
       if (!json.success || !json.data) break;
 
       allDeals.push(...json.data);
@@ -111,6 +123,31 @@ async function fetchPipedriveDeals(status: 'open' | 'won' | 'lost' | 'all_not_de
    }
 
    return allDeals;
+}
+
+async function fetchPipedriveActivities(startDate: string, endDate: string): Promise<any[]> {
+   const allActivities: any[] = [];
+   let start = 0;
+   const limit = 500;
+
+   while (true) {
+      const params: Record<string, string> = {
+         limit: String(limit),
+         start: String(start),
+         start_date: startDate,
+         end_date: endDate,
+      };
+
+      const json = await fetchPipedriveEndpoint('activities', params);
+      if (!json.success || !json.data) break;
+
+      allActivities.push(...json.data);
+
+      if (!json.additional_data?.pagination?.more_items_in_collection) break;
+      start += limit;
+   }
+
+   return allActivities;
 }
 
 // --- Main fetch ---
@@ -124,7 +161,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
    try {
       console.log("Fetching dashboard data (Pipedrive + Supabase)...");
 
-      // --- 1. Fetch Pipedrive data ---
+      // --- 1. Fetch Pipedrive data (deals + activities) ---
       const [wonDeals, openDeals] = await Promise.all([
          fetchPipedriveDeals('won', PIPELINE_VENDAS),
          fetchPipedriveDeals('open', PIPELINE_VENDAS),
@@ -164,7 +201,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          marketingRows = rawRows || [];
       }
 
-      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open`);
+      // --- 2b. Fetch Pipedrive activities for the month ---
+      const allActivities = await fetchPipedriveActivities(dataFirstOfMonth, dataLastOfMonth);
+      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open | Activities: ${allActivities.length}`);
 
       // --- 3. Filter Pipedrive deals by data month ---
       const monthPrefix = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}`;
@@ -211,12 +250,30 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
       // Connections = deals that passed beyond 'Oportunidades' stage (stage_order >= 2)
       const connections = monthOpenDeals.filter(d => d.stage_order_nr >= 2).length + totalSales;
-      // Meetings booked = deals in 'Agendado' or beyond (stage_order >= 4)
-      const meetingsBooked = monthOpenDeals.filter(d => d.stage_order_nr >= 4).length + totalSales;
-      // Meetings held = deals in 'Maturação' or beyond (stage_order >= 6) - they passed the meeting
-      const meetingsHeld = monthOpenDeals.filter(d => d.stage_order_nr >= 6).length + totalSales;
 
-      // --- 6. Build team data from Pipedrive ---
+      // --- 5b. Aggregate activity data for meetings, no-shows, rescheduled ---
+      let meetingsBooked = 0;   // All meeting-type activities (scheduled)
+      let meetingsHeld = 0;     // Meeting-type activities marked done (excluding no-shows)
+      let totalNoShows = 0;     // Activities of type no_show
+      let totalRescheduled = 0; // Activities of type reagendado
+
+      allActivities.forEach(act => {
+         const type = act.type || '';
+         if (MEETING_TYPES.has(type)) {
+            meetingsBooked++;
+            if (act.done) meetingsHeld++;
+         }
+         if (type === NO_SHOW_TYPE) {
+            totalNoShows++;
+            // No-shows also count as booked meetings that didn't happen
+            meetingsBooked++;
+         }
+         if (type === RESCHEDULED_TYPE) {
+            totalRescheduled++;
+         }
+      });
+
+      // --- 6. Build team data from Pipedrive (deals + activities) ---
       const teamMap = new Map<string, any>();
 
       const initTeamMember = (userId: number) => {
@@ -227,19 +284,18 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
                name: info.name,
                role: info.role,
                opportunities: 0, connections: 0, meetingsBooked: 0,
-               meetingsHeld: 0, sales: 0, revenue: 0, noShowCount: 0
+               meetingsHeld: 0, sales: 0, revenue: 0, noShowCount: 0,
+               rescheduled: 0,
             });
          }
          return teamMap.get(info.name);
       };
 
-      // Count opportunities from open deals by owner
+      // Count opportunities and connections from deals
       monthOpenDeals.forEach(d => {
          const member = initTeamMember(d.user_id?.id || d.user_id);
          member.opportunities++;
          if (d.stage_order_nr >= 2) member.connections++;
-         if (d.stage_order_nr >= 4) member.meetingsBooked++;
-         if (d.stage_order_nr >= 6) member.meetingsHeld++;
       });
 
       // Count won deals by owner
@@ -247,12 +303,37 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          const member = initTeamMember(d.user_id?.id || d.user_id);
          member.sales++;
          member.revenue += d.value || 0;
-         member.meetingsHeld++;
-         member.meetingsBooked++;
          member.connections++;
       });
 
-      const allTeamMembers = Array.from(teamMap.values());
+      // Enrich team members with REAL activity data (meetings, no-shows, rescheduled)
+      allActivities.forEach(act => {
+         const userId = act.assigned_to_user_id || act.user_id;
+         if (!userId) return;
+         const member = initTeamMember(userId);
+         const type = act.type || '';
+
+         if (MEETING_TYPES.has(type)) {
+            member.meetingsBooked++;
+            if (act.done) member.meetingsHeld++;
+         }
+         if (type === NO_SHOW_TYPE) {
+            member.noShowCount++;
+            member.meetingsBooked++; // Was booked but didn't happen
+         }
+         if (type === RESCHEDULED_TYPE) {
+            member.rescheduled++;
+         }
+      });
+
+      // Convert to flat format that App.tsx expects (snake_case fields for rawTeamData)
+      const allTeamMembers = Array.from(teamMap.values()).map(m => ({
+         ...m,
+         rep_name: m.name,
+         meetings_booked: m.meetingsBooked,
+         meetings_held: m.meetingsHeld,
+         no_shows: m.noShowCount,
+      }));
 
       const sdrData: RepPerformance[] = allTeamMembers
          .filter(m => m.role === 'SDR')
@@ -260,7 +341,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             id: m.id, name: m.name, role: 'SDR' as const,
             opportunities: m.opportunities, connections: m.connections,
             meetingsBooked: m.meetingsBooked, meetingsHeld: m.meetingsHeld,
-            noShowCount: Math.max(0, m.meetingsBooked - m.meetingsHeld),
+            noShowCount: m.noShowCount,
             sales: m.sales, revenue: m.revenue, responseTime: 0
          }));
 
@@ -270,7 +351,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             id: m.id, name: m.name, role: 'Closer' as const,
             sales: m.sales, revenue: m.revenue,
             meetingsBooked: m.meetingsBooked, meetingsHeld: m.meetingsHeld,
-            noShowCount: Math.max(0, m.meetingsBooked - m.meetingsHeld)
+            noShowCount: m.noShowCount
          }));
 
       // --- 7. Build KPIs ---
@@ -279,7 +360,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const cac = totalSales > 0 ? totalCost / totalSales : 0;
       const roas = totalCost > 0 ? totalRevenue / totalCost : 0;
       const ticket = totalSales > 0 ? totalRevenue / totalSales : 0;
-      const noShowRate = meetingsBooked > 0 ? ((meetingsBooked - meetingsHeld) / meetingsBooked) * 100 : 0;
+      const noShowRate = meetingsBooked > 0 ? (totalNoShows / meetingsBooked) * 100 : 0;
       const convMeetSale = meetingsHeld > 0 ? (totalSales / meetingsHeld) * 100 : 0;
       const convAgendConect = connections > 0 ? (meetingsBooked / connections) * 100 : 0;
       const convRealizAgend = meetingsBooked > 0 ? (meetingsHeld / meetingsBooked) * 100 : 0;
@@ -305,6 +386,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          opportunities: { id: 'opportunities', label: 'Oportunidades', value: monthOpenDeals.length + totalSales, goal: 500, unit: 'number' },
          marketingSales: { id: 'marketingSales', label: 'Vendas MKT', value: totalSales, goal: 20, unit: 'number' },
          marketingRevenue: { id: 'marketingRevenue', label: 'Faturamento MKT', value: totalRevenue, goal: 600000, unit: 'currency' },
+         noShows: { id: 'noShows', label: 'No-Shows', value: totalNoShows, goal: 20, unit: 'number' },
+         rescheduled: { id: 'rescheduled', label: 'Reagendamentos', value: totalRescheduled, goal: 15, unit: 'number' },
       };
 
       // --- 8. Business day context ---
@@ -331,22 +414,25 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
       // --- 9. Daily trends ---
       const trendsMap = new Map<string, any>();
-      marketingRows.forEach((r: any) => {
-         const dateKey = r.date;
+
+      const ensureTrendDay = (dateKey: string) => {
          if (!trendsMap.has(dateKey)) {
             trendsMap.set(dateKey, {
                date: dateKey, cost: 0, leads: 0, mqls: 0, vendas: 0,
-               faturamento: 0, rm: 0, rr: 0, impressions: 0, clicks: 0
+               faturamento: 0, rm: 0, rr: 0, impressions: 0, clicks: 0,
+               no_shows: 0, rescheduled: 0,
             });
          }
-         const t = trendsMap.get(dateKey);
+         return trendsMap.get(dateKey);
+      };
+
+      marketingRows.forEach((r: any) => {
+         const t = ensureTrendDay(r.date);
          t.cost += safeNumber(r.cost);
          t.leads += safeNumber(r.leads);
          t.mqls += safeNumber(r.mqls);
          t.vendas += safeNumber(r.vendas);
          t.faturamento += safeNumber(r.faturamento);
-         t.rm += safeNumber(r.rm);
-         t.rr += safeNumber(r.rr);
          t.impressions += safeNumber(r.impressions);
          t.clicks += safeNumber(r.clicks);
       });
@@ -355,15 +441,28 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       monthWonDeals.forEach(d => {
          const dateKey = d.won_time?.substring(0, 10);
          if (!dateKey) return;
-         if (!trendsMap.has(dateKey)) {
-            trendsMap.set(dateKey, {
-               date: dateKey, cost: 0, leads: 0, mqls: 0, vendas: 0,
-               faturamento: 0, rm: 0, rr: 0, impressions: 0, clicks: 0
-            });
-         }
-         const t = trendsMap.get(dateKey);
+         const t = ensureTrendDay(dateKey);
          t.vendas++;
          t.faturamento += d.value || 0;
+      });
+
+      // Enrich trends with Pipedrive activities by date (meetings, no-shows, rescheduled)
+      allActivities.forEach(act => {
+         const dateKey = act.due_date;
+         if (!dateKey) return;
+         const t = ensureTrendDay(dateKey);
+         const type = act.type || '';
+         if (MEETING_TYPES.has(type)) {
+            t.rm++; // meetings booked
+            if (act.done) t.rr++; // meetings held (done)
+         }
+         if (type === NO_SHOW_TYPE) {
+            t.rm++; // was booked
+            t.no_shows++;
+         }
+         if (type === RESCHEDULED_TYPE) {
+            t.rescheduled++;
+         }
       });
 
       const dailyTrends = Array.from(trendsMap.values())
@@ -377,6 +476,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             revenue: row.faturamento, sales: row.vendas,
             connections: 0, opportunities: 0,
             meetings_booked: row.rm, meetings_held: row.rr,
+            no_shows: row.no_shows, rescheduled: row.rescheduled,
             impressions: row.impressions, clicks: row.clicks,
             inbound: 0, outbound: 0
          }));

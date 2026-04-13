@@ -556,10 +556,14 @@ const App: React.FC = () => {
       unit: "percentage"
     };
 
-    // Calculate No-Show Rate globally (Meetings Booked - Meetings Held)
+    // Calculate No-Show Rate from real Pipedrive activity data
     const totalBooked = sum(filteredTrends, 'meetings_booked') || sum(filteredSDRs, 'meetingsBooked') || 0;
     const totalHeld = sum(filteredTrends, 'meetings_held') || sum(filteredClosers, 'meetingsHeld') || 0;
-    safeKpi('noShowRate', 'Taxa de No-Show', 'percentage').value = totalBooked > 0 ? (Math.max(0, totalBooked - totalHeld) / totalBooked) * 100 : 0;
+    const totalNoShows = sum(filteredTrends, 'no_shows') || sum(filteredSDRs, 'noShowCount') || 0;
+    const totalRescheduled = sum(filteredTrends, 'rescheduled') || 0;
+    safeKpi('noShowRate', 'Taxa de No-Show', 'percentage').value = totalBooked > 0 ? (totalNoShows / totalBooked) * 100 : 0;
+    safeKpi('noShows', 'No-Shows', 'number').value = totalNoShows;
+    safeKpi('rescheduled', 'Reagendamentos', 'number').value = totalRescheduled;
     safeKpi('conversionMeetingSale', 'Conversão (Agendado -> Venda)', 'percentage').value = totalHeld > 0 ? (newKPIs.sales.value / totalHeld) * 100 : 0;
     safeKpi('responseTime', 'Tempo de Resposta', 'time').value = avg(filteredSDRs, 'responseTime');
 
@@ -645,6 +649,8 @@ const App: React.FC = () => {
     ensureKPI('meetingsHeld', 'Reuniões Realizadas', 'number', 85);
     ensureKPI('salesInbound', 'Vendas Inbound', 'number', 15);
     ensureKPI('salesOutbound', 'Vendas Outbound', 'number', 5);
+    ensureKPI('noShows', 'No-Shows', 'number', 20);
+    ensureKPI('rescheduled', 'Reagendamentos', 'number', 15);
 
     return newKPIs;
   }, [data.kpis, filters, filteredTrends, filteredSDRs, filteredClosers, filteredChannels, filteredProducts]);
@@ -1215,6 +1221,8 @@ const App: React.FC = () => {
           {activeKPIs.opportunities && <MetricCard metric={activeKPIs.opportunities} context={data.context} />}
           {activeKPIs.connections && <MetricCard metric={activeKPIs.connections} context={data.context} />}
           {activeKPIs.meetingsBooked && <MetricCard metric={activeKPIs.meetingsBooked} context={data.context} />}
+          {activeKPIs.noShows && <MetricCard metric={activeKPIs.noShows} context={data.context} inverse showPace={false} />}
+          {activeKPIs.rescheduled && <MetricCard metric={activeKPIs.rescheduled} context={data.context} showPace={false} />}
           {activeKPIs.sales && <MetricCard metric={activeKPIs.sales} context={data.context} />}
           {activeKPIs.revenue && <MetricCard metric={activeKPIs.revenue} context={data.context} />}
           {activeKPIs.responseTime && <MetricCard metric={activeKPIs.responseTime} context={data.context} inverse showPace={false} customComparison={{ value: 15, label: 'SLA Máximo (min)' }} />}
@@ -1268,8 +1276,10 @@ const App: React.FC = () => {
         <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-emerald-500 pl-2">
           Comercial Macro (Fechamento)
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {activeKPIs.meetingsHeld && <MetricCard metric={activeKPIs.meetingsHeld} context={data.context} />}
+          {activeKPIs.noShows && <MetricCard metric={activeKPIs.noShows} context={data.context} inverse showPace={false} />}
+          {activeKPIs.rescheduled && <MetricCard metric={activeKPIs.rescheduled} context={data.context} showPace={false} />}
           {activeKPIs.sales && <MetricCard metric={activeKPIs.sales} context={data.context} />}
           {activeKPIs.conversionMeetingSale && <MetricCard metric={activeKPIs.conversionMeetingSale} context={data.context} />}
           {activeKPIs.noShowRate && <MetricCard metric={activeKPIs.noShowRate} context={data.context} inverse showPace={false} customComparison={{ value: 20, label: 'Teto Aceitável (%)' }} />}
