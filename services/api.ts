@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChannelStats, MarketingProductStats, FollowUpDeal } from '../types';
+import { fetchAllMetaData } from './meta';
+import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChannelStats, MarketingProductStats, FollowUpDeal, MetaCampaignData, MetaLeadData, MetaDemographicData } from '../types';
 
 export interface DashboardData {
    kpis: Record<string, MetricData>;
@@ -14,6 +15,9 @@ export interface DashboardData {
    lastUpdated: Date;
    rawTeamData?: any[];
    rawDeals: FollowUpDeal[];
+   metaCampaigns: MetaCampaignData[];
+   metaLeads: MetaLeadData[];
+   metaDemographics: MetaDemographicData;
 }
 
 // --- Pipedrive Config ---
@@ -155,7 +159,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
    const emptyData: DashboardData = {
       kpis: {}, dailyTrends: [], rawMarketingData: [], sdrData: [], closerData: [],
       channels: [], products: [], context: { currentDay: 1, totalDays: 30 },
-      funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: []
+      funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: [],
+      metaCampaigns: [], metaLeads: [], metaDemographics: { ageGender: [], regions: [] }
    };
 
    try {
@@ -231,7 +236,46 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          supabaseQualificacoes = qualsRes.data || [];
       }
 
-      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open | Activities: ${allActivities.length} | Leads: ${supabaseLeads.length} | Qualificações: ${supabaseQualificacoes.length}`);
+      // --- 2d. Fetch Meta Ads data directly from API ---
+      let metaData = { campaigns: [] as MetaCampaignData[], insights: [] as any[], leads: [] as MetaLeadData[], demographics: { ageGender: [], regions: [] } as MetaDemographicData };
+      try {
+         metaData = await fetchAllMetaData(dataFirstOfMonth, dataLastOfMonth);
+         console.log(`Meta API: ${metaData.campaigns.length} campaigns, ${metaData.leads.length} leads, ${metaData.insights.length} daily insights`);
+      } catch (e) {
+         console.warn('Meta API fetch failed, continuing with Supabase marketing data only');
+      }
+
+      // Enrich Meta leads with Supabase pipeline status
+      if (metaData.leads.length > 0 && supabaseQualificacoes.length > 0) {
+         metaData.leads = metaData.leads.map(lead => {
+            const phone = lead.phone.replace(/\D/g, '');
+            const match = supabaseQualificacoes.find((q: any) => {
+               const qPhone = (q.Telefone || q.telefone || '').replace(/\D/g, '');
+               return qPhone && phone && qPhone.endsWith(phone.slice(-8));
+            });
+            return {
+               ...lead,
+               pipelineStatus: match ? (match['Qualificação'] || '') : '',
+            };
+         });
+      }
+
+      // Use Meta API insights to supplement Supabase marketing data if available
+      if (metaData.insights.length > 0 && marketingRows.length === 0) {
+         marketingRows = metaData.insights.map((row: any) => ({
+            date: row.date,
+            campaign_name: 'Meta Ads',
+            cost: row.spend,
+            impressions: row.impressions,
+            clicks: row.clicks,
+            leads: row.leads,
+            mqls: 0,
+            vendas: 0,
+            faturamento: 0,
+         }));
+      }
+
+      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open | Activities: ${allActivities.length} | Leads: ${supabaseLeads.length} | Qualificações: ${supabaseQualificacoes.length} | Meta Campaigns: ${metaData.campaigns.length}`);
 
       // --- 3. Filter Pipedrive deals by data month ---
       const monthPrefix = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}`;
@@ -645,7 +689,10 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       return {
          kpis, dailyTrends, rawMarketingData, sdrData, closerData,
          channels, products, context, funnelData,
-         lastUpdated: new Date(), rawTeamData: allTeamMembers, rawDeals
+         lastUpdated: new Date(), rawTeamData: allTeamMembers, rawDeals,
+         metaCampaigns: metaData.campaigns,
+         metaLeads: metaData.leads,
+         metaDemographics: metaData.demographics,
       };
 
    } catch (error) {

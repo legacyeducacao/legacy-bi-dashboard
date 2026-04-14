@@ -88,6 +88,61 @@ export interface MarketingCampaignStats {
   cpc: number;
 }
 
+// Meta Ads Campaign Data
+export interface MetaCampaignData {
+  campaignId: string;
+  campaignName: string;
+  objective: string;
+  status: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  reach: number;
+  frequency: number;
+  leads: number;
+  ctr: number;
+  cpc: number;
+  cpm: number;
+}
+
+// Meta Lead Ads - individual lead from form
+export interface MetaLeadData {
+  id: string;
+  createdTime: string;
+  formName: string;
+  campaignName: string;
+  campaignId: string;
+  adName: string;
+  platform: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  customFields: Record<string, string>;
+  pipelineStatus: string; // Enriched from Supabase qualification data
+}
+
+// Meta Demographics breakdown
+export interface MetaDemographicData {
+  ageGender: {
+    age: string;
+    gender: string;
+    spend: number;
+    impressions: number;
+    clicks: number;
+    reach: number;
+    leads: number;
+  }[];
+  regions: {
+    region: string;
+    spend: number;
+    impressions: number;
+    clicks: number;
+    reach: number;
+    leads: number;
+  }[];
+}
+
 // Marketing Micro Data - Products
 export interface MarketingProductStats {
   product: string;
