@@ -393,21 +393,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
       // --- 4d. Build meetings, no-shows, reagendamentos lists ---
       const isSessionSubject = (subject: string) => /sess[aã]o/i.test(subject) || /fechamento/i.test(subject) || /impuls[aã]o/i.test(subject);
-      const isRolePlay = (subject: string) => /roleplay|role.?play|daily|kickoff|alinhamento|forecast|pipeline review|treinamento|coaching|1:1|integra/i.test(subject);
+      const isRolePlay = (subject: string) => /roleplay|role.?play|daily|kickoff|alinhamento|forecast|pipeline review|treinamento|coaching|1:1|integra|reunião jci|reunião de alinhamento/i.test(subject);
 
-      const meetingsList: { subject: string; type: string; userName: string; role: string; date: string; time: string; dealId: string | null; personId: string | null }[] = [];
-      const noShowsList: { subject: string; userName: string; role: string; date: string; time: string }[] = [];
-      const reagendamentosList: { subject: string; userName: string; role: string; date: string; time: string; dealId: string | null }[] = [];
-
-      // No-Shows from Atividade Alterada (type=no_show) — deduplicate by subject+date
-      const noShowSeen = new Set<string>();
+      // --- No-Shows: deduplicate by Subject (one no-show per session name) ---
+      const noShowsBySubject = new Map<string, { subject: string; userName: string; role: string; date: string; time: string }>();
       activitiesUpdated.forEach(act => {
          if (isNoShow(act.type)) {
             const info = getUserInfo(act.user_id);
-            const key = `${act.Subject}|${act.created_at?.substring(0, 10)}`;
-            if (!noShowSeen.has(key)) {
-               noShowSeen.add(key);
-               noShowsList.push({
+            if (!noShowsBySubject.has(act.Subject)) {
+               noShowsBySubject.set(act.Subject, {
                   subject: act.Subject,
                   userName: info.name,
                   role: info.role,
@@ -417,76 +411,64 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             }
          }
       });
+      const noShowsList = Array.from(noShowsBySubject.values());
 
-      // Meetings from Atividade Alterada — only Sessões Estratégicas, exclude RolePlays
+      // --- Meetings: deduplicate by Subject (one entry per session name) ---
+      const meetingsBySubject = new Map<string, { subject: string; type: string; userName: string; role: string; date: string; time: string; dealId: string | null; personId: string | null }>();
       activitiesUpdated.forEach(act => {
-         if (isMeetingSubject(act.Subject, act.type) && isSessionSubject(act.Subject) && !isRolePlay(act.Subject)) {
+         if (isMeetingSubject(act.Subject, act.type) && isSessionSubject(act.Subject) && !isRolePlay(act.Subject) && !isNoShow(act.type)) {
             const info = getUserInfo(act.user_id);
-            meetingsList.push({
-               subject: act.Subject,
-               type: act.type,
-               userName: info.name,
-               role: info.role,
-               date: act.created_at?.substring(0, 10) || '',
-               time: act.created_at?.substring(11, 16) || '',
-               dealId: act.deal_id,
-               personId: act.person_id,
-            });
+            if (!meetingsBySubject.has(act.Subject)) {
+               meetingsBySubject.set(act.Subject, {
+                  subject: act.Subject,
+                  type: act.type,
+                  userName: info.name,
+                  role: info.role,
+                  date: act.created_at?.substring(0, 10) || '',
+                  time: act.created_at?.substring(11, 16) || '',
+                  dealId: act.deal_id,
+                  personId: act.person_id,
+               });
+            }
          }
       });
+      const meetingsList = Array.from(meetingsBySubject.values());
 
-      // Reagendamentos from atividade_criada + Atividade Alterada
+      // --- Reagendamentos: deduplicate by subject ---
+      const reagendBySubject = new Map<string, { subject: string; userName: string; role: string; date: string; time: string; dealId: string | null }>();
+      const addReagend = (subject: string, userId: string, date: string, dealId: string | null) => {
+         const info = getUserInfo(userId);
+         if (!reagendBySubject.has(subject + '|' + date.substring(0, 10))) {
+            reagendBySubject.set(subject + '|' + date.substring(0, 10), {
+               subject, userName: info.name, role: info.role,
+               date: date.substring(0, 10), time: date.substring(11, 16), dealId,
+            });
+         }
+      };
       activitiesCreated.forEach(act => {
-         if (isSchedulingAttempt(act.subject)) {
-            const info = getUserInfo(act.user_id);
-            reagendamentosList.push({
-               subject: act.subject,
-               userName: info.name,
-               role: info.role,
-               date: act.created_at?.substring(0, 10) || '',
-               time: act.created_at?.substring(11, 16) || '',
-               dealId: null,
-            });
-         }
+         if (isSchedulingAttempt(act.subject)) addReagend(act.subject, act.user_id, act.created_at || '', null);
       });
       activitiesUpdated.forEach(act => {
-         if (isSchedulingAttempt(act.Subject)) {
-            const info = getUserInfo(act.user_id);
-            reagendamentosList.push({
-               subject: act.Subject,
-               userName: info.name,
-               role: info.role,
-               date: act.created_at?.substring(0, 10) || '',
-               time: act.created_at?.substring(11, 16) || '',
-               dealId: act.deal_id,
-            });
-         }
+         if (isSchedulingAttempt(act.Subject)) addReagend(act.Subject, act.user_id, act.created_at || '', act.deal_id);
       });
+      const reagendamentosList = Array.from(reagendBySubject.values());
 
-      // --- 5. Aggregate activity counts ---
-      let meetingsBooked = 0, meetingsHeld = 0, totalRescheduled = 0;
+      // --- 5. Aggregate counts (deduplicated) ---
+      const meetingsHeld = meetingsList.length;
+      const totalNoShows = noShowsList.length;
+      const totalRescheduled = reagendamentosList.length;
 
-      // Reuniões Agendadas = SDR cria tarefa de Sessão Estratégica (exclude roleplays)
+      // Reuniões Agendadas = SDR cria sessão (dedup by subject)
+      const bookedBySubject = new Set<string>();
       activitiesCreated.forEach(act => {
          if (isMeetingSubject(act.subject, act.type) && isSessionSubject(act.subject) && !isRolePlay(act.subject)) {
             const userInfo = getUserInfo(act.user_id);
-            if (userInfo.role === 'SDR') meetingsBooked++;
-         }
-         if (isSchedulingAttempt(act.subject)) totalRescheduled++;
-      });
-
-      // Reuniões Realizadas = only Sessões Estratégicas confirmed, exclude roleplays and João
-      activitiesUpdated.forEach(act => {
-         if (act.user_id === EXCLUDE_FROM_MEETINGS_HELD) return;
-         if (isMeetingSubject(act.Subject, act.type) && isSessionSubject(act.Subject) && !isRolePlay(act.Subject)) {
-            meetingsHeld++;
+            if (userInfo.role === 'SDR' && !bookedBySubject.has(act.subject)) {
+               bookedBySubject.add(act.subject);
+            }
          }
       });
-
-      // No-Shows = deduplicated count
-      const totalNoShows = noShowsList.length;
-
-      // Taxa No-Show = No-Shows / (Reuniões Realizadas + No-Shows)
+      const meetingsBooked = bookedBySubject.size;
 
       // --- 6. Build team data from CRM ---
       const teamMap = new Map<string, any>();
