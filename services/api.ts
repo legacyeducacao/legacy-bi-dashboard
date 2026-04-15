@@ -25,6 +25,8 @@ export interface DashboardData {
    meetingsList: { subject: string; type: string; userName: string; role: string; date: string; time: string; dealId: string | null; personId: string | null }[];
    noShowsList: { subject: string; userName: string; role: string; date: string; time: string }[];
    reagendamentosList: { subject: string; userName: string; role: string; date: string; time: string; dealId: string | null }[];
+   leadsByRegion: { region: string; count: number; states: { state: string; count: number }[] }[];
+   leadsByState: { state: string; ddd: string; count: number; region: string }[];
 }
 
 // --- Config ---
@@ -80,6 +82,34 @@ function classifyPlatform(redeSocial: string, from: string): string {
    if (f === 'outbound') return 'Outbound';
    if (f === 'inbound') return 'Inbound';
    return 'Outros';
+}
+
+// DDD → Region/State mapping
+const DDD_MAP: Record<string, { state: string; region: string }> = {};
+const addDDDs = (ddds: string[], state: string, region: string) => ddds.forEach(d => { DDD_MAP[d] = { state, region }; });
+addDDDs(['68'], 'AC', 'Norte'); addDDDs(['96'], 'AP', 'Norte'); addDDDs(['92','97'], 'AM', 'Norte');
+addDDDs(['95'], 'RR', 'Norte'); addDDDs(['91','93','94'], 'PA', 'Norte'); addDDDs(['69'], 'RO', 'Norte'); addDDDs(['63'], 'TO', 'Norte');
+addDDDs(['82'], 'AL', 'Nordeste'); addDDDs(['71','73','74','75','77'], 'BA', 'Nordeste'); addDDDs(['85','88'], 'CE', 'Nordeste');
+addDDDs(['98','99'], 'MA', 'Nordeste'); addDDDs(['83'], 'PB', 'Nordeste'); addDDDs(['81','87'], 'PE', 'Nordeste');
+addDDDs(['86','89'], 'PI', 'Nordeste'); addDDDs(['84'], 'RN', 'Nordeste'); addDDDs(['79'], 'SE', 'Nordeste');
+addDDDs(['61'], 'DF', 'Centro-Oeste'); addDDDs(['62','64'], 'GO', 'Centro-Oeste'); addDDDs(['65','66'], 'MT', 'Centro-Oeste'); addDDDs(['67'], 'MS', 'Centro-Oeste');
+addDDDs(['27','28'], 'ES', 'Sudeste'); addDDDs(['31','32','33','34','35','37','38'], 'MG', 'Sudeste');
+addDDDs(['21','22','24'], 'RJ', 'Sudeste'); addDDDs(['11','12','13','14','15','16','17','18','19'], 'SP', 'Sudeste');
+addDDDs(['41','42','43','44','45','46'], 'PR', 'Sul'); addDDDs(['47','48','49'], 'SC', 'Sul'); addDDDs(['51','53','54','55'], 'RS', 'Sul');
+
+function extractDDD(phone: string): string | null {
+   if (!phone) return null;
+   const digits = phone.replace(/\D/g, '');
+   // Format: 55DDXXXXXXXXX or DDXXXXXXXXX or (DD)...
+   if (digits.length >= 12 && digits.startsWith('55')) return digits.substring(2, 4);
+   if (digits.length >= 10 && !digits.startsWith('55')) return digits.substring(0, 2);
+   return null;
+}
+
+function getDDDInfo(phone: string): { ddd: string; state: string; region: string } | null {
+   const ddd = extractDDD(phone);
+   if (!ddd || !DDD_MAP[ddd]) return null;
+   return { ddd, ...DDD_MAP[ddd] };
 }
 
 // MQL qualification: Faturamento >= 70k
@@ -190,7 +220,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: [],
       metaCampaigns: [], metaLeads: [], metaDemographics: { ageGender: [], regions: [] },
       leadsByPlatform: [], wonDealsTimeline: [], formLeadsList: [],
-      meetingsList: [], noShowsList: [], reagendamentosList: []
+      meetingsList: [], noShowsList: [], reagendamentosList: [],
+      leadsByRegion: [], leadsByState: []
    };
 
    try {
@@ -340,6 +371,30 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             medium: f.utm_medium || '',
             isMql: isLeadMql(f.Faturamento || '', f.Colaboradores || ''),
          }));
+
+      // --- 4a3. Regional breakdown from phone DDDs ---
+      const regionMap: Record<string, { count: number; states: Record<string, number> }> = {};
+      const stateMap: Record<string, { count: number; region: string; ddds: Set<string> }> = {};
+      const phoneSource = formLeadsList.length > 0 ? formLeadsList.map(l => l.telefone) : personsCreated.map(p => p.Telefone);
+      phoneSource.forEach(phone => {
+         const info = getDDDInfo(phone);
+         if (!info) return;
+         if (!regionMap[info.region]) regionMap[info.region] = { count: 0, states: {} };
+         regionMap[info.region].count++;
+         regionMap[info.region].states[info.state] = (regionMap[info.region].states[info.state] || 0) + 1;
+         if (!stateMap[info.state]) stateMap[info.state] = { count: 0, region: info.region, ddds: new Set() };
+         stateMap[info.state].count++;
+         stateMap[info.state].ddds.add(info.ddd);
+      });
+      const leadsByRegion = Object.entries(regionMap)
+         .map(([region, d]) => ({
+            region, count: d.count,
+            states: Object.entries(d.states).map(([state, count]) => ({ state, count })).sort((a, b) => b.count - a.count)
+         }))
+         .sort((a, b) => b.count - a.count);
+      const leadsByState = Object.entries(stateMap)
+         .map(([state, d]) => ({ state, ddd: [...d.ddds].join(','), count: d.count, region: d.region }))
+         .sort((a, b) => b.count - a.count);
 
       // --- 4b. Compute commercial KPIs from CRM ---
       const totalLeads = (formLeads || []).length || personsCreated.length || dealsCreated.length;
@@ -839,6 +894,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          meetingsList,
          noShowsList,
          reagendamentosList,
+         leadsByRegion,
+         leadsByState,
       };
 
    } catch (error: any) {

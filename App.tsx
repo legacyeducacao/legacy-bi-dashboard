@@ -33,7 +33,8 @@ import {
   Loader2,
   Users,
   Globe,
-  Facebook
+  Facebook,
+  MapPin
 } from 'lucide-react';
 import LogoDark from './imgs/Logo-Dark.svg';
 import LogoLight from './imgs/Logo-Light.svg';
@@ -86,7 +87,7 @@ const App: React.FC = () => {
   const [settingsTab, setSettingsTab] = useState<'general' | 'data' | 'goals'>('general');
 
   // Marketing Micro View Toggle State
-  const [microView, setMicroView] = useState<'meta_campaigns' | 'demographics'>('meta_campaigns');
+  const [microView, setMicroView] = useState<'meta_campaigns' | 'demographics' | 'regioes'>('meta_campaigns');
   const [leadsDrilldown, setLeadsDrilldown] = useState<'ads_mql' | 'ads_lead' | 'org_mql' | 'org_lead' | null>(null);
   const [closerDrilldown, setCloserDrilldown] = useState<'meetings' | 'noshows' | 'reagendamentos' | null>(null);
 
@@ -114,6 +115,8 @@ const App: React.FC = () => {
     meetingsList: [],
     noShowsList: [],
     reagendamentosList: [],
+    leadsByRegion: [],
+    leadsByState: [],
   });
 
   // Filter State
@@ -1294,6 +1297,9 @@ const App: React.FC = () => {
             <button onClick={() => setMicroView('demographics')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${microView === 'demographics' ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
               <Globe className="w-3.5 h-3.5" /> Demográficos
             </button>
+            <button onClick={() => setMicroView('regioes')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${microView === 'regioes' ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+              <MapPin className="w-3.5 h-3.5" /> Regiões (DDD)
+            </button>
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
@@ -1356,6 +1362,52 @@ const App: React.FC = () => {
                 </div>
               ) : microView === 'demographics' ? (
                 <DemographicsChart demographics={data.metaDemographics} isDarkMode={isDark} />
+              ) : microView === 'regioes' ? (
+                <div className="flex flex-col gap-4 overflow-y-auto">
+                  {/* Region summary cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {data.leadsByRegion.map(r => {
+                      const colors: Record<string, string> = { 'Sul': 'text-emerald-500 border-emerald-500/30', 'Sudeste': 'text-blue-500 border-blue-500/30', 'Centro-Oeste': 'text-amber-500 border-amber-500/30', 'Nordeste': 'text-violet-500 border-violet-500/30', 'Norte': 'text-rose-500 border-rose-500/30' };
+                      const color = colors[r.region] || 'text-slate-400 border-slate-500/30';
+                      return (
+                        <div key={r.region} className={`bg-white dark:bg-slate-800/30 rounded-xl p-3 border ${color.split(' ')[1]}`}>
+                          <div className="text-[10px] text-slate-400 uppercase tracking-wider">{r.region}</div>
+                          <div className={`text-2xl font-bold ${color.split(' ')[0]}`}>{r.count}</div>
+                          <div className="text-[10px] text-slate-400">{r.states.map(s => s.state).join(', ')}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* State breakdown table */}
+                  <div className="bg-white dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700/50">
+                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Leads por Estado (DDD)</h4>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                      {data.leadsByState.slice(0, 20).map((s, i) => {
+                        const maxCount = data.leadsByState[0]?.count || 1;
+                        const pct = (s.count / maxCount) * 100;
+                        const regionColors: Record<string, string> = { 'Sul': 'bg-emerald-500', 'Sudeste': 'bg-blue-500', 'Centro-Oeste': 'bg-amber-500', 'Nordeste': 'bg-violet-500', 'Norte': 'bg-rose-500' };
+                        const barColor = regionColors[s.region] || 'bg-slate-500';
+                        return (
+                          <div key={s.state} className="flex items-center gap-3 px-4 py-2 border-b border-slate-100 dark:border-slate-700/20">
+                            <span className="text-xs text-slate-400 w-4 text-right">{i + 1}</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-white w-8">{s.state}</span>
+                            <span className="text-[10px] text-slate-400 w-16">DDD {s.ddd}</span>
+                            <div className="flex-1">
+                              <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                                <div className={`h-2 rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                            <span className="text-xs font-bold text-slate-800 dark:text-white w-8 text-right">{s.count}</span>
+                            <span className={`text-[9px] px-1 py-0.5 rounded ${regionColors[s.region] ? regionColors[s.region] + '/20' : 'bg-slate-500/20'} text-slate-400`}>{s.region}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               ) : null}
             </div>
           </div>
