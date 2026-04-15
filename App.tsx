@@ -88,7 +88,7 @@ const App: React.FC = () => {
   // Marketing Micro View Toggle State
   const [microView, setMicroView] = useState<'meta_campaigns' | 'demographics'>('meta_campaigns');
   const [leadsDrilldown, setLeadsDrilldown] = useState<'ads_mql' | 'ads_lead' | 'org_mql' | 'org_lead' | null>(null);
-  const [closerDrilldown, setCloserDrilldown] = useState<'meetings' | 'noshows' | null>(null);
+  const [closerDrilldown, setCloserDrilldown] = useState<'meetings' | 'noshows' | 'reagendamentos' | null>(null);
 
   // Data State
   const [isLoading, setIsLoading] = useState(true);
@@ -113,6 +113,7 @@ const App: React.FC = () => {
     formLeadsList: [],
     meetingsList: [],
     noShowsList: [],
+    reagendamentosList: [],
   });
 
   // Filter State
@@ -1467,18 +1468,24 @@ const App: React.FC = () => {
               <MetricCard metric={activeKPIs.noShows} context={data.context} inverse showPace={false} />
             </button>
           )}
-          {activeKPIs.rescheduled && <MetricCard metric={activeKPIs.rescheduled} context={data.context} showPace={false} />}
+          {activeKPIs.rescheduled && (
+            <button onClick={() => setCloserDrilldown(closerDrilldown === 'reagendamentos' ? null : 'reagendamentos')} className="text-left">
+              <MetricCard metric={activeKPIs.rescheduled} context={data.context} showPace={false} />
+            </button>
+          )}
           {activeKPIs.sales && <MetricCard metric={activeKPIs.sales} context={data.context} />}
           {activeKPIs.conversionMeetingSale && <MetricCard metric={activeKPIs.conversionMeetingSale} context={data.context} />}
-          {activeKPIs.noShowRate && <MetricCard metric={activeKPIs.noShowRate} context={data.context} inverse showPace={false} customComparison={{ value: 20, label: 'Teto Aceitável (%)' }} />}
+          {activeKPIs.noShowRate && <MetricCard metric={activeKPIs.noShowRate} context={data.context} inverse showPace={false} customComparison={{ value: 30, label: 'Teto (%)' }} />}
         </div>
 
-        {/* Drill-down: Meetings or No-Shows */}
+        {/* Drill-down: Meetings, No-Shows or Reagendamentos */}
         {closerDrilldown && (
           <div className="bg-white dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50 animate-in fade-in duration-300">
             <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700/50">
               <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                {closerDrilldown === 'meetings' ? `Reuniões Realizadas (${data.meetingsList.length})` : `No-Shows (${data.noShowsList.length})`}
+                {closerDrilldown === 'meetings' && `Sessões Estratégicas Realizadas (${data.meetingsList.length})`}
+                {closerDrilldown === 'noshows' && `No-Shows (${data.noShowsList.length})`}
+                {closerDrilldown === 'reagendamentos' && `Reagendamentos (${data.reagendamentosList.length})`}
               </h4>
               <button onClick={() => setCloserDrilldown(null)} className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-700/50">Fechar</button>
             </div>
@@ -1486,32 +1493,37 @@ const App: React.FC = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left">
-                    <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Reunião</th>
+                    <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Atividade</th>
                     <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Responsável</th>
                     <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Função</th>
-                    <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Data</th>
+                    <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Data / Hora</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700/30">
-                  {closerDrilldown === 'meetings' ? (
-                    data.meetingsList.map((m, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
-                        <td className="px-3 py-2 text-slate-800 dark:text-slate-200 text-xs font-medium">{m.subject}</td>
-                        <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-xs">{m.userName}</td>
-                        <td className="px-3 py-2"><span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${m.role === 'Closer' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>{m.role}</span></td>
-                        <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{m.date ? new Date(m.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    data.noShowsList.map((n, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
-                        <td className="px-3 py-2 text-slate-800 dark:text-slate-200 text-xs font-medium">{n.subject}</td>
-                        <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-xs">{n.userName}</td>
-                        <td className="px-3 py-2"><span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/20 text-red-400">No-Show</span></td>
-                        <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{n.date ? new Date(n.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</td>
-                      </tr>
-                    ))
-                  )}
+                  {closerDrilldown === 'meetings' && data.meetingsList.map((m, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
+                      <td className="px-3 py-2 text-slate-800 dark:text-slate-200 text-xs font-medium">{m.subject}</td>
+                      <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-xs">{m.userName}</td>
+                      <td className="px-3 py-2"><span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${m.role === 'Closer' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>{m.role}</span></td>
+                      <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{m.date ? new Date(m.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'} {m.time}</td>
+                    </tr>
+                  ))}
+                  {closerDrilldown === 'noshows' && data.noShowsList.map((n, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
+                      <td className="px-3 py-2 text-slate-800 dark:text-slate-200 text-xs font-medium">{n.subject}</td>
+                      <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-xs">{n.userName}</td>
+                      <td className="px-3 py-2"><span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${n.role === 'Closer' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>No-Show ({n.role})</span></td>
+                      <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{n.date ? new Date(n.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'} {n.time}</td>
+                    </tr>
+                  ))}
+                  {closerDrilldown === 'reagendamentos' && data.reagendamentosList.map((r, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
+                      <td className="px-3 py-2 text-slate-800 dark:text-slate-200 text-xs font-medium">{r.subject}</td>
+                      <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-xs">{r.userName}</td>
+                      <td className="px-3 py-2"><span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${r.role === 'Closer' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>{r.role}</span></td>
+                      <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'} {r.time}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

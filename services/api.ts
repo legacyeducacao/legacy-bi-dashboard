@@ -22,8 +22,9 @@ export interface DashboardData {
    leadsByPlatform: { platform: string; count: number; origin: string; mqls: number; leads: number }[];
    wonDealsTimeline: { id: string; name: string; valor: number; closer: string; sdr: string; date: string }[];
    formLeadsList: { nome: string; telefone: string; email: string; empresa: string; cargo: string; faturamento: string; colaboradores: string; produto: string; source: string; medium: string; isMql: boolean }[];
-   meetingsList: { subject: string; type: string; userName: string; role: string; date: string; dealId: string | null; personId: string | null }[];
-   noShowsList: { subject: string; userName: string; date: string }[];
+   meetingsList: { subject: string; type: string; userName: string; role: string; date: string; time: string; dealId: string | null; personId: string | null }[];
+   noShowsList: { subject: string; userName: string; role: string; date: string; time: string }[];
+   reagendamentosList: { subject: string; userName: string; role: string; date: string; time: string; dealId: string | null }[];
 }
 
 // --- Config ---
@@ -189,7 +190,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: [],
       metaCampaigns: [], metaLeads: [], metaDemographics: { ageGender: [], regions: [] },
       leadsByPlatform: [], wonDealsTimeline: [], formLeadsList: [],
-      meetingsList: [], noShowsList: []
+      meetingsList: [], noShowsList: [], reagendamentosList: []
    };
 
    try {
@@ -390,57 +391,102 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          };
       }).sort((a, b) => b.date.localeCompare(a.date));
 
-      // --- 4d. Meetings and No-Shows lists ---
-      const meetingsList: { subject: string; type: string; userName: string; role: string; date: string; dealId: string | null; personId: string | null }[] = [];
-      const noShowsList: { subject: string; userName: string; date: string }[] = [];
+      // --- 4d. Build meetings, no-shows, reagendamentos lists ---
+      const isSessionSubject = (subject: string) => /sess[aã]o/i.test(subject) || /fechamento/i.test(subject) || /impuls[aã]o/i.test(subject);
+      const isRolePlay = (subject: string) => /roleplay|role.?play|daily|kickoff|alinhamento|forecast|pipeline review|treinamento|coaching|1:1|integra/i.test(subject);
 
+      const meetingsList: { subject: string; type: string; userName: string; role: string; date: string; time: string; dealId: string | null; personId: string | null }[] = [];
+      const noShowsList: { subject: string; userName: string; role: string; date: string; time: string }[] = [];
+      const reagendamentosList: { subject: string; userName: string; role: string; date: string; time: string; dealId: string | null }[] = [];
+
+      // No-Shows from Atividade Alterada (type=no_show) — deduplicate by subject+date
+      const noShowSeen = new Set<string>();
       activitiesUpdated.forEach(act => {
-         const info = getUserInfo(act.user_id);
-         if (isMeetingSubject(act.Subject, act.type)) {
+         if (isNoShow(act.type)) {
+            const info = getUserInfo(act.user_id);
+            const key = `${act.Subject}|${act.created_at?.substring(0, 10)}`;
+            if (!noShowSeen.has(key)) {
+               noShowSeen.add(key);
+               noShowsList.push({
+                  subject: act.Subject,
+                  userName: info.name,
+                  role: info.role,
+                  date: act.created_at?.substring(0, 10) || '',
+                  time: act.created_at?.substring(11, 16) || '',
+               });
+            }
+         }
+      });
+
+      // Meetings from Atividade Alterada — only Sessões Estratégicas, exclude RolePlays
+      activitiesUpdated.forEach(act => {
+         if (isMeetingSubject(act.Subject, act.type) && isSessionSubject(act.Subject) && !isRolePlay(act.Subject)) {
+            const info = getUserInfo(act.user_id);
             meetingsList.push({
                subject: act.Subject,
                type: act.type,
                userName: info.name,
                role: info.role,
                date: act.created_at?.substring(0, 10) || '',
+               time: act.created_at?.substring(11, 16) || '',
                dealId: act.deal_id,
                personId: act.person_id,
             });
          }
-         if (isNoShow(act.type)) {
-            noShowsList.push({
+      });
+
+      // Reagendamentos from atividade_criada + Atividade Alterada
+      activitiesCreated.forEach(act => {
+         if (isSchedulingAttempt(act.subject)) {
+            const info = getUserInfo(act.user_id);
+            reagendamentosList.push({
+               subject: act.subject,
+               userName: info.name,
+               role: info.role,
+               date: act.created_at?.substring(0, 10) || '',
+               time: act.created_at?.substring(11, 16) || '',
+               dealId: null,
+            });
+         }
+      });
+      activitiesUpdated.forEach(act => {
+         if (isSchedulingAttempt(act.Subject)) {
+            const info = getUserInfo(act.user_id);
+            reagendamentosList.push({
                subject: act.Subject,
                userName: info.name,
+               role: info.role,
                date: act.created_at?.substring(0, 10) || '',
+               time: act.created_at?.substring(11, 16) || '',
+               dealId: act.deal_id,
             });
          }
       });
 
-      // --- 5. Aggregate activities (SDR cria → Closer confirma) ---
-      let meetingsBooked = 0, meetingsHeld = 0, totalNoShows = 0, totalRescheduled = 0;
+      // --- 5. Aggregate activity counts ---
+      let meetingsBooked = 0, meetingsHeld = 0, totalRescheduled = 0;
 
-      // Reuniões Agendadas = SDR cria tarefa de Sessão Estratégica
+      // Reuniões Agendadas = SDR cria tarefa de Sessão Estratégica (exclude roleplays)
       activitiesCreated.forEach(act => {
-         if (isMeetingSubject(act.subject, act.type)) {
+         if (isMeetingSubject(act.subject, act.type) && isSessionSubject(act.subject) && !isRolePlay(act.subject)) {
             const userInfo = getUserInfo(act.user_id);
             if (userInfo.role === 'SDR') meetingsBooked++;
          }
-         if (isNoShow(act.type)) { totalNoShows++; }
          if (isSchedulingAttempt(act.subject)) totalRescheduled++;
       });
 
-      // Reuniões Realizadas = Closer confirma/altera atividade de sessão
-      // Exclui João Vitor Gaspar (operacional)
+      // Reuniões Realizadas = only Sessões Estratégicas confirmed, exclude roleplays and João
       activitiesUpdated.forEach(act => {
          if (act.user_id === EXCLUDE_FROM_MEETINGS_HELD) return;
-         if (isMeetingSubject(act.Subject, act.type)) {
-            const userInfo = getUserInfo(act.user_id);
-            if (userInfo.role === 'Closer') meetingsHeld++;
+         if (isMeetingSubject(act.Subject, act.type) && isSessionSubject(act.Subject) && !isRolePlay(act.Subject)) {
+            meetingsHeld++;
          }
-         if (isNoShow(act.type)) totalNoShows++;
       });
 
-      if (totalNoShows > 0) totalNoShows = Math.ceil(totalNoShows / 2);
+      // No-Shows = deduplicated count
+      const totalNoShows = noShowsList.length;
+
+      // Taxa No-Show = No-Shows / (Reuniões Realizadas + No-Shows)
 
       // --- 6. Build team data from CRM ---
       const teamMap = new Map<string, any>();
@@ -533,7 +579,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const cac = totalSales > 0 ? totalCost / totalSales : 0;
       const roas = totalCost > 0 ? totalRevenue / totalCost : 0;
       const ticket = totalSales > 0 ? totalRevenue / totalSales : 0;
-      const noShowRate = meetingsBooked > 0 ? (totalNoShows / meetingsBooked) * 100 : 0;
+      // Taxa No-Show = No-Shows / (Reuniões Realizadas + No-Shows)
+      const noShowRate = (meetingsHeld + totalNoShows) > 0 ? (totalNoShows / (meetingsHeld + totalNoShows)) * 100 : 0;
       const convMeetSale = meetingsHeld > 0 ? (totalSales / meetingsHeld) * 100 : 0;
 
       const kpis: Record<string, MetricData> = {
@@ -773,6 +820,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          formLeadsList,
          meetingsList,
          noShowsList,
+         reagendamentosList,
       };
 
    } catch (error: any) {
