@@ -20,8 +20,10 @@ export interface DashboardData {
    metaLeads: MetaLeadData[];
    metaDemographics: MetaDemographicData;
    leadsByPlatform: { platform: string; count: number; origin: string; mqls: number; leads: number }[];
-   wonDealsTimeline: { id: string; name: string; valor: number; owner: string; date: string }[];
+   wonDealsTimeline: { id: string; name: string; valor: number; closer: string; sdr: string; date: string }[];
    formLeadsList: { nome: string; telefone: string; email: string; empresa: string; cargo: string; faturamento: string; colaboradores: string; produto: string; source: string; medium: string; isMql: boolean }[];
+   meetingsList: { subject: string; type: string; userName: string; role: string; date: string; dealId: string | null; personId: string | null }[];
+   noShowsList: { subject: string; userName: string; date: string }[];
 }
 
 // --- Config ---
@@ -186,7 +188,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       channels: [], products: [], context: { currentDay: 1, totalDays: 30 },
       funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: [],
       metaCampaigns: [], metaLeads: [], metaDemographics: { ageGender: [], regions: [] },
-      leadsByPlatform: [], wonDealsTimeline: [], formLeadsList: []
+      leadsByPlatform: [], wonDealsTimeline: [], formLeadsList: [],
+      meetingsList: [], noShowsList: []
    };
 
    try {
@@ -372,14 +375,46 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          else salesInbound++;
       });
 
-      // --- 4c. Won deals timeline ---
-      const wonDealsTimeline = uniqueWonDeals.map(d => ({
-         id: String(d.id),
-         name: d.Nome || 'Sem título',
-         valor: d.valor || 0,
-         owner: USER_ROLES[d.owner_id]?.name || d.owner_id || 'Desconhecido',
-         date: d.created_at?.substring(0, 10) || '',
-      })).sort((a, b) => b.date.localeCompare(a.date));
+      // --- 4c. Won deals timeline (with SDR who created the deal) ---
+      const wonDealsTimeline = uniqueWonDeals.map(d => {
+         const dealCreated = dealsCreated.find(dc => dc.id === d.id || dc.entidade_id === d.id);
+         const closerName = USER_ROLES[d.owner_id]?.name || d.owner_id || 'Desconhecido';
+         const sdrName = dealCreated ? (USER_ROLES[dealCreated.owner_id]?.name || dealCreated.owner_id || '') : '';
+         return {
+            id: String(d.id),
+            name: d.Nome || 'Sem título',
+            valor: d.valor || 0,
+            closer: closerName,
+            sdr: sdrName !== closerName ? sdrName : '',
+            date: d.created_at?.substring(0, 10) || '',
+         };
+      }).sort((a, b) => b.date.localeCompare(a.date));
+
+      // --- 4d. Meetings and No-Shows lists ---
+      const meetingsList: { subject: string; type: string; userName: string; role: string; date: string; dealId: string | null; personId: string | null }[] = [];
+      const noShowsList: { subject: string; userName: string; date: string }[] = [];
+
+      activitiesUpdated.forEach(act => {
+         const info = getUserInfo(act.user_id);
+         if (isMeetingSubject(act.Subject, act.type)) {
+            meetingsList.push({
+               subject: act.Subject,
+               type: act.type,
+               userName: info.name,
+               role: info.role,
+               date: act.created_at?.substring(0, 10) || '',
+               dealId: act.deal_id,
+               personId: act.person_id,
+            });
+         }
+         if (isNoShow(act.type)) {
+            noShowsList.push({
+               subject: act.Subject,
+               userName: info.name,
+               date: act.created_at?.substring(0, 10) || '',
+            });
+         }
+      });
 
       // --- 5. Aggregate activities (SDR cria → Closer confirma) ---
       let meetingsBooked = 0, meetingsHeld = 0, totalNoShows = 0, totalRescheduled = 0;
@@ -736,6 +771,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          leadsByPlatform,
          wonDealsTimeline,
          formLeadsList,
+         meetingsList,
+         noShowsList,
       };
 
    } catch (error: any) {
