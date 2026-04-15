@@ -79,7 +79,7 @@ async function fetchCampaigns(dateFrom: string, dateTo: string): Promise<any[]> 
     : '';
 
   const fields = [
-    'campaign_name', 'campaign_id', 'objective', 'status',
+    'campaign_name', 'campaign_id', 'objective',
     'spend', 'impressions', 'clicks', 'reach', 'frequency',
     'actions', 'cost_per_action_type', 'ctr', 'cpc', 'cpm',
   ].join(',');
