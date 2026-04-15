@@ -1662,13 +1662,14 @@ const App: React.FC = () => {
               <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Deals Fechados ({data.wonDealsTimeline.length})</h4>
               <div className="space-y-2 max-h-[250px] overflow-y-auto">
                 {data.wonDealsTimeline.map((deal, i) => (
-                  <div key={deal.id + '-' + i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/30">
+                  <div key={deal.id + '-' + i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/30">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-slate-800 dark:text-white truncate">{deal.name}</div>
-                      <div className="text-xs text-slate-400">
-                        <span className="text-emerald-400">{deal.closer}</span>
-                        {deal.sdr && <span> &middot; SDR: <span className="text-blue-400">{deal.sdr}</span></span>}
-                        {' '}&middot; {deal.date ? new Date(deal.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium">Closer: {deal.closer}</span>
+                        {deal.sdr && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-medium">SDR: {deal.sdr}</span>}
+                        {!deal.sdr && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-500/15 text-slate-400">SDR: não identificado</span>}
+                        <span className="text-[10px] text-slate-500">{deal.date ? new Date(deal.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</span>
                       </div>
                     </div>
                     <div className="text-sm font-bold text-emerald-500 ml-3 whitespace-nowrap">{formatValue(deal.valor, 'currency')}</div>

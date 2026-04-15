@@ -376,17 +376,29 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          else salesInbound++;
       });
 
-      // --- 4c. Won deals timeline (with SDR who created the deal) ---
+      // --- 4c. Won deals timeline (with SDR who qualified the lead) ---
+      // Build a map: person_id → first SDR activity (excluding João 25909798 and Closers)
+      const sdrIds = new Set(Object.entries(USER_ROLES).filter(([_, v]) => v.role === 'SDR' && v.name !== 'João Vitor Gaspar').map(([k]) => k));
+      const firstSdrByPerson = new Map<string, string>();
+      // Sort activitiesUpdated by date asc to find the FIRST SDR
+      const sortedActivities = [...activitiesUpdated].sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+      sortedActivities.forEach(act => {
+         if (act.person_id && sdrIds.has(act.user_id) && !firstSdrByPerson.has(act.person_id)) {
+            firstSdrByPerson.set(act.person_id, act.user_id);
+         }
+      });
+
       const wonDealsTimeline = uniqueWonDeals.map(d => {
-         const dealCreated = dealsCreated.find(dc => dc.id === d.id || dc.entidade_id === d.id);
          const closerName = USER_ROLES[d.owner_id]?.name || d.owner_id || 'Desconhecido';
-         const sdrName = dealCreated ? (USER_ROLES[dealCreated.owner_id]?.name || dealCreated.owner_id || '') : '';
+         // Find SDR who first qualified this lead via person_id
+         const sdrId = d.person_id ? firstSdrByPerson.get(d.person_id) : null;
+         const sdrName = sdrId ? (USER_ROLES[sdrId]?.name || '') : '';
          return {
             id: String(d.id),
             name: d.Nome || 'Sem título',
             valor: d.valor || 0,
             closer: closerName,
-            sdr: sdrName !== closerName ? sdrName : '',
+            sdr: sdrName,
             date: d.created_at?.substring(0, 10) || '',
          };
       }).sort((a, b) => b.date.localeCompare(a.date));
