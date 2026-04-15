@@ -87,8 +87,7 @@ const App: React.FC = () => {
 
   // Marketing Micro View Toggle State
   const [microView, setMicroView] = useState<'meta_campaigns' | 'demographics'>('meta_campaigns');
-  const [platformDrilldown, setPlatformDrilldown] = useState<string | null>(null);
-  const [leadsDrilldown, setLeadsDrilldown] = useState<'mql' | 'lead' | null>(null);
+  const [leadsDrilldown, setLeadsDrilldown] = useState<'ads_mql' | 'ads_lead' | 'org_mql' | 'org_lead' | null>(null);
 
   // Data State
   const [isLoading, setIsLoading] = useState(true);
@@ -846,128 +845,145 @@ const App: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Funil Comercial</h4>
           </div>
 
-          {/* Origem dos Leads - Clickable Cards */}
-          {activeKPIs.leadsAds && activeKPIs.leadsOrganic && (
-            <div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
-                <button onClick={() => setPlatformDrilldown(platformDrilldown === 'Ads' ? null : 'Ads')}
-                  className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${platformDrilldown === 'Ads' ? 'border-blue-500 ring-1 ring-blue-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-blue-400'}`}>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Ads</div>
-                  <div className="text-xl font-bold text-blue-500">{activeKPIs.leadsAds.value}</div>
-                  <div className="text-[10px] text-blue-400 mt-0.5">Clique para detalhar</div>
-                </button>
-                <button onClick={() => setPlatformDrilldown(platformDrilldown === 'Orgânico' ? null : 'Orgânico')}
-                  className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${platformDrilldown === 'Orgânico' ? 'border-emerald-500 ring-1 ring-emerald-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-emerald-400'}`}>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Orgânico</div>
-                  <div className="text-xl font-bold text-emerald-500">{activeKPIs.leadsOrganic.value}</div>
-                  <div className="text-[10px] text-emerald-400 mt-0.5">Clique para detalhar</div>
-                </button>
-                {activeKPIs.mqls && (
-                  <div className="flex flex-col gap-1">
-                    <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'mql' ? null : 'mql')}
-                      className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${leadsDrilldown === 'mql' ? 'border-violet-500 ring-1 ring-violet-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-violet-400'}`}>
-                      <div className="text-[10px] text-slate-400 uppercase tracking-wider">MQL (Fat. 70k+)</div>
-                      <div className="text-xl font-bold text-violet-500">{activeKPIs.mqls.value}</div>
-                      <div className="text-[10px] text-violet-400">Clique para ver</div>
-                    </button>
-                    <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'lead' ? null : 'lead')}
-                      className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${leadsDrilldown === 'lead' ? 'border-amber-500 ring-1 ring-amber-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-amber-400'}`}>
-                      <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads (&lt;70k)</div>
-                      <div className="text-xl font-bold text-amber-500">{data.formLeadsList.filter(l => !l.isMql).length}</div>
-                      <div className="text-[10px] text-amber-400">Clique para ver</div>
-                    </button>
+          {/* Origem: Ads vs Orgânico - Side by side with MQL/Lead breakdown */}
+          {(() => {
+            const adsLeads = data.formLeadsList.filter(l => ['facebook','ig','source'].includes(l.source.toLowerCase()));
+            const orgLeads = data.formLeadsList.filter(l => ['organico','direto'].includes(l.source.toLowerCase()) || (!['facebook','ig','source'].includes(l.source.toLowerCase())));
+            const adsMql = adsLeads.filter(l => l.isMql).length;
+            const adsLead = adsLeads.filter(l => !l.isMql).length;
+            const orgMql = orgLeads.filter(l => l.isMql).length;
+            const orgLead = orgLeads.filter(l => !l.isMql).length;
+            const adsPlatforms = data.leadsByPlatform.filter(p => p.origin === 'Ads');
+            const orgPlatforms = data.leadsByPlatform.filter(p => p.origin !== 'Ads');
+            return (
+              <div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
+                  {/* ADS Column */}
+                  <div className="bg-white dark:bg-slate-800/30 rounded-xl border border-blue-500/20 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-[10px] text-blue-400 uppercase tracking-wider font-bold">Ads (Meta/Google)</div>
+                        <div className="text-2xl font-bold text-blue-500">{adsLeads.length} <span className="text-sm text-slate-400 font-normal">leads</span></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'ads_mql' ? null : 'ads_mql')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${leadsDrilldown === 'ads_mql' ? 'bg-violet-500 text-white' : 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 hover:bg-violet-200'}`}>
+                          {adsMql} MQL
+                        </button>
+                        <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'ads_lead' ? null : 'ads_lead')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${leadsDrilldown === 'ads_lead' ? 'bg-amber-500 text-white' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200'}`}>
+                          {adsLead} Lead
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {adsPlatforms.slice(0, 6).map(p => (
+                        <div key={p.platform} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 border border-slate-100 dark:border-slate-700/30">
+                          <div className="text-[9px] text-slate-400 uppercase truncate">{p.platform}</div>
+                          <div className="text-sm font-bold text-slate-800 dark:text-white">{p.count}</div>
+                          <div className="flex gap-1 mt-0.5">
+                            <span className="text-[9px] text-violet-500">{p.mqls} MQL</span>
+                            <span className="text-[9px] text-slate-400">{p.leads} Lead</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ORGÂNICO Column */}
+                  <div className="bg-white dark:bg-slate-800/30 rounded-xl border border-emerald-500/20 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">Orgânico</div>
+                        <div className="text-2xl font-bold text-emerald-500">{orgLeads.length} <span className="text-sm text-slate-400 font-normal">leads</span></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'org_mql' ? null : 'org_mql')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${leadsDrilldown === 'org_mql' ? 'bg-violet-500 text-white' : 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 hover:bg-violet-200'}`}>
+                          {orgMql} MQL
+                        </button>
+                        <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'org_lead' ? null : 'org_lead')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${leadsDrilldown === 'org_lead' ? 'bg-amber-500 text-white' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200'}`}>
+                          {orgLead} Lead
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {orgPlatforms.slice(0, 6).map(p => (
+                        <div key={p.platform} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 border border-slate-100 dark:border-slate-700/30">
+                          <div className="text-[9px] text-slate-400 uppercase truncate">{p.platform}</div>
+                          <div className="text-sm font-bold text-slate-800 dark:text-white">{p.count}</div>
+                          <div className="flex gap-1 mt-0.5">
+                            <span className="text-[9px] text-violet-500">{p.mqls} MQL</span>
+                            <span className="text-[9px] text-slate-400">{p.leads} Lead</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Drill-down: Lead table */}
+                {leadsDrilldown && (
+                  <div className="bg-white dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50 mb-3 animate-in fade-in duration-300">
+                    <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700/50">
+                      <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {leadsDrilldown.startsWith('ads') ? 'Ads' : 'Orgânico'} — {leadsDrilldown.endsWith('mql') ? 'MQL (Fat. 70k+)' : 'Leads (<70k)'}
+                        <span className="ml-2 text-xs text-slate-400">
+                          ({data.formLeadsList.filter(l => {
+                            const isAds = ['facebook','ig','source'].includes(l.source.toLowerCase());
+                            const wantAds = leadsDrilldown.startsWith('ads');
+                            const wantMql = leadsDrilldown.endsWith('mql');
+                            return (wantAds ? isAds : !isAds) && (wantMql ? l.isMql : !l.isMql);
+                          }).length})
+                        </span>
+                      </h4>
+                      <button onClick={() => setLeadsDrilldown(null)} className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-700/50">Fechar</button>
+                    </div>
+                    <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left">
+                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Nome</th>
+                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Empresa</th>
+                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Telefone</th>
+                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">E-mail</th>
+                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Faturamento</th>
+                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Plataforma</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/30">
+                          {data.formLeadsList
+                            .filter(l => {
+                              const isAds = ['facebook','ig','source'].includes(l.source.toLowerCase());
+                              const wantAds = leadsDrilldown.startsWith('ads');
+                              const wantMql = leadsDrilldown.endsWith('mql');
+                              return (wantAds ? isAds : !isAds) && (wantMql ? l.isMql : !l.isMql);
+                            })
+                            .slice(0, 200)
+                            .map((lead, i) => (
+                              <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
+                                <td className="px-3 py-2 text-slate-800 dark:text-slate-200 font-medium text-xs">{lead.nome || '-'}</td>
+                                <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-xs">{lead.empresa || '-'}</td>
+                                <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-xs whitespace-nowrap">{lead.telefone || '-'}</td>
+                                <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs truncate max-w-[180px]">{lead.email || '-'}</td>
+                                <td className="px-3 py-2">
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${lead.isMql ? 'bg-violet-500/20 text-violet-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                    {lead.faturamento || 'N/A'}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-[10px]">{lead.medium || lead.source}</td>
+                              </tr>
+                            ))
+                          }
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
-
-              {/* Drill-down: MQL / Lead list */}
-              {leadsDrilldown && (
-                <div className="bg-white dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50 mb-3 animate-in fade-in duration-300">
-                  <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700/50">
-                    <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {leadsDrilldown === 'mql' ? 'MQL — Público Ideal (Fat. 70k+)' : 'Leads (Fat. < 70k)'}
-                      <span className="ml-2 text-xs text-slate-400">
-                        ({data.formLeadsList.filter(l => leadsDrilldown === 'mql' ? l.isMql : !l.isMql).length})
-                      </span>
-                    </h4>
-                    <button onClick={() => setLeadsDrilldown(null)} className="text-xs text-slate-400 hover:text-slate-600">Fechar</button>
-                  </div>
-                  <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-                    <table className="w-full text-sm border-separate border-spacing-0">
-                      <thead>
-                        <tr>
-                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Nome</th>
-                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Empresa</th>
-                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Telefone</th>
-                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Faturamento</th>
-                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Cargo</th>
-                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Origem</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                        {data.formLeadsList
-                          .filter(l => leadsDrilldown === 'mql' ? l.isMql : !l.isMql)
-                          .slice(0, 200)
-                          .map((lead, i) => (
-                            <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
-                              <td className="px-3 py-2 text-slate-800 dark:text-slate-200 font-medium">{lead.nome}</td>
-                              <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{lead.empresa || '-'}</td>
-                              <td className="px-3 py-2 text-slate-600 dark:text-slate-300 whitespace-nowrap">{lead.telefone || '-'}</td>
-                              <td className="px-3 py-2">
-                                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${lead.isMql ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'}`}>
-                                  {lead.faturamento || 'N/A'}
-                                </span>
-                              </td>
-                              <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{lead.cargo || '-'}</td>
-                              <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{lead.source}/{lead.medium}</td>
-                            </tr>
-                          ))
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Drill-down: Platform breakdown */}
-              {platformDrilldown && (
-                <div className="bg-white dark:bg-slate-800/30 rounded-xl p-4 border border-slate-200 dark:border-slate-700/50 mb-3 animate-in fade-in duration-300">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Detalhamento: Leads {platformDrilldown}
-                    </h4>
-                    <button onClick={() => setPlatformDrilldown(null)} className="text-xs text-slate-400 hover:text-slate-600">Fechar</button>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                    {data.leadsByPlatform
-                      .filter(p => p.origin === platformDrilldown)
-                      .map(p => (
-                        <div key={p.platform} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2.5 border border-slate-100 dark:border-slate-700/30">
-                          <div className="text-[10px] text-slate-400 uppercase tracking-wider truncate">{p.platform}</div>
-                          <div className="text-lg font-bold text-slate-800 dark:text-white">{p.count}</div>
-                          <div className="flex gap-2 mt-1">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 font-medium">
-                              {p.mqls} MQL
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-medium">
-                              {p.leads} Lead
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1 mt-1.5">
-                            <div className={`h-1 rounded-full ${platformDrilldown === 'Ads' ? 'bg-blue-500' : 'bg-emerald-500'}`}
-                              style={{ width: `${Math.min(100, (p.count / (activeKPIs.leads?.value || 1)) * 100)}%` }} />
-                          </div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">
-                            {((p.count / (activeKPIs.leads?.value || 1)) * 100).toFixed(1)}% do total
-                          </div>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+            );
+          })()}
 
           {/* Pipeline Funnel */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
