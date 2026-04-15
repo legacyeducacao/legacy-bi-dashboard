@@ -1433,7 +1433,6 @@ const App: React.FC = () => {
           {activeKPIs.rescheduled && <MetricCard metric={activeKPIs.rescheduled} context={data.context} showPace={false} />}
           {activeKPIs.sales && <MetricCard metric={activeKPIs.sales} context={data.context} />}
           {activeKPIs.revenue && <MetricCard metric={activeKPIs.revenue} context={data.context} />}
-          {activeKPIs.responseTime && <MetricCard metric={activeKPIs.responseTime} context={data.context} inverse showPace={false} customComparison={{ value: 15, label: 'SLA Máximo (min)' }} />}
         </div>
       </div>
 
