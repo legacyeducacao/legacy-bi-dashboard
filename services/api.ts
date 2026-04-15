@@ -228,44 +228,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          });
       }
 
-      // --- 4. Compute commercial KPIs from CRM ---
-      const totalLeads = (formLeads || []).length || personsCreated.length || dealsCreated.length;
-      const totalSales = uniqueWonDeals.length;
-      const totalRevenue = uniqueWonDeals.reduce((sum, d) => sum + (d.valor || 0), 0);
-
-      // SAL = Sales Accepted Leads (Filtro 1+ = stage_order >= 2)
-      const sal = latestOpenDeals.filter(d => (STAGE_ORDER[d.stage_id] || 0) >= 2).length + totalSales;
-      // SQL = Sales Qualified Leads (Filtro 2+ = stage_order >= 3)
-      const sql = latestOpenDeals.filter(d => (STAGE_ORDER[d.stage_id] || 0) >= 3).length + totalSales;
-      // Connections = deals past Oportunidades
-      const connections = sal;
-
-      // MQL qualificado = Fat. >= 70k (from formularios_anuncios if available, else Person Criada)
-      const mqlQualified = (formLeads || []).length > 0
-         ? formMqls
-         : personsCreated.filter(p => isFaturamento70kPlus(p.Faturamento)).length;
-
-      // Origin classification (Ads vs Orgânico)
-      // Use formLeads counts if available, otherwise fallback to personsCreated
-      let leadsAds = formLeadsAds, leadsOrganic = formLeadsOrganic, leadsOutbound = 0;
-      let salesInbound = 0, salesOutbound = 0;
-      if ((formLeads || []).length === 0) {
-         leadsAds = 0; leadsOrganic = 0;
-         personsCreated.forEach(p => {
-            const origin = classifyOrigin(p.From);
-            if (origin === 'Ads') leadsAds++;
-            else if (origin === 'Outbound') leadsOutbound++;
-            else leadsOrganic++;
-         });
-      }
-      uniqueWonDeals.forEach(d => {
-         const person = personsCreated.find(p => p.entidade_id === d.person_id);
-         const origin = classifyOrigin(person?.From || '');
-         if (origin === 'Outbound') salesOutbound++;
-         else salesInbound++;
-      });
-
-      // --- 4b. Platform breakdown (from formularios_anuncios + Person Criada) ---
+      // --- 4. Platform breakdown + lead classification (MUST come first) ---
       const platformMap = new Map<string, { count: number; origin: string; mqls: number; leads: number }>();
       const addToPlatform = (platform: string, origin: string, isMql: boolean) => {
          const existing = platformMap.get(platform);
@@ -277,7 +240,6 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          }
       };
 
-      // Use formularios_anuncios as primary source for UTM-based classification
       let formLeadsOrganic = 0, formLeadsAds = 0, formMqls = 0;
       (formLeads || []).forEach((f: any) => {
          const src = (f.utm_source || '').toLowerCase();
@@ -319,7 +281,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          addToPlatform(platform, origin, isMql);
       });
 
-      // Fallback: also count Person Criada if formLeads is empty
+      // Fallback: count Person Criada if formLeads is empty
       if ((formLeads || []).length === 0) {
          personsCreated.forEach(p => {
             const platform = classifyPlatform(p['Rede Social'] as any || '', p.From);
@@ -332,6 +294,41 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const leadsByPlatform = Array.from(platformMap.entries())
          .map(([platform, d]) => ({ platform, count: d.count, origin: d.origin, mqls: d.mqls, leads: d.leads }))
          .sort((a, b) => b.count - a.count);
+
+      // --- 4b. Compute commercial KPIs from CRM ---
+      const totalLeads = (formLeads || []).length || personsCreated.length || dealsCreated.length;
+      const totalSales = uniqueWonDeals.length;
+      const totalRevenue = uniqueWonDeals.reduce((sum, d) => sum + (d.valor || 0), 0);
+
+      // SAL = Sales Accepted Leads (Filtro 1+ = stage_order >= 2)
+      const sal = latestOpenDeals.filter(d => (STAGE_ORDER[d.stage_id] || 0) >= 2).length + totalSales;
+      // SQL = Sales Qualified Leads (Filtro 2+ = stage_order >= 3)
+      const sql = latestOpenDeals.filter(d => (STAGE_ORDER[d.stage_id] || 0) >= 3).length + totalSales;
+      const connections = sal;
+
+      // MQL qualificado = Fat. >= 70k
+      const mqlQualified = (formLeads || []).length > 0
+         ? formMqls
+         : personsCreated.filter(p => isFaturamento70kPlus(p.Faturamento)).length;
+
+      // Origin: Ads vs Orgânico
+      let leadsAds = formLeadsAds, leadsOrganic = formLeadsOrganic, leadsOutbound = 0;
+      let salesInbound = 0, salesOutbound = 0;
+      if ((formLeads || []).length === 0) {
+         leadsAds = 0; leadsOrganic = 0;
+         personsCreated.forEach(p => {
+            const origin = classifyOrigin(p.From);
+            if (origin === 'Ads') leadsAds++;
+            else if (origin === 'Outbound') leadsOutbound++;
+            else leadsOrganic++;
+         });
+      }
+      uniqueWonDeals.forEach(d => {
+         const person = personsCreated.find(p => p.entidade_id === d.person_id);
+         const origin = classifyOrigin(person?.From || '');
+         if (origin === 'Outbound') salesOutbound++;
+         else salesInbound++;
+      });
 
       // --- 4c. Won deals timeline ---
       const wonDealsTimeline = uniqueWonDeals.map(d => ({
