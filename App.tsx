@@ -603,6 +603,10 @@ const App: React.FC = () => {
       }
     }
 
+    // Meta Ads total spend (from API campaigns)
+    const metaAdsSpend = data.metaCampaigns.reduce((s, c) => s + c.spend, 0);
+    newKPIs.metaAdsSpend = { id: 'metaAdsSpend', label: 'Gasto Meta Ads', value: metaAdsSpend, goal: 0, unit: 'currency' };
+
     // Apply Channel/Product Filter to KPIs (Marketing View)
     if (filters.channel !== 'all' || filters.product !== 'all') {
       // Decide source: if product filter active, use products, else use channels
@@ -790,7 +794,17 @@ const App: React.FC = () => {
 
         {/* 1. Primary KPIs - Dedicated Row for perfect balance */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 flex-shrink-0 mb-2">
-          {activeKPIs.investment && <MetricCard metric={activeKPIs.investment} context={data.context} inverse />}
+          {activeKPIs.investment && (
+            <div className="relative">
+              <MetricCard metric={activeKPIs.investment} context={data.context} inverse />
+              {activeKPIs.metaAdsSpend && activeKPIs.metaAdsSpend.value > 0 && (
+                <div className="absolute bottom-2 left-4 right-4 flex items-center justify-between bg-blue-500/10 rounded-lg px-2.5 py-1">
+                  <span className="text-[10px] text-blue-400 font-medium">Meta Ads</span>
+                  <span className="text-[10px] text-blue-400 font-bold">{formatValue(activeKPIs.metaAdsSpend.value, 'currency')}</span>
+                </div>
+              )}
+            </div>
+          )}
           {activeKPIs.revenue && <MetricCard metric={activeKPIs.revenue} context={data.context} />}
           {activeKPIs.roas && <MetricCard metric={activeKPIs.roas} context={data.context} />}
           {activeKPIs.leads && <MetricCard metric={activeKPIs.leads} context={data.context} />}
