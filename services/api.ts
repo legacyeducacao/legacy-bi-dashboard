@@ -19,7 +19,7 @@ export interface DashboardData {
    metaCampaigns: MetaCampaignData[];
    metaLeads: MetaLeadData[];
    metaDemographics: MetaDemographicData;
-   leadsByPlatform: { platform: string; count: number; origin: string }[];
+   leadsByPlatform: { platform: string; count: number; origin: string; mqls: number; leads: number }[];
    wonDealsTimeline: { id: string; name: string; valor: number; owner: string; date: string }[];
 }
 
@@ -182,7 +182,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          // CRM data from Supabase (primary source)
          fetchAllCRMData(monthStart, monthEnd).catch(e => {
             console.warn('CRM data fetch failed:', e);
-            return { dealsCreated: [], dealsUpdated: [], wonDeals: [], lostDeals: [], activitiesCreated: [], activitiesUpdated: [], personsCreated: [] };
+            return { dealsCreated: [], dealsUpdated: [], wonDeals: [], lostDeals: [], activitiesCreated: [], activitiesUpdated: [], personsCreated: [], formLeads: [] };
          }),
          // Meta Ads API
          fetchAllMetaData(monthStart, monthEnd).catch(() => ({
@@ -196,7 +196,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       ]);
 
       const marketingRows = (marketingResult as any).data || [];
-      const { dealsCreated, wonDeals: rawWonDeals, lostDeals, activitiesCreated, activitiesUpdated, personsCreated, dealsUpdated } = crmData;
+      const { dealsCreated, wonDeals: rawWonDeals, lostDeals, activitiesCreated, activitiesUpdated, personsCreated, dealsUpdated, formLeads } = crmData;
 
       // Deduplicate deals
       const latestOpenDeals = getLatestDealStates(dealsUpdated.filter(d => d.Status === 'open'));
@@ -229,7 +229,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       }
 
       // --- 4. Compute commercial KPIs from CRM ---
-      const totalLeads = personsCreated.length || dealsCreated.length;
+      const totalLeads = (formLeads || []).length || personsCreated.length || dealsCreated.length;
       const totalSales = uniqueWonDeals.length;
       const totalRevenue = uniqueWonDeals.reduce((sum, d) => sum + (d.valor || 0), 0);
 
@@ -240,18 +240,24 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       // Connections = deals past Oportunidades
       const connections = sal;
 
-      // MQL qualificado = Person com faturamento >= 70k
-      const mqlQualified = personsCreated.filter(p => isFaturamento70kPlus(p.Faturamento)).length;
+      // MQL qualificado = Fat. >= 70k (from formularios_anuncios if available, else Person Criada)
+      const mqlQualified = (formLeads || []).length > 0
+         ? formMqls
+         : personsCreated.filter(p => isFaturamento70kPlus(p.Faturamento)).length;
 
-      // Origin classification (Ads vs Orgânico vs Outbound)
-      let leadsAds = 0, leadsOrganic = 0, leadsOutbound = 0;
+      // Origin classification (Ads vs Orgânico)
+      // Use formLeads counts if available, otherwise fallback to personsCreated
+      let leadsAds = formLeadsAds, leadsOrganic = formLeadsOrganic, leadsOutbound = 0;
       let salesInbound = 0, salesOutbound = 0;
-      personsCreated.forEach(p => {
-         const origin = classifyOrigin(p.From);
-         if (origin === 'Ads') leadsAds++;
-         else if (origin === 'Outbound') leadsOutbound++;
-         else leadsOrganic++;
-      });
+      if ((formLeads || []).length === 0) {
+         leadsAds = 0; leadsOrganic = 0;
+         personsCreated.forEach(p => {
+            const origin = classifyOrigin(p.From);
+            if (origin === 'Ads') leadsAds++;
+            else if (origin === 'Outbound') leadsOutbound++;
+            else leadsOrganic++;
+         });
+      }
       uniqueWonDeals.forEach(d => {
          const person = personsCreated.find(p => p.entidade_id === d.person_id);
          const origin = classifyOrigin(person?.From || '');
@@ -259,17 +265,72 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          else salesInbound++;
       });
 
-      // --- 4b. Platform breakdown ---
-      const platformMap = new Map<string, { count: number; origin: string }>();
-      personsCreated.forEach(p => {
-         const platform = classifyPlatform(p['Rede Social'] as any || '', p.From);
-         const origin = classifyOrigin(p.From);
+      // --- 4b. Platform breakdown (from formularios_anuncios + Person Criada) ---
+      const platformMap = new Map<string, { count: number; origin: string; mqls: number; leads: number }>();
+      const addToPlatform = (platform: string, origin: string, isMql: boolean) => {
          const existing = platformMap.get(platform);
-         if (existing) existing.count++;
-         else platformMap.set(platform, { count: 1, origin });
+         if (existing) {
+            existing.count++;
+            if (isMql) existing.mqls++; else existing.leads++;
+         } else {
+            platformMap.set(platform, { count: 1, origin, mqls: isMql ? 1 : 0, leads: isMql ? 0 : 1 });
+         }
+      };
+
+      // Use formularios_anuncios as primary source for UTM-based classification
+      let formLeadsOrganic = 0, formLeadsAds = 0, formMqls = 0;
+      (formLeads || []).forEach((f: any) => {
+         const src = (f.utm_source || '').toLowerCase();
+         const med = (f.utm_medium || '').toLowerCase();
+         const fat = f.Faturamento || '';
+         const isMql = isFaturamento70kPlus(fat);
+         if (isMql) formMqls++;
+
+         let origin: 'Ads' | 'Orgânico' | 'Outbound';
+         let platform: string;
+
+         if (src === 'organico' || src === 'direto') {
+            origin = 'Orgânico';
+            if (med.includes('reels')) platform = 'Reels';
+            else if (med.includes('stories')) platform = 'Stories';
+            else if (med.includes('instagram') || med === 'ig') platform = 'Instagram';
+            else if (med.includes('tiktok')) platform = 'TikTok';
+            else if (med.includes('youtube')) platform = 'YouTube';
+            else if (med === 'none' || !med) platform = 'Direto';
+            else platform = med;
+            formLeadsOrganic++;
+         } else if (src === 'facebook' || src === 'ig' || src === 'source') {
+            origin = 'Ads';
+            if (med.includes('instagram_reels') || med === 'reels') platform = 'IG Reels (Ads)';
+            else if (med.includes('instagram_stories')) platform = 'IG Stories (Ads)';
+            else if (med.includes('instagram_feed')) platform = 'IG Feed (Ads)';
+            else if (med === 'ig') platform = 'Instagram (Ads)';
+            else if (med === 'fb') platform = 'Facebook (Ads)';
+            else if (med.includes('facebook_mobile_reels')) platform = 'FB Reels (Ads)';
+            else if (med.includes('facebook_stories')) platform = 'FB Stories (Ads)';
+            else platform = 'Meta Ads';
+            formLeadsAds++;
+         } else {
+            origin = 'Ads';
+            platform = src || 'Outros';
+            formLeadsAds++;
+         }
+
+         addToPlatform(platform, origin, isMql);
       });
+
+      // Fallback: also count Person Criada if formLeads is empty
+      if ((formLeads || []).length === 0) {
+         personsCreated.forEach(p => {
+            const platform = classifyPlatform(p['Rede Social'] as any || '', p.From);
+            const origin = classifyOrigin(p.From);
+            const isMql = isFaturamento70kPlus(p.Faturamento);
+            addToPlatform(platform, origin, isMql);
+         });
+      }
+
       const leadsByPlatform = Array.from(platformMap.entries())
-         .map(([platform, data]) => ({ platform, count: data.count, origin: data.origin }))
+         .map(([platform, d]) => ({ platform, count: d.count, origin: d.origin, mqls: d.mqls, leads: d.leads }))
          .sort((a, b) => b.count - a.count);
 
       // --- 4c. Won deals timeline ---

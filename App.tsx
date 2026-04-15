@@ -886,7 +886,15 @@ const App: React.FC = () => {
                         <div key={p.platform} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2.5 border border-slate-100 dark:border-slate-700/30">
                           <div className="text-[10px] text-slate-400 uppercase tracking-wider truncate">{p.platform}</div>
                           <div className="text-lg font-bold text-slate-800 dark:text-white">{p.count}</div>
-                          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1 mt-1">
+                          <div className="flex gap-2 mt-1">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 font-medium">
+                              {p.mqls} MQL
+                            </span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-medium">
+                              {p.leads} Lead
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1 mt-1.5">
                             <div className={`h-1 rounded-full ${platformDrilldown === 'Ads' ? 'bg-blue-500' : 'bg-emerald-500'}`}
                               style={{ width: `${Math.min(100, (p.count / (activeKPIs.leads?.value || 1)) * 100)}%` }} />
                           </div>

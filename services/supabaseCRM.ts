@@ -100,6 +100,16 @@ export async function fetchPersonsCreated(monthStart: string, monthEnd: string):
   });
 }
 
+// --- Formularios Anuncios (leads from forms with UTM data) ---
+export async function fetchFormLeads(): Promise<any[]> {
+  return fetchCRMTable<any>('formularios_anuncios', {
+    select: '*',
+    'Nome': 'not.is.null',
+    order: 'id.desc',
+    limit: '5000',
+  });
+}
+
 // --- Fetch all CRM data in parallel ---
 export async function fetchAllCRMData(monthStart: string, monthEnd: string) {
   const [
@@ -110,6 +120,7 @@ export async function fetchAllCRMData(monthStart: string, monthEnd: string) {
     activitiesCreated,
     activitiesUpdated,
     personsCreated,
+    formLeads,
   ] = await Promise.all([
     fetchDealsCreated(monthStart, monthEnd),
     fetchDealsUpdated(monthStart, monthEnd),
@@ -118,6 +129,7 @@ export async function fetchAllCRMData(monthStart: string, monthEnd: string) {
     fetchActivitiesCreated(monthStart, monthEnd),
     fetchActivitiesUpdated(monthStart, monthEnd),
     fetchPersonsCreated(monthStart, monthEnd),
+    fetchFormLeads(),
   ]);
 
   return {
@@ -128,6 +140,7 @@ export async function fetchAllCRMData(monthStart: string, monthEnd: string) {
     activitiesCreated,
     activitiesUpdated,
     personsCreated,
+    formLeads,
   };
 }
 
