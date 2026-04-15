@@ -73,10 +73,11 @@ export interface CRMPersonCreated {
 // Metric Data Structure
 export interface MetricData {
   id: string;
-  db_id?: string; // Original ID from database for updates
+  db_id?: string;
   label: string;
-  value: number; // Current realized value
-  goal: number;  // Monthly goal
+  description?: string; // Source/meaning tooltip
+  value: number;
+  goal: number;
   unit: 'currency' | 'number' | 'percentage' | 'time';
   prefix?: string;
   suffix?: string;

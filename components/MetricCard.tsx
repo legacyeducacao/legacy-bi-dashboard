@@ -92,7 +92,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
       {/* Header */}
       <div className="flex justify-between items-start mb-1 flex-shrink-0">
-        <h3 className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest truncate mr-2">{metric.label}</h3>
+        <h3 className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest truncate mr-2" title={metric.description || metric.label}>{metric.label}</h3>
         <DisplayIcon className={`w-3 h-3 flex-shrink-0 ${iconColor}`} />
       </div>
 
