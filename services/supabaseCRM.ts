@@ -19,23 +19,28 @@ async function fetchCRMTable<T>(table: string, params: Record<string, string> = 
   return Array.isArray(data) ? data : [];
 }
 
+// PostgREST date range filter using 'and' syntax
+function dateRangeFilter(monthStart: string, monthEnd: string): string {
+  return `(created_at.gte.${monthStart},created_at.lte.${monthEnd}T23:59:59)`;
+}
+
 // --- Deal Criado ---
 export async function fetchDealsCreated(monthStart: string, monthEnd: string): Promise<CRMDealCreated[]> {
   return fetchCRMTable<CRMDealCreated>('Deal Criado', {
     select: '*',
     pipeline_id: 'eq.2',
-    created_at: `gte.${monthStart}`,
-    'created_at': `gte.${monthStart}`,
+    and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
   });
 }
 
-// --- Deal Alterada ---
+// --- Deal Alterada (all updates in month) ---
 export async function fetchDealsUpdated(monthStart: string, monthEnd: string): Promise<CRMDealUpdated[]> {
   return fetchCRMTable<CRMDealUpdated>('Deal Alterada', {
     select: '*',
     pipeline_id: 'eq.2',
+    and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
   });
@@ -47,6 +52,7 @@ export async function fetchWonDeals(monthStart: string, monthEnd: string): Promi
     select: '*',
     Status: 'eq.won',
     pipeline_id: 'eq.2',
+    and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
   });
@@ -58,6 +64,7 @@ export async function fetchLostDeals(monthStart: string, monthEnd: string): Prom
     select: '*',
     Status: 'eq.lost',
     pipeline_id: 'eq.2',
+    and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
   });
@@ -67,6 +74,7 @@ export async function fetchLostDeals(monthStart: string, monthEnd: string): Prom
 export async function fetchActivitiesCreated(monthStart: string, monthEnd: string): Promise<CRMActivityCreated[]> {
   return fetchCRMTable<CRMActivityCreated>('atividade_criada', {
     select: '*',
+    and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
   });
@@ -76,6 +84,7 @@ export async function fetchActivitiesCreated(monthStart: string, monthEnd: strin
 export async function fetchActivitiesUpdated(monthStart: string, monthEnd: string): Promise<CRMActivityUpdated[]> {
   return fetchCRMTable<CRMActivityUpdated>('Atividade Alterada', {
     select: '*',
+    and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
   });
@@ -85,6 +94,7 @@ export async function fetchActivitiesUpdated(monthStart: string, monthEnd: strin
 export async function fetchPersonsCreated(monthStart: string, monthEnd: string): Promise<CRMPersonCreated[]> {
   return fetchCRMTable<CRMPersonCreated>('Person Criada', {
     select: '*',
+    and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
   });
@@ -126,6 +136,7 @@ export async function fetchAllCRMData(monthStart: string, monthEnd: string) {
 // Deduplicate Deal Alterada: keep latest row per deal id
 export function getLatestDealStates(deals: CRMDealUpdated[]): CRMDealUpdated[] {
   const map = new Map<string, CRMDealUpdated>();
+  // deals already sorted desc by created_at, so first occurrence is latest
   for (const d of deals) {
     if (d.id && !map.has(d.id)) {
       map.set(d.id, d);
