@@ -1,4 +1,3 @@
-import { supabase, isSupabaseConfigured } from './supabase';
 import type {
   CRMDealCreated,
   CRMDealUpdated,
@@ -7,108 +6,88 @@ import type {
   CRMPersonCreated,
 } from '../types';
 
-// --- Deal Criado ---
-export async function fetchDealsCreated(monthStart: string, monthEnd: string): Promise<CRMDealCreated[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from('Deal Criado')
-    .select('*')
-    .gte('created_at', monthStart)
-    .lte('created_at', monthEnd + 'T23:59:59')
-    .eq('pipeline_id', '2')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (error) { console.warn('CRM Deal Criado error:', error.message); return []; }
-  return data || [];
+const CRM_PROXY = '/api/supabase-crm';
+
+async function fetchCRMTable<T>(table: string, params: Record<string, string> = {}): Promise<T[]> {
+  const searchParams = new URLSearchParams({ table, ...params });
+  const res = await fetch(`${CRM_PROXY}?${searchParams}`);
+  if (!res.ok) {
+    console.warn(`CRM proxy error (${table}):`, res.status);
+    return [];
+  }
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
-// --- Deal Alterada (latest state per deal) ---
+// --- Deal Criado ---
+export async function fetchDealsCreated(monthStart: string, monthEnd: string): Promise<CRMDealCreated[]> {
+  return fetchCRMTable<CRMDealCreated>('Deal Criado', {
+    select: '*',
+    pipeline_id: 'eq.2',
+    created_at: `gte.${monthStart}`,
+    'created_at': `gte.${monthStart}`,
+    order: 'created_at.desc',
+    limit: '5000',
+  });
+}
+
+// --- Deal Alterada ---
 export async function fetchDealsUpdated(monthStart: string, monthEnd: string): Promise<CRMDealUpdated[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from('Deal Alterada')
-    .select('*')
-    .gte('created_at', monthStart)
-    .lte('created_at', monthEnd + 'T23:59:59')
-    .eq('pipeline_id', '2')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (error) { console.warn('CRM Deal Alterada error:', error.message); return []; }
-  return data || [];
+  return fetchCRMTable<CRMDealUpdated>('Deal Alterada', {
+    select: '*',
+    pipeline_id: 'eq.2',
+    order: 'created_at.desc',
+    limit: '5000',
+  });
 }
 
 // --- Won Deals ---
 export async function fetchWonDeals(monthStart: string, monthEnd: string): Promise<CRMDealUpdated[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from('Deal Alterada')
-    .select('*')
-    .gte('created_at', monthStart)
-    .lte('created_at', monthEnd + 'T23:59:59')
-    .eq('Status', 'won')
-    .eq('pipeline_id', '2')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (error) { console.warn('CRM Won Deals error:', error.message); return []; }
-  return data || [];
+  return fetchCRMTable<CRMDealUpdated>('Deal Alterada', {
+    select: '*',
+    Status: 'eq.won',
+    pipeline_id: 'eq.2',
+    order: 'created_at.desc',
+    limit: '5000',
+  });
 }
 
 // --- Lost Deals ---
 export async function fetchLostDeals(monthStart: string, monthEnd: string): Promise<CRMDealUpdated[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from('Deal Alterada')
-    .select('*')
-    .gte('created_at', monthStart)
-    .lte('created_at', monthEnd + 'T23:59:59')
-    .eq('Status', 'lost')
-    .eq('pipeline_id', '2')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (error) { console.warn('CRM Lost Deals error:', error.message); return []; }
-  return data || [];
+  return fetchCRMTable<CRMDealUpdated>('Deal Alterada', {
+    select: '*',
+    Status: 'eq.lost',
+    pipeline_id: 'eq.2',
+    order: 'created_at.desc',
+    limit: '5000',
+  });
 }
 
 // --- Atividades Criadas ---
 export async function fetchActivitiesCreated(monthStart: string, monthEnd: string): Promise<CRMActivityCreated[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from('atividade_criada')
-    .select('*')
-    .gte('created_at', monthStart)
-    .lte('created_at', monthEnd + 'T23:59:59')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (error) { console.warn('CRM atividade_criada error:', error.message); return []; }
-  return data || [];
+  return fetchCRMTable<CRMActivityCreated>('atividade_criada', {
+    select: '*',
+    order: 'created_at.desc',
+    limit: '5000',
+  });
 }
 
 // --- Atividades Alteradas ---
 export async function fetchActivitiesUpdated(monthStart: string, monthEnd: string): Promise<CRMActivityUpdated[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from('Atividade Alterada')
-    .select('*')
-    .gte('created_at', monthStart)
-    .lte('created_at', monthEnd + 'T23:59:59')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (error) { console.warn('CRM Atividade Alterada error:', error.message); return []; }
-  return data || [];
+  return fetchCRMTable<CRMActivityUpdated>('Atividade Alterada', {
+    select: '*',
+    order: 'created_at.desc',
+    limit: '5000',
+  });
 }
 
 // --- Person Criada ---
 export async function fetchPersonsCreated(monthStart: string, monthEnd: string): Promise<CRMPersonCreated[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from('Person Criada')
-    .select('*')
-    .gte('created_at', monthStart)
-    .lte('created_at', monthEnd + 'T23:59:59')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (error) { console.warn('CRM Person Criada error:', error.message); return []; }
-  return data || [];
+  return fetchCRMTable<CRMPersonCreated>('Person Criada', {
+    select: '*',
+    order: 'created_at.desc',
+    limit: '5000',
+  });
 }
 
 // --- Fetch all CRM data in parallel ---
@@ -147,7 +126,6 @@ export async function fetchAllCRMData(monthStart: string, monthEnd: string) {
 // Deduplicate Deal Alterada: keep latest row per deal id
 export function getLatestDealStates(deals: CRMDealUpdated[]): CRMDealUpdated[] {
   const map = new Map<string, CRMDealUpdated>();
-  // deals already sorted desc by created_at, so first occurrence is latest
   for (const d of deals) {
     if (d.id && !map.has(d.id)) {
       map.set(d.id, d);
