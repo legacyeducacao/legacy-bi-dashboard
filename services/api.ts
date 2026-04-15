@@ -278,8 +278,10 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          mktFaturamento += safeNumber(r.faturamento);
       });
 
-      // If no Supabase marketing data, use Meta API insights
-      if (marketingRows.length === 0 && metaData.insights.length > 0) {
+      // Always use Meta API daily insights for investment (more accurate than fact_daily_marketing)
+      if (metaData.insights.length > 0) {
+         // Replace cost in marketing totals with Meta API data
+         totalCost = 0; totalImpressions = 0; totalClicks = 0;
          metaData.insights.forEach((row: any) => {
             totalCost += row.spend || 0;
             totalImpressions += row.impressions || 0;
@@ -711,16 +713,27 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          return trendsMap.get(dateKey);
       };
 
-      // Marketing rows
+      // Meta API daily insights → investment per day (primary source)
+      metaData.insights.forEach((row: any) => {
+         const dateKey = row.date;
+         if (!dateKey) return;
+         const t = ensureTrendDay(dateKey);
+         t.cost = row.spend || 0; // Replace, not add (Meta is the source of truth)
+         t.impressions = row.impressions || 0;
+         t.clicks = row.clicks || 0;
+      });
+
+      // Marketing rows (for leads, mqls, vendas, faturamento — not cost)
       marketingRows.forEach((r: any) => {
          const t = ensureTrendDay(r.date);
-         t.cost += safeNumber(r.cost);
+         // Don't overwrite cost if Meta already set it
+         if (t.cost === 0) t.cost += safeNumber(r.cost);
          t.leads += safeNumber(r.leads);
          t.mqls += safeNumber(r.mqls);
          t.vendas += safeNumber(r.vendas);
          t.faturamento += safeNumber(r.faturamento);
-         t.impressions += safeNumber(r.impressions);
-         t.clicks += safeNumber(r.clicks);
+         if (t.impressions === 0) t.impressions += safeNumber(r.impressions);
+         if (t.clicks === 0) t.clicks += safeNumber(r.clicks);
       });
 
       // CRM deals created → leads per day

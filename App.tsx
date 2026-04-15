@@ -542,16 +542,12 @@ const App: React.FC = () => {
       return newKPIs[key];
     };
 
-    // 1. ALWAYS update base metrics from filteredTrends to respect date filters
-    const trendInvestment = sum(filteredTrends, 'investment');
-    const metaAdsTotal = data.metaCampaigns.reduce((s, c) => s + c.spend, 0);
-    // Use Meta API total only for full month (30d/this_month), otherwise use filteredTrends
-    const isFullMonth = filters.period === '30d' || filters.period === 'this_month';
-    safeKpi('investment', 'Investimento', 'currency').value = isFullMonth && metaAdsTotal > 0 ? metaAdsTotal : (trendInvestment > 0 ? trendInvestment : metaAdsTotal);
-
-    // Leads: use filteredTrends for date-filtered count, formLeadsList only for full month
+    // 1. ALWAYS update base metrics from filteredTrends (now includes Meta daily insights)
+    safeKpi('investment', 'Investimento', 'currency').value = sum(filteredTrends, 'investment');
+    // Leads from filteredTrends, fallback to formLeadsList for full month
     const trendLeads = sum(filteredTrends, 'leads');
-    safeKpi('leads', 'Leads', 'number').value = isFullMonth && data.formLeadsList.length > 0 ? data.formLeadsList.length : (trendLeads > 0 ? trendLeads : data.formLeadsList.length);
+    const isFullMonth = filters.period === '30d' || filters.period === 'this_month';
+    safeKpi('leads', 'Leads', 'number').value = trendLeads > 0 ? trendLeads : (isFullMonth ? data.formLeadsList.length : 0);
 
     safeKpi('revenue', 'Faturamento MKT', 'currency').value = sum(filteredTrends, 'revenue');
     safeKpi('sales', 'Vendas MKT', 'number').value = sum(filteredTrends, 'sales');
