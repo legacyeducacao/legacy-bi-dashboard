@@ -552,8 +552,9 @@ const App: React.FC = () => {
     safeKpi('mqls', 'MQLs', 'number').value = sum(filteredTrends, 'mqls');
     safeKpi('connections', 'Conexões', 'number').value = sum(filteredTrends, 'connections');
     safeKpi('opportunities', 'Oportunidades', 'number').value = sum(filteredTrends, 'opportunities');
-    safeKpi('meetingsBooked', 'Reuniões Agendadas', 'number').value = sum(filteredTrends, 'meetings_booked');
-    safeKpi('meetingsHeld', 'Reuniões Realizadas', 'number').value = sum(filteredTrends, 'meetings_held');
+    // meetingsBooked and meetingsHeld come from CRM (deduplicated in api.ts) — don't overwrite with filteredTrends
+    safeKpi('meetingsBooked', 'Reuniões Agendadas', 'number');
+    safeKpi('meetingsHeld', 'Reuniões Realizadas', 'number');
 
     // Calculate derived metrics
     if (newKPIs.leads.value > 0) safeKpi('cpl', 'CPL', 'currency').value = newKPIs.investment.value / newKPIs.leads.value;
@@ -582,15 +583,13 @@ const App: React.FC = () => {
       unit: "percentage"
     };
 
-    // Calculate No-Show Rate from real Pipedrive activity data
-    const totalBooked = sum(filteredTrends, 'meetings_booked') || sum(filteredSDRs, 'meetingsBooked') || 0;
-    const totalHeld = sum(filteredTrends, 'meetings_held') || sum(filteredClosers, 'meetingsHeld') || 0;
-    const totalNoShows = sum(filteredTrends, 'no_shows') || sum(filteredSDRs, 'noShowCount') || 0;
-    const totalRescheduled = sum(filteredTrends, 'rescheduled') || 0;
-    safeKpi('noShowRate', 'Taxa de No-Show', 'percentage').value = totalBooked > 0 ? (totalNoShows / totalBooked) * 100 : 0;
-    safeKpi('noShows', 'No-Shows', 'number').value = totalNoShows;
-    safeKpi('rescheduled', 'Reagendamentos', 'number').value = totalRescheduled;
-    safeKpi('conversionMeetingSale', 'Conversão (Agendado -> Venda)', 'percentage').value = totalHeld > 0 ? (newKPIs.sales.value / totalHeld) * 100 : 0;
+    // No-Show Rate, Reuniões, Reagendamentos — use CRM-computed values (deduplicated in api.ts)
+    safeKpi('noShows', 'No-Shows', 'number');
+    safeKpi('rescheduled', 'Reagendamentos', 'number');
+    const heldVal = newKPIs.meetingsHeld?.value || 0;
+    const noShowVal = newKPIs.noShows?.value || 0;
+    safeKpi('noShowRate', 'Taxa de No-Show', 'percentage').value = (heldVal + noShowVal) > 0 ? (noShowVal / (heldVal + noShowVal)) * 100 : 0;
+    safeKpi('conversionMeetingSale', 'Conversão (Agendado -> Venda)', 'percentage').value = heldVal > 0 ? (newKPIs.sales.value / heldVal) * 100 : 0;
     safeKpi('responseTime', 'Tempo de Resposta', 'time').value = avg(filteredSDRs, 'responseTime');
 
     // Apply SDR Filter logic to KPIs
