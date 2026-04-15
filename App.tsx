@@ -48,7 +48,7 @@ import FilterBar from './components/FilterBar';
 import MetaLeadsTable from './components/MetaLeadsTable';
 import DemographicsChart from './components/DemographicsChart';
 import { SkeletonMetricCard, SkeletonChart, SkeletonTable, SkeletonRankingWidget, SkeletonAnalysis, Skeleton } from './components/SkeletonLoader';
-import { fetchDashboardData, DashboardData, uploadMarketingSector, uploadCommercialSector, uploadGoalsSector, triggerMetaAdsAutomation, updateKPIGoals } from './services/api';
+import { fetchDashboardData, DashboardData, uploadMarketingSector, uploadCommercialSector, uploadGoalsSector, triggerMetaAdsAutomation, updateKPIGoals, applyGoalsToDashboard } from './services/api';
 import { formatValue, calculatePace } from './utils/calculations';
 import { parseCSV } from './utils/csvParser';
 import { RepPerformance, AppSettings, MetricData, MarketingChannelStats, MarketingProductStats, MarketingCampaignStats, FilterState, FilterOptions, PaceAnalysis, MetaCampaignData, MetaLeadData, MetaDemographicData } from './types';
@@ -155,21 +155,24 @@ const App: React.FC = () => {
     setIsUploading(true);
     setUploadStatus(null);
     try {
-      const kpisToUpdate = Object.entries(tempGoals).map(([id, goal]) => {
-        // Usa o db_id original para fazer o upsert no Supabase
-        const kpi = data.kpis[id];
-        return {
-          id: kpi.db_id || kpi.id || id,
-          label: kpi.label, // Inclui label para satisfazer NOT NULL no upsert
-          unit: kpi.unit,   // Inclui unit para satisfazer NOT NULL no upsert
-          goal
-        };
-      });
+      const kpisToUpdate = Object.entries(tempGoals).map(([id, goal]) => ({
+        id,
+        goal,
+      }));
       await updateKPIGoals(kpisToUpdate);
-      setUploadStatus({ type: 'success', message: 'Metas atualizadas com sucesso!' });
-      loadData();
+
+      // Apply goals immediately to current data (no full reload needed)
+      const updatedKpis = { ...data.kpis };
+      Object.entries(tempGoals).forEach(([id, goal]) => {
+        if (updatedKpis[id]) {
+          updatedKpis[id] = { ...updatedKpis[id], goal };
+        }
+      });
+      setData(prev => ({ ...prev, kpis: updatedKpis }));
+
+      setUploadStatus({ type: 'success', message: 'Metas salvas com sucesso!' });
     } catch (e) {
-      setUploadStatus({ type: 'error', message: 'Erro ao atualizar metas.' });
+      setUploadStatus({ type: 'error', message: 'Erro ao salvar metas.' });
     } finally {
       setIsUploading(false);
     }
@@ -224,7 +227,7 @@ const App: React.FC = () => {
 
     try {
       const dashboardData = await fetchDashboardData();
-      setData(dashboardData);
+      setData(applyGoalsToDashboard(dashboardData));
     } catch (e) {
       console.error(e);
     } finally {

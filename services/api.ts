@@ -575,7 +575,31 @@ export const uploadGoalsSector = async (_parsedData: any[]) => {
    return true;
 };
 
-export const updateKPIGoals = async (_kpis: any[]) => {
-   console.warn('KPI goals are defined in code');
+const GOALS_STORAGE_KEY = 'legacy_bi_kpi_goals';
+
+export const updateKPIGoals = async (kpis: any[]) => {
+   const goals: Record<string, number> = {};
+   kpis.forEach(k => { goals[k.id] = k.goal; });
+   localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
    return true;
 };
+
+export function getSavedGoals(): Record<string, number> {
+   try {
+      const raw = localStorage.getItem(GOALS_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+   } catch {}
+   return {};
+}
+
+export function applyGoalsToDashboard(dashData: DashboardData): DashboardData {
+   const saved = getSavedGoals();
+   if (Object.keys(saved).length === 0) return dashData;
+   const kpis = { ...dashData.kpis };
+   for (const [id, goal] of Object.entries(saved)) {
+      if (kpis[id]) {
+         kpis[id] = { ...kpis[id], goal };
+      }
+   }
+   return { ...dashData, kpis };
+}
