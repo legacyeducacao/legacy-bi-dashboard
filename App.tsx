@@ -820,34 +820,6 @@ const App: React.FC = () => {
             {activeKPIs.ticket && <div className="h-full"><MetricCard metric={activeKPIs.ticket} context={data.context} variant="compact" /></div>}
             {activeKPIs.cpl && <div className="h-full"><MetricCard metric={activeKPIs.cpl} context={data.context} variant="compact" inverse /></div>}
             {activeKPIs.cac && <div className="h-full"><MetricCard metric={activeKPIs.cac} context={data.context} variant="compact" inverse /></div>}
-            {activeKPIs.salesInbound && (
-              <div className="h-full">
-                <MetricCard
-                  metric={activeKPIs.salesInbound}
-                  context={data.context}
-                  variant="compact"
-                  customComparison={{
-                    label: 'Inbound (Entrada)',
-                    value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesInbound.value / activeKPIs.sales.value) * 100 : 0,
-                    suffix: '%'
-                  }}
-                />
-              </div>
-            )}
-            {activeKPIs.salesOutbound && (
-              <div className="h-full">
-                <MetricCard
-                  metric={activeKPIs.salesOutbound}
-                  context={data.context}
-                  variant="compact"
-                  customComparison={{
-                    label: 'Outbound (Ativo)',
-                    value: activeKPIs.sales?.value > 0 ? (activeKPIs.salesOutbound.value / activeKPIs.sales.value) * 100 : 0,
-                    suffix: '%'
-                  }}
-                />
-              </div>
-            )}
           </div>
         </div>
 
