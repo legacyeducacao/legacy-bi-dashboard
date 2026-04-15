@@ -86,7 +86,7 @@ const App: React.FC = () => {
   const [settingsTab, setSettingsTab] = useState<'general' | 'data' | 'goals'>('general');
 
   // Marketing Micro View Toggle State
-  const [microView, setMicroView] = useState<'channels' | 'products' | 'meta_campaigns' | 'meta_leads' | 'demographics'>('channels');
+  const [microView, setMicroView] = useState<'meta_campaigns' | 'demographics'>('meta_campaigns');
 
   // Data State
   const [isLoading, setIsLoading] = useState(true);
@@ -1133,17 +1133,8 @@ const App: React.FC = () => {
             Análise Micro
           </h3>
           <div className="flex bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-slate-700 flex-wrap gap-0.5">
-            <button onClick={() => setMicroView('channels')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${microView === 'channels' ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
-              <Share2 className="w-3.5 h-3.5" /> Canais de Tração
-            </button>
-            <button onClick={() => setMicroView('products')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${microView === 'products' ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
-              <Box className="w-3.5 h-3.5" /> Produtos
-            </button>
             <button onClick={() => setMicroView('meta_campaigns')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${microView === 'meta_campaigns' ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
               <Facebook className="w-3.5 h-3.5" /> Campanhas Meta
-            </button>
-            <button onClick={() => setMicroView('meta_leads')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${microView === 'meta_leads' ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
-              <Users className="w-3.5 h-3.5" /> Leads Meta
             </button>
             <button onClick={() => setMicroView('demographics')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-all ${microView === 'demographics' ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
               <Globe className="w-3.5 h-3.5" /> Demográficos
@@ -1164,61 +1155,7 @@ const App: React.FC = () => {
           </div>
           <div className="lg:col-span-2 h-full min-h-0 overflow-hidden flex flex-col">
             <div className="flex-1 animate-in fade-in duration-300 flex flex-col gap-6 overflow-hidden">
-              {microView === 'channels' ? (
-                <>
-                  <div className="flex-shrink-0 pb-1">
-                    <DataTable<MarketingChannelStats>
-                      title="Performance por Canal"
-                      data={[...filteredChannels].sort((a, b) => b.investment - a.investment)}
-                      columns={[
-                        { header: 'Canal / Origem', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white">{row.channel}</span> },
-                        { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
-                        { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
-                        { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
-                        { header: 'MQLs', accessor: (row) => row.mqls, align: 'right' },
-                        { header: 'Vendas', accessor: (row) => row.sales, align: 'right' },
-                        { header: 'Faturamento', accessor: (row) => formatValue(row.revenue, 'currency'), align: 'right' },
-                        { header: 'CAC', accessor: (row) => formatValue(row.cac, 'currency'), align: 'right' },
-                        { header: 'ROAS', accessor: (row) => <span className={row.roas > 5 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
-                      ]}
-                    />
-                  </div>
-
-                  {filteredCampaigns.length > 0 && (
-                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/30">
-                      <DataTable<MarketingCampaignStats>
-                        title="Performance de Campanhas (Meta Ads)"
-                        data={filteredCampaigns}
-                        showBorder={false}
-                        columns={[
-                          { header: 'Campanha', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white truncate max-w-[250px] block" title={row.campaign}>{row.campaign}</span> },
-                          { header: 'Invest.', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
-                          { header: 'Impr.', accessor: (row) => new Intl.NumberFormat('pt-BR').format(row.impressions), align: 'right' },
-                          { header: 'Cliques', accessor: (row) => row.clicks, align: 'right' },
-                          { header: 'CTR', accessor: (row) => `${row.ctr.toFixed(2)}%`, align: 'right' },
-                          { header: 'Leads', accessor: (row) => row.leads, align: 'right' },
-                          { header: 'MQLs', accessor: (row) => row.mqls, align: 'right' },
-                          { header: 'CPL', accessor: (row) => formatValue(row.cpl, 'currency'), align: 'right' },
-                          { header: 'Vendas', accessor: (row) => row.sales || 0, align: 'right' },
-                          { header: 'ROAS', accessor: (row) => <span className={row.roas > 5 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
-                        ]}
-                      />
-                    </div>
-                  )}
-                </>
-              ) : microView === 'products' ? (
-                <DataTable<MarketingProductStats>
-                  title="Performance por Produto"
-                  data={[...filteredProducts].sort((a, b) => b.investment - a.investment)}
-                  columns={[
-                    { header: 'Produto', accessor: (row) => <span className="font-semibold text-brand-primary dark:text-brand-light">{row.product}</span> },
-                    { header: 'Investimento', accessor: (row) => formatValue(row.investment, 'currency'), align: 'right' },
-                    { header: 'Vendas', accessor: (row) => row.sales, align: 'right' },
-                    { header: 'Receita', accessor: (row) => formatValue(row.revenue, 'currency'), align: 'right' },
-                    { header: 'ROAS', accessor: (row) => <span className={row.roas > 10 ? 'text-emerald-500 font-bold' : ''}>{row.roas.toFixed(1)}x</span>, align: 'right' },
-                  ]}
-                />
-              ) : microView === 'meta_campaigns' ? (
+              {microView === 'meta_campaigns' ? (
                 <div className="flex flex-col gap-4 overflow-y-auto">
                   {/* Meta Campaigns KPI Cards */}
                   {data.metaCampaigns.length > 0 && (
@@ -1262,8 +1199,6 @@ const App: React.FC = () => {
                     </div>
                   )}
                 </div>
-              ) : microView === 'meta_leads' ? (
-                <MetaLeadsTable leads={data.metaLeads} isDarkMode={isDark} />
               ) : microView === 'demographics' ? (
                 <DemographicsChart demographics={data.metaDemographics} isDarkMode={isDark} />
               ) : null}
