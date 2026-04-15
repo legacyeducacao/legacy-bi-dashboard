@@ -1510,8 +1510,6 @@ const App: React.FC = () => {
               { id: Tab.MARKETING, label: 'Marketing & MQL', icon: Megaphone },
               { id: Tab.SDR, label: 'SDR & Pré-Vendas', icon: Headset },
               { id: Tab.SALES, label: 'Vendas & Faturamento', icon: Banknote },
-              { id: Tab.RANKING, label: 'Rankings', icon: Award }, // New Menu Item
-              { id: Tab.BOARD, label: 'Board & Estratégia', icon: Presentation },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1538,24 +1536,6 @@ const App: React.FC = () => {
           {/* Footer / Settings Area */}
           <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
 
-            {/* Analysis Tab - Special Placement */}
-            <div className="mb-2 pb-2 border-b border-slate-200 dark:border-slate-700/50">
-              <button
-                onClick={() => setActiveTab(Tab.ANALYSIS)}
-                className={`
-                  w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group
-                  ${activeTab === Tab.ANALYSIS
-                    ? 'bg-brand-primary/10 text-brand-primary dark:text-brand-light shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
-                  }
-                  ${isSidebarCollapsed ? 'justify-center' : ''}
-                `}
-                title="Diagnóstico da Operação"
-              >
-                <Activity className={`w-5 h-5 ${activeTab === Tab.ANALYSIS ? 'text-brand-primary dark:text-brand-light' : 'text-slate-400'}`} />
-                {!isSidebarCollapsed && <span>Diagnóstico</span>}
-              </button>
-            </div>
 
 
             {/* Collapse Toggle */}
