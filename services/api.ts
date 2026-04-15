@@ -179,7 +179,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const uniqueWonDeals = getUniqueWonDeals(rawWonDeals);
       const uniqueLostDeals = getUniqueWonDeals(lostDeals); // same dedup logic
 
-      console.log(`CRM: ${dealsCreated.length} created, ${latestOpenDeals.length} open, ${uniqueWonDeals.length} won, ${uniqueLostDeals.length} lost | Activities: ${activitiesCreated.length} created, ${activitiesUpdated.length} updated | Persons: ${personsCreated.length} | Marketing: ${marketingRows.length} rows | Meta: ${metaData.campaigns.length} campaigns`);
+      console.log(`CRM: ${dealsCreated.length} created, ${latestOpenDeals.length} open, ${uniqueWonDeals.length} won, ${uniqueLostDeals.length} lost`);
+      console.log(`Activities: ${activitiesCreated.length} created, ${activitiesUpdated.length} updated | Persons: ${personsCreated.length}`);
+      console.log(`Marketing: ${marketingRows.length} rows | Meta: ${metaData.campaigns.length} campaigns`);
 
       // --- 3. Aggregate marketing totals ---
       let totalCost = 0, totalImpressions = 0, totalClicks = 0;
@@ -496,7 +498,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const channels: MarketingChannelStats[] = [{
          channel: 'Meta Ads',
          investment: totalCost, leads: totalLeads, cpl,
-         mqls, sales: totalSales, revenue: totalRevenue,
+         mqls: mqlQualified, sales: totalSales, revenue: totalRevenue,
          roas, cac,
          impressions: totalImpressions, clicks: totalClicks,
          cpm: totalImpressions > 0 ? (totalCost / totalImpressions) * 1000 : 0,
@@ -532,7 +534,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
       const funnelData: FunnelStage[] = [
          { name: 'Leads', value: totalLeads },
-         { name: 'MQLs', value: mqls },
+         { name: 'SAL', value: sal },
+         { name: 'SQL', value: sql },
          { name: 'Conexões', value: connections },
          { name: 'Agendadas', value: meetingsBooked },
          { name: 'Realizadas', value: meetingsHeld },
@@ -586,8 +589,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          metaDemographics: metaData.demographics,
       };
 
-   } catch (error) {
-      console.error("Dashboard API Error:", error);
+   } catch (error: any) {
+      console.error("Dashboard API Error:", error?.message || error, error?.stack);
       return emptyData;
    }
 };
