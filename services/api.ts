@@ -32,17 +32,47 @@ const STAGE_ORDER: Record<string, number> = {
    '6': 1, '7': 2, '8': 3, '9': 4, '22': 5, '10': 6, '20': 7, '21': 8, '11': 9
 };
 
-const USER_ROLES: Record<string, { name: string; role: 'SDR' | 'Closer' }> = {
-   '25959419': { name: 'Isaque Inacio', role: 'SDR' },
-   '25955327': { name: 'Luan Gabriel', role: 'SDR' },
+const USER_ROLES: Record<string, { name: string; role: 'SDR' | 'Closer'; revenueGoal?: number }> = {
+   '25959419': { name: 'Isaque Inacio', role: 'SDR', revenueGoal: 290000 },
+   '25955327': { name: 'Luan Gabriel', role: 'SDR', revenueGoal: 270000 },
    '25955316': { name: 'Rodrigo Fernandes', role: 'SDR' },
    '25909798': { name: 'João Vitor Gaspar', role: 'SDR' },
    '25963379': { name: 'Paim', role: 'SDR' },
-   '25952137': { name: 'Joel Carlos', role: 'Closer' },
-   '25952181': { name: 'Leonardo Padilha', role: 'Closer' },
-   '25959529': { name: 'Leonardo Souza', role: 'Closer' },
+   '25952137': { name: 'Joel Carlos', role: 'Closer', revenueGoal: 270000 },
+   '25952181': { name: 'Leonardo Padilha', role: 'Closer', revenueGoal: 290000 },
+   '25959529': { name: 'Leonardo Souza', role: 'Closer', revenueGoal: 270000 },
    '25839024': { name: 'Allan Silva', role: 'Closer' },
 };
+
+// João Vitor excluded from meetings held count (operational SDR)
+const EXCLUDE_FROM_MEETINGS_HELD = '25909798';
+
+// Classify lead origin
+function classifyOrigin(from: string): 'Ads' | 'Orgânico' | 'Outbound' {
+   const f = (from || '').toLowerCase();
+   if (['facebook', 'fb', 'ig', 'google', 'meta'].some(x => f.includes(x))) return 'Ads';
+   if (f === 'outbound') return 'Outbound';
+   return 'Orgânico';
+}
+
+// MQL qualification: Faturamento >= 70k
+function isFaturamento70kPlus(faturamento: string): boolean {
+   if (!faturamento) return false;
+   const f = faturamento.toLowerCase().trim();
+   // Known qualifying values
+   const qualifying = [
+      'de 71 mil', 'de 101 mil', 'de 401 mil', 'de 1 ', 'mais de 4',
+      'r$ 71', 'r$ 101', 'r$ 401', 'de r$ 1',  'mais de r$ 4',
+      '71 mil a', '101 mil a',
+   ];
+   if (qualifying.some(q => f.includes(q))) return true;
+   // Try parsing numeric values
+   const num = parseFloat(f.replace(/[^\d.]/g, ''));
+   if (!isNaN(num) && num >= 70000) return true;
+   if (!isNaN(num) && f.includes('k') && num >= 70) return true;
+   if (!isNaN(num) && (f.includes('mi') || f.includes('milhõ') || f.includes('milhoe')) && num >= 1) return true;
+   return false;
+}
 
 const N8N_META_ADS_WEBHOOK = 'https://automacao-n8n.zs0trp.easypanel.host/webhook/30135616-a1ea-4196-abb1-367e88b1d882';
 
@@ -177,44 +207,56 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const totalSales = uniqueWonDeals.length;
       const totalRevenue = uniqueWonDeals.reduce((sum, d) => sum + (d.valor || 0), 0);
 
-      // MQLs = leads that passed Filtro 1+ (stage_id >= 7) or were qualified
-      const mqls = latestOpenDeals.filter(d => {
-         const order = STAGE_ORDER[d.stage_id] || 0;
-         return order >= 2; // Past Oportunidades
-      }).length + totalSales;
+      // SAL = Sales Accepted Leads (Filtro 1+ = stage_order >= 2)
+      const sal = latestOpenDeals.filter(d => (STAGE_ORDER[d.stage_id] || 0) >= 2).length + totalSales;
+      // SQL = Sales Qualified Leads (Filtro 2+ = stage_order >= 3)
+      const sql = latestOpenDeals.filter(d => (STAGE_ORDER[d.stage_id] || 0) >= 3).length + totalSales;
+      // Connections = deals past Oportunidades
+      const connections = sal;
 
-      // Connections = deals past Oportunidades (stage >= Filtro 1)
-      const connections = latestOpenDeals.filter(d => {
-         const order = STAGE_ORDER[d.stage_id] || 0;
-         return order >= 2;
-      }).length + totalSales;
+      // MQL qualificado = Person com faturamento >= 70k
+      const mqlQualified = personsCreated.filter(p => isFaturamento70kPlus(p.Faturamento)).length;
 
-      // Person origins for inbound/outbound split
+      // Origin classification (Ads vs Orgânico vs Outbound)
+      let leadsAds = 0, leadsOrganic = 0, leadsOutbound = 0;
       let salesInbound = 0, salesOutbound = 0;
+      personsCreated.forEach(p => {
+         const origin = classifyOrigin(p.From);
+         if (origin === 'Ads') leadsAds++;
+         else if (origin === 'Outbound') leadsOutbound++;
+         else leadsOrganic++;
+      });
       uniqueWonDeals.forEach(d => {
          const person = personsCreated.find(p => p.entidade_id === d.person_id);
-         const from = (person?.From || '').toLowerCase();
-         if (from === 'outbound') salesOutbound++;
+         const origin = classifyOrigin(person?.From || '');
+         if (origin === 'Outbound') salesOutbound++;
          else salesInbound++;
       });
 
-      // --- 5. Aggregate activities ---
+      // --- 5. Aggregate activities (SDR cria → Closer confirma) ---
       let meetingsBooked = 0, meetingsHeld = 0, totalNoShows = 0, totalRescheduled = 0;
 
-      // From atividade_criada: count meetings booked, connections
+      // Reuniões Agendadas = SDR cria tarefa de Sessão Estratégica
       activitiesCreated.forEach(act => {
-         if (isMeetingSubject(act.subject, act.type)) meetingsBooked++;
-         if (isNoShow(act.type)) { totalNoShows++; meetingsBooked++; }
+         if (isMeetingSubject(act.subject, act.type)) {
+            const userInfo = getUserInfo(act.user_id);
+            if (userInfo.role === 'SDR') meetingsBooked++;
+         }
+         if (isNoShow(act.type)) { totalNoShows++; }
          if (isSchedulingAttempt(act.subject)) totalRescheduled++;
       });
 
-      // From Atividade Alterada: count meetings held (done activities)
+      // Reuniões Realizadas = Closer confirma/altera atividade de sessão
+      // Exclui João Vitor Gaspar (operacional)
       activitiesUpdated.forEach(act => {
-         if (isMeetingSubject(act.Subject, act.type)) meetingsHeld++;
+         if (act.user_id === EXCLUDE_FROM_MEETINGS_HELD) return;
+         if (isMeetingSubject(act.Subject, act.type)) {
+            const userInfo = getUserInfo(act.user_id);
+            if (userInfo.role === 'Closer') meetingsHeld++;
+         }
          if (isNoShow(act.type)) totalNoShows++;
       });
 
-      // Avoid double counting
       if (totalNoShows > 0) totalNoShows = Math.ceil(totalNoShows / 2);
 
       // --- 6. Build team data from CRM ---
@@ -222,11 +264,13 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
       const initTeamMember = (userId: string) => {
          const info = getUserInfo(userId);
+         const roleInfo = USER_ROLES[userId];
          if (!teamMap.has(info.name)) {
             teamMap.set(info.name, {
                id: info.name.replace(/\s+/g, ''),
                name: info.name,
                role: info.role,
+               revenueGoal: roleInfo?.revenueGoal || 0,
                opportunities: 0, connections: 0, meetingsBooked: 0,
                meetingsHeld: 0, sales: 0, revenue: 0, noShowCount: 0,
                rescheduled: 0, calls: 0,
@@ -287,41 +331,44 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             opportunities: m.opportunities, connections: m.connections,
             meetingsBooked: m.meetingsBooked, meetingsHeld: m.meetingsHeld,
             noShowCount: m.noShowCount,
-            sales: m.sales, revenue: m.revenue, responseTime: 0
+            sales: m.sales, revenue: m.revenue, revenueGoal: m.revenueGoal,
+            responseTime: 0
          }));
 
       const closerData: RepPerformance[] = allTeamMembers
          .filter(m => m.role === 'Closer')
          .map(m => ({
             id: m.id, name: m.name, role: 'Closer' as const,
-            sales: m.sales, revenue: m.revenue,
+            sales: m.sales, revenue: m.revenue, revenueGoal: m.revenueGoal,
             meetingsBooked: m.meetingsBooked, meetingsHeld: m.meetingsHeld,
             noShowCount: m.noShowCount
          }));
 
       // --- 7. Build KPIs ---
       const cpl = totalLeads > 0 ? totalCost / totalLeads : 0;
-      const cpmql = mqls > 0 ? totalCost / mqls : 0;
+      const costPerMql = mqlQualified > 0 ? totalCost / mqlQualified : 0;
       const cac = totalSales > 0 ? totalCost / totalSales : 0;
       const roas = totalCost > 0 ? totalRevenue / totalCost : 0;
       const ticket = totalSales > 0 ? totalRevenue / totalSales : 0;
       const noShowRate = meetingsBooked > 0 ? (totalNoShows / meetingsBooked) * 100 : 0;
       const convMeetSale = meetingsHeld > 0 ? (totalSales / meetingsHeld) * 100 : 0;
-      const convAgendConect = connections > 0 ? (meetingsBooked / connections) * 100 : 0;
-      const convRealizAgend = meetingsBooked > 0 ? (meetingsHeld / meetingsBooked) * 100 : 0;
 
       const kpis: Record<string, MetricData> = {
-         investment: { id: 'investment', label: 'Investimento', value: totalCost, goal: 120000, unit: 'currency' },
+         investment: { id: 'investment', label: 'Investimento', value: totalCost, goal: 200000, unit: 'currency' },
          leads: { id: 'leads', label: 'Leads', value: totalLeads, goal: 800, unit: 'number' },
+         leadsAds: { id: 'leadsAds', label: 'Leads Ads', value: leadsAds, goal: 600, unit: 'number' },
+         leadsOrganic: { id: 'leadsOrganic', label: 'Leads Orgânico', value: leadsOrganic, goal: 200, unit: 'number' },
          cpl: { id: 'cpl', label: 'CPL', value: cpl, goal: 150, unit: 'currency' },
-         mqls: { id: 'mqls', label: 'MQLs', value: mqls, goal: 700, unit: 'number' },
-         cpmql: { id: 'cpmql', label: 'Custo por MQL', value: cpmql, goal: 180, unit: 'currency' },
+         sal: { id: 'sal', label: 'SAL', value: sal, goal: 571, unit: 'number' },
+         sql: { id: 'sql', label: 'SQL', value: sql, goal: 400, unit: 'number' },
+         mqls: { id: 'mqls', label: 'MQL (Fat. 70k+)', value: mqlQualified, goal: 571, unit: 'number' },
+         cpmql: { id: 'cpmql', label: 'Custo por MQL', value: costPerMql, goal: 350, unit: 'currency' },
          sales: { id: 'sales', label: 'Vendas Total', value: totalSales, goal: 20, unit: 'number' },
-         revenue: { id: 'revenue', label: 'Faturamento', value: totalRevenue, goal: 600000, unit: 'currency' },
+         revenue: { id: 'revenue', label: 'Faturamento', value: totalRevenue, goal: 830000, unit: 'currency' },
          ticket: { id: 'ticket', label: 'Ticket Médio', value: ticket, goal: 25000, unit: 'currency' },
          connections: { id: 'connections', label: 'Conexões', value: connections, goal: 300, unit: 'number' },
-         meetingsBooked: { id: 'meetingsBooked', label: 'Reuniões Agendadas', value: meetingsBooked, goal: 150, unit: 'number' },
-         meetingsHeld: { id: 'meetingsHeld', label: 'Reuniões Realizadas', value: meetingsHeld, goal: 100, unit: 'number' },
+         meetingsBooked: { id: 'meetingsBooked', label: 'Reuniões Agendadas', value: meetingsBooked, goal: 264, unit: 'number' },
+         meetingsHeld: { id: 'meetingsHeld', label: 'Reuniões Realizadas', value: meetingsHeld, goal: 180, unit: 'number' },
          noShowRate: { id: 'noShowRate', label: 'Taxa No-Show', value: noShowRate, goal: 30, unit: 'percentage' },
          cac: { id: 'cac', label: 'CAC', value: cac, goal: 6000, unit: 'currency' },
          roas: { id: 'roas', label: 'ROAS', value: roas, goal: 5, unit: 'number', suffix: 'x' },
@@ -330,7 +377,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          conversionMeetingSale: { id: 'conversionMeetingSale', label: 'Conv. Venda/Realizada', value: convMeetSale, goal: 20, unit: 'percentage' },
          opportunities: { id: 'opportunities', label: 'Oportunidades', value: dealsCreated.length, goal: 500, unit: 'number' },
          marketingSales: { id: 'marketingSales', label: 'Vendas MKT', value: totalSales, goal: 20, unit: 'number' },
-         marketingRevenue: { id: 'marketingRevenue', label: 'Faturamento MKT', value: totalRevenue, goal: 600000, unit: 'currency' },
+         marketingRevenue: { id: 'marketingRevenue', label: 'Faturamento MKT', value: totalRevenue, goal: 830000, unit: 'currency' },
          noShows: { id: 'noShows', label: 'No-Shows', value: totalNoShows, goal: 20, unit: 'number' },
          rescheduled: { id: 'rescheduled', label: 'Reagendamentos', value: totalRescheduled, goal: 15, unit: 'number' },
       };

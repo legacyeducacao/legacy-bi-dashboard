@@ -99,11 +99,12 @@ export interface RepPerformance {
   // Common
   sales?: number;
   revenue?: number;
+  revenueGoal?: number;
   // SDR Specifics
-  opportunities?: number; // Leads/Opps received
+  opportunities?: number;
   connections?: number;
   meetingsBooked?: number;
-  responseTime?: number; // In minutes
+  responseTime?: number;
   // Closer/SDR Shared
   meetingsHeld?: number;
   noShowCount?: number;

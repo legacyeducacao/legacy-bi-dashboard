@@ -844,16 +844,52 @@ const App: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Funil Comercial</h4>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {activeKPIs.connections && (
+          {/* Origem dos Leads */}
+          {activeKPIs.leadsAds && activeKPIs.leadsOrganic && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
+              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
+                <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Ads</div>
+                <div className="text-xl font-bold text-blue-500">{activeKPIs.leadsAds.value}</div>
+              </div>
+              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
+                <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Orgânico</div>
+                <div className="text-xl font-bold text-emerald-500">{activeKPIs.leadsOrganic.value}</div>
+              </div>
+              {activeKPIs.mqls && (
+                <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">MQL (Fat. 70k+)</div>
+                  <div className="text-xl font-bold text-violet-500">{activeKPIs.mqls.value}</div>
+                  <div className="text-[10px] text-slate-400">Meta: {activeKPIs.mqls.goal}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pipeline Funnel */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {activeKPIs.sal && (
               <div className="h-full">
                 <MetricCard
-                  metric={activeKPIs.connections}
+                  metric={activeKPIs.sal}
                   context={data.context}
                   variant="funnel"
                   customComparison={{
-                    label: 'Taxa Conv.',
-                    value: activeKPIs.leads?.value > 0 ? (activeKPIs.connections.value / activeKPIs.leads.value) * 100 : 0,
+                    label: 'Conv. Lead→SAL',
+                    value: activeKPIs.leads?.value > 0 ? (activeKPIs.sal.value / activeKPIs.leads.value) * 100 : 0,
+                    suffix: '%'
+                  }}
+                />
+              </div>
+            )}
+            {activeKPIs.sql && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.sql}
+                  context={data.context}
+                  variant="funnel"
+                  customComparison={{
+                    label: 'Conv. SAL→SQL',
+                    value: activeKPIs.sal?.value > 0 ? (activeKPIs.sql.value / activeKPIs.sal.value) * 100 : 0,
                     suffix: '%'
                   }}
                 />
@@ -867,7 +903,7 @@ const App: React.FC = () => {
                   variant="funnel"
                   customComparison={{
                     label: 'Taxa Agend.',
-                    value: activeKPIs.connections?.value > 0 ? (activeKPIs.meetingsBooked.value / activeKPIs.connections.value) * 100 : 0,
+                    value: activeKPIs.sql?.value > 0 ? (activeKPIs.meetingsBooked.value / activeKPIs.sql.value) * 100 : 0,
                     suffix: '%'
                   }}
                 />
@@ -898,6 +934,15 @@ const App: React.FC = () => {
                     value: activeKPIs.meetingsHeld?.value > 0 ? (activeKPIs.sales.value / activeKPIs.meetingsHeld.value) * 100 : 0,
                     suffix: '%'
                   }}
+                />
+              </div>
+            )}
+            {activeKPIs.revenue && (
+              <div className="h-full">
+                <MetricCard
+                  metric={activeKPIs.revenue}
+                  context={data.context}
+                  variant="funnel"
                 />
               </div>
             )}
@@ -1229,6 +1274,33 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {/* Metas por SDR */}
+      {filteredSDRs.length > 0 && (
+        <div className="flex flex-col gap-2 flex-shrink-0">
+          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-blue-500 pl-2">
+            Meta Individual SDR
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {filteredSDRs.filter(s => s.revenueGoal && s.revenueGoal > 0).map(sdr => (
+              <div key={sdr.id} className="bg-white dark:bg-slate-800/30 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
+                <div className="text-xs text-slate-400 font-medium">{sdr.name}</div>
+                <div className="text-lg font-bold text-slate-800 dark:text-white">{formatValue(sdr.revenue || 0, 'currency')}</div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-[10px] text-slate-400">Meta: {formatValue(sdr.revenueGoal, 'currency')}</span>
+                  <span className={`text-[10px] font-bold ${(sdr.revenue || 0) >= (sdr.revenueGoal || 1) ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {((sdr.revenue || 0) / (sdr.revenueGoal || 1) * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-1">
+                  <div className={`h-1.5 rounded-full ${(sdr.revenue || 0) >= (sdr.revenueGoal || 1) ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                    style={{ width: `${Math.min(100, (sdr.revenue || 0) / (sdr.revenueGoal || 1) * 100)}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 3.3.2 Comercial Micro (Pace Chart + Trends) */}
       <div className="flex flex-col gap-3 flex-1 min-h-0">
         <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-blue-500 pl-2">
@@ -1285,6 +1357,33 @@ const App: React.FC = () => {
           {activeKPIs.noShowRate && <MetricCard metric={activeKPIs.noShowRate} context={data.context} inverse showPace={false} customComparison={{ value: 20, label: 'Teto Aceitável (%)' }} />}
         </div>
       </div>
+
+      {/* Metas por Closer */}
+      {filteredClosers.length > 0 && (
+        <div className="flex flex-col gap-2 flex-shrink-0">
+          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-emerald-500 pl-2">
+            Meta Individual Closer
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {filteredClosers.filter(c => c.revenueGoal && c.revenueGoal > 0).map(closer => (
+              <div key={closer.id} className="bg-white dark:bg-slate-800/30 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
+                <div className="text-xs text-slate-400 font-medium">{closer.name}</div>
+                <div className="text-lg font-bold text-slate-800 dark:text-white">{formatValue(closer.revenue || 0, 'currency')}</div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-[10px] text-slate-400">Meta: {formatValue(closer.revenueGoal, 'currency')}</span>
+                  <span className={`text-[10px] font-bold ${(closer.revenue || 0) >= (closer.revenueGoal || 1) ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {((closer.revenue || 0) / (closer.revenueGoal || 1) * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-1">
+                  <div className={`h-1.5 rounded-full ${(closer.revenue || 0) >= (closer.revenueGoal || 1) ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                    style={{ width: `${Math.min(100, (closer.revenue || 0) / (closer.revenueGoal || 1) * 100)}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 3.3.2 Comercial Micro (Pace Chart + Breakdown) */}
       <div className="flex flex-col gap-3 flex-1 min-h-[400px]">
