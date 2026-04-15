@@ -550,11 +550,13 @@ const App: React.FC = () => {
     safeKpi('revenue', 'Faturamento MKT', 'currency').value = sum(filteredTrends, 'revenue');
     safeKpi('sales', 'Vendas MKT', 'number').value = sum(filteredTrends, 'sales');
     safeKpi('mqls', 'MQLs', 'number').value = sum(filteredTrends, 'mqls');
-    safeKpi('connections', 'Conexões', 'number').value = sum(filteredTrends, 'connections');
-    safeKpi('opportunities', 'Oportunidades', 'number').value = sum(filteredTrends, 'opportunities');
-    // meetingsBooked and meetingsHeld come from CRM (deduplicated in api.ts) — don't overwrite with filteredTrends
+    // connections, opportunities, meetingsBooked, meetingsHeld, SAL, SQL come from CRM — don't overwrite
+    safeKpi('connections', 'Conexões', 'number');
+    safeKpi('opportunities', 'Oportunidades', 'number');
     safeKpi('meetingsBooked', 'Reuniões Agendadas', 'number');
     safeKpi('meetingsHeld', 'Reuniões Realizadas', 'number');
+    safeKpi('sal', 'SAL', 'number');
+    safeKpi('sql', 'SQL', 'number');
 
     // Calculate derived metrics
     if (newKPIs.leads.value > 0) safeKpi('cpl', 'CPL', 'currency').value = newKPIs.investment.value / newKPIs.leads.value;
