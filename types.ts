@@ -110,6 +110,15 @@ export interface RepPerformance {
   // Closer/SDR Shared
   meetingsHeld?: number;
   noShowCount?: number;
+  // SDR Detailed
+  preQualificacoes?: number;
+  tentativasConexao?: number;
+  calls?: number;
+  whatsapps?: number;
+  filtro1?: number;
+  filtro2?: number;
+  agendados?: number;
+  sessionsCreated?: number;
 }
 
 export interface FunnelStage {

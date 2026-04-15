@@ -1382,29 +1382,45 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Metas por SDR */}
+      {/* Performance Individual SDR */}
       {filteredSDRs.length > 0 && (
         <div className="flex flex-col gap-2 flex-shrink-0">
           <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-l-4 border-blue-500 pl-2">
-            Meta Individual SDR
+            Performance Individual SDR
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {filteredSDRs.filter(s => s.revenueGoal && s.revenueGoal > 0).map(sdr => (
-              <div key={sdr.id} className="bg-white dark:bg-slate-800/30 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
-                <div className="text-xs text-slate-400 font-medium">{sdr.name}</div>
-                <div className="text-lg font-bold text-slate-800 dark:text-white">{formatValue(sdr.revenue || 0, 'currency')}</div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-[10px] text-slate-400">Meta: {formatValue(sdr.revenueGoal, 'currency')}</span>
-                  <span className={`text-[10px] font-bold ${(sdr.revenue || 0) >= (sdr.revenueGoal || 1) ? 'text-emerald-500' : 'text-amber-500'}`}>
-                    {((sdr.revenue || 0) / (sdr.revenueGoal || 1) * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-1">
-                  <div className={`h-1.5 rounded-full ${(sdr.revenue || 0) >= (sdr.revenueGoal || 1) ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                    style={{ width: `${Math.min(100, (sdr.revenue || 0) / (sdr.revenueGoal || 1) * 100)}%` }} />
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left">
+                  <th className="px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">SDR</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">Pré-Qual</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">Conexões</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">Chamadas</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">WhatsApp</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">Filtro 1</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">Filtro 2</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">Agendados</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">Sessões</th>
+                  <th className="px-2 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-[10px] border-b border-slate-200 dark:border-slate-700/50 text-center">No-Show</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/30">
+                {filteredSDRs.filter(s => s.name !== 'João Vitor Gaspar').map(sdr => (
+                  <tr key={sdr.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
+                    <td className="px-3 py-2 text-slate-800 dark:text-slate-200 font-medium text-xs">{sdr.name}</td>
+                    <td className="px-2 py-2 text-center text-xs text-slate-600 dark:text-slate-300">{sdr.preQualificacoes || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-blue-500 font-bold">{sdr.tentativasConexao || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-slate-600 dark:text-slate-300">{sdr.calls || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-slate-600 dark:text-slate-300">{sdr.whatsapps || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-amber-500">{sdr.filtro1 || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-violet-500">{sdr.filtro2 || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-emerald-500 font-bold">{sdr.agendados || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-blue-400 font-bold">{sdr.sessionsCreated || 0}</td>
+                    <td className="px-2 py-2 text-center text-xs text-red-400">{sdr.noShowCount || 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

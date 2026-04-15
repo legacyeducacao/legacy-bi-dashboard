@@ -485,6 +485,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
                opportunities: 0, connections: 0, meetingsBooked: 0,
                meetingsHeld: 0, sales: 0, revenue: 0, noShowCount: 0,
                rescheduled: 0, calls: 0,
+               preQualificacoes: 0, tentativasConexao: 0, whatsapps: 0,
+               filtro1: 0, filtro2: 0, agendados: 0, sessionsCreated: 0,
             });
          }
          return teamMap.get(info.name);
@@ -497,12 +499,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          member.opportunities++;
       });
 
-      // Open deals → connections (stage >= Filtro 1)
+      // Open deals → pipeline breakdown per SDR
       latestOpenDeals.forEach(d => {
          if (!d.owner_id) return;
          const member = initTeamMember(d.owner_id);
          const order = STAGE_ORDER[d.stage_id] || 0;
          if (order >= 2) member.connections++;
+         if (d.stage_id === '7') member.filtro1++;
+         if (d.stage_id === '8') member.filtro2++;
+         if (d.stage_id === '9') member.agendados++;
       });
 
       // Won deals → sales + revenue by owner
@@ -514,15 +519,19 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          member.connections++;
       });
 
-      // Activities created → per user
+      // Activities created → per user (detailed SDR tracking)
       activitiesCreated.forEach(act => {
          if (!act.user_id) return;
          const member = initTeamMember(act.user_id);
          if (isConnectionAttempt(act.subject)) member.connections++;
-         if (isMeetingSubject(act.subject, act.type)) member.meetingsBooked++;
+         if (isMeetingSubject(act.subject, act.type) && isSessionSubject(act.subject) && !isRolePlay(act.subject)) member.meetingsBooked++;
          if (isNoShow(act.type)) member.noShowCount++;
          if (isSchedulingAttempt(act.subject)) member.rescheduled++;
          if (act.type === 'call') member.calls++;
+         if (act.subject === 'Pré-qualificação') member.preQualificacoes++;
+         if (/tentativa de conex/i.test(act.subject)) member.tentativasConexao++;
+         if (act.type === 'whatsapp') member.whatsapps++;
+         if (isSessionSubject(act.subject) && !isRolePlay(act.subject)) member.sessionsCreated++;
       });
 
       // Activities updated → meetings held per user
@@ -543,7 +552,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             meetingsBooked: m.meetingsBooked, meetingsHeld: m.meetingsHeld,
             noShowCount: m.noShowCount,
             sales: m.sales, revenue: m.revenue, revenueGoal: m.revenueGoal,
-            responseTime: 0
+            responseTime: 0,
+            preQualificacoes: m.preQualificacoes,
+            tentativasConexao: m.tentativasConexao,
+            calls: m.calls,
+            whatsapps: m.whatsapps,
+            filtro1: m.filtro1,
+            filtro2: m.filtro2,
+            agendados: m.agendados,
+            sessionsCreated: m.sessionsCreated,
          }));
 
       const closerData: RepPerformance[] = allTeamMembers
