@@ -101,7 +101,15 @@ const App: React.FC = () => {
     context: { currentDay: 1, totalDays: 30 },
     funnelData: [],
     rawMarketingData: [],
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
+    rawTeamData: [],
+    rawDeals: [],
+    metaCampaigns: [],
+    metaLeads: [],
+    metaDemographics: { ageGender: [], regions: [] },
+    leadsByPlatform: [],
+    wonDealsTimeline: [],
+    formLeadsList: [],
   });
 
   // Filter State
