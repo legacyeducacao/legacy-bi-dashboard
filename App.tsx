@@ -88,6 +88,7 @@ const App: React.FC = () => {
   // Marketing Micro View Toggle State
   const [microView, setMicroView] = useState<'meta_campaigns' | 'demographics'>('meta_campaigns');
   const [platformDrilldown, setPlatformDrilldown] = useState<string | null>(null);
+  const [leadsDrilldown, setLeadsDrilldown] = useState<'mql' | 'lead' | null>(null);
 
   // Data State
   const [isLoading, setIsLoading] = useState(true);
@@ -862,13 +863,71 @@ const App: React.FC = () => {
                   <div className="text-[10px] text-emerald-400 mt-0.5">Clique para detalhar</div>
                 </button>
                 {activeKPIs.mqls && (
-                  <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">MQL (Fat. 70k+)</div>
-                    <div className="text-xl font-bold text-violet-500">{activeKPIs.mqls.value}</div>
-                    <div className="text-[10px] text-slate-400">Meta: {activeKPIs.mqls.goal}</div>
+                  <div className="flex flex-col gap-1">
+                    <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'mql' ? null : 'mql')}
+                      className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${leadsDrilldown === 'mql' ? 'border-violet-500 ring-1 ring-violet-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-violet-400'}`}>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider">MQL (Fat. 70k+)</div>
+                      <div className="text-xl font-bold text-violet-500">{activeKPIs.mqls.value}</div>
+                      <div className="text-[10px] text-violet-400">Clique para ver</div>
+                    </button>
+                    <button onClick={() => setLeadsDrilldown(leadsDrilldown === 'lead' ? null : 'lead')}
+                      className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${leadsDrilldown === 'lead' ? 'border-amber-500 ring-1 ring-amber-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-amber-400'}`}>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads (&lt;70k)</div>
+                      <div className="text-xl font-bold text-amber-500">{data.formLeadsList.filter(l => !l.isMql).length}</div>
+                      <div className="text-[10px] text-amber-400">Clique para ver</div>
+                    </button>
                   </div>
                 )}
               </div>
+
+              {/* Drill-down: MQL / Lead list */}
+              {leadsDrilldown && (
+                <div className="bg-white dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50 mb-3 animate-in fade-in duration-300">
+                  <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700/50">
+                    <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {leadsDrilldown === 'mql' ? 'MQL — Público Ideal (Fat. 70k+)' : 'Leads (Fat. < 70k)'}
+                      <span className="ml-2 text-xs text-slate-400">
+                        ({data.formLeadsList.filter(l => leadsDrilldown === 'mql' ? l.isMql : !l.isMql).length})
+                      </span>
+                    </h4>
+                    <button onClick={() => setLeadsDrilldown(null)} className="text-xs text-slate-400 hover:text-slate-600">Fechar</button>
+                  </div>
+                  <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                    <table className="w-full text-sm border-separate border-spacing-0">
+                      <thead>
+                        <tr>
+                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Nome</th>
+                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Empresa</th>
+                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Telefone</th>
+                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Faturamento</th>
+                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Cargo</th>
+                          <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium text-left text-xs">Origem</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        {data.formLeadsList
+                          .filter(l => leadsDrilldown === 'mql' ? l.isMql : !l.isMql)
+                          .slice(0, 200)
+                          .map((lead, i) => (
+                            <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                              <td className="px-3 py-2 text-slate-800 dark:text-slate-200 font-medium">{lead.nome}</td>
+                              <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{lead.empresa || '-'}</td>
+                              <td className="px-3 py-2 text-slate-600 dark:text-slate-300 whitespace-nowrap">{lead.telefone || '-'}</td>
+                              <td className="px-3 py-2">
+                                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${lead.isMql ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'}`}>
+                                  {lead.faturamento || 'N/A'}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{lead.cargo || '-'}</td>
+                              <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs">{lead.source}/{lead.medium}</td>
+                            </tr>
+                          ))
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {/* Drill-down: Platform breakdown */}
               {platformDrilldown && (

@@ -21,6 +21,7 @@ export interface DashboardData {
    metaDemographics: MetaDemographicData;
    leadsByPlatform: { platform: string; count: number; origin: string; mqls: number; leads: number }[];
    wonDealsTimeline: { id: string; name: string; valor: number; owner: string; date: string }[];
+   formLeadsList: { nome: string; telefone: string; email: string; empresa: string; cargo: string; faturamento: string; produto: string; source: string; medium: string; isMql: boolean }[];
 }
 
 // --- Config ---
@@ -162,7 +163,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       channels: [], products: [], context: { currentDay: 1, totalDays: 30 },
       funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: [],
       metaCampaigns: [], metaLeads: [], metaDemographics: { ageGender: [], regions: [] },
-      leadsByPlatform: [], wonDealsTimeline: []
+      leadsByPlatform: [], wonDealsTimeline: [], formLeadsList: []
    };
 
    try {
@@ -294,6 +295,22 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const leadsByPlatform = Array.from(platformMap.entries())
          .map(([platform, d]) => ({ platform, count: d.count, origin: d.origin, mqls: d.mqls, leads: d.leads }))
          .sort((a, b) => b.count - a.count);
+
+      // --- 4a2. Build form leads list with MQL classification ---
+      const formLeadsList = (formLeads || [])
+         .filter((f: any) => f.Nome)
+         .map((f: any) => ({
+            nome: f.Nome || '',
+            telefone: f.Telefone || '',
+            email: f['E-mail'] || '',
+            empresa: f.Empresa || '',
+            cargo: f.Cargo || '',
+            faturamento: f.Faturamento || '',
+            produto: f.Produto || '',
+            source: f.utm_source || '',
+            medium: f.utm_medium || '',
+            isMql: isFaturamento70kPlus(f.Faturamento || ''),
+         }));
 
       // --- 4b. Compute commercial KPIs from CRM ---
       const totalLeads = (formLeads || []).length || personsCreated.length || dealsCreated.length;
@@ -693,6 +710,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          metaDemographics: metaData.demographics,
          leadsByPlatform,
          wonDealsTimeline,
+         formLeadsList,
       };
 
    } catch (error: any) {
