@@ -83,18 +83,30 @@ function classifyPlatform(redeSocial: string, from: string): string {
 function isFaturamento70kPlus(faturamento: string): boolean {
    if (!faturamento) return false;
    const f = faturamento.toLowerCase().trim();
-   // Known qualifying values
+
+   // Explicitly NOT qualifying (< 70k)
+   const notQualifying = [
+      'até 25', 'até r$ 25', 'de 26 mil', 'r$ 26', 'de 51 mil', 'r$ 51',
+      'de 16 ', 'de 31 ', 'de 4 à 7',
+   ];
+   if (notQualifying.some(q => f.includes(q))) return false;
+
+   // Explicitly qualifying (>= 70k)
    const qualifying = [
-      'de 71 mil', 'de 101 mil', 'de 401 mil', 'de 1 ', 'mais de 4',
-      'r$ 71', 'r$ 101', 'r$ 401', 'de r$ 1',  'mais de r$ 4',
+      'de 71 mil', 'de 101 mil', 'de 401 mil',
+      'r$ 71', 'r$ 101', 'r$ 401',
       '71 mil a', '101 mil a',
+      'de 1 à 4 milh', 'de 1 à 4 milhoe', 'de r$ 1 à',
+      'mais de 4 milh', 'mais de r$ 4',
+      '401 mil à 1 milh',
    ];
    if (qualifying.some(q => f.includes(q))) return true;
-   // Try parsing numeric values
+
+   // Try parsing numeric values (only for raw numbers like "100000", "70k")
    const num = parseFloat(f.replace(/[^\d.]/g, ''));
    if (!isNaN(num) && num >= 70000) return true;
-   if (!isNaN(num) && f.includes('k') && num >= 70) return true;
-   if (!isNaN(num) && (f.includes('mi') || f.includes('milhõ') || f.includes('milhoe')) && num >= 1) return true;
+   if (!isNaN(num) && f.includes('k') && !f.includes('mil') && num >= 70) return true;
+
    return false;
 }
 
