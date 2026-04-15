@@ -549,7 +549,8 @@ const App: React.FC = () => {
     if (metaAdsTotal > 0) {
       newKPIs.investment.value = metaAdsTotal;
     }
-    safeKpi('leads', 'Leads', 'number').value = sum(filteredTrends, 'leads');
+    // Leads: use formLeadsList (formularios_anuncios) as primary, fallback to filteredTrends
+    safeKpi('leads', 'Leads', 'number').value = data.formLeadsList.length > 0 ? data.formLeadsList.length : sum(filteredTrends, 'leads');
     safeKpi('revenue', 'Faturamento MKT', 'currency').value = sum(filteredTrends, 'revenue');
     safeKpi('sales', 'Vendas MKT', 'number').value = sum(filteredTrends, 'sales');
     safeKpi('mqls', 'MQLs', 'number').value = sum(filteredTrends, 'mqls');
