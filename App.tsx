@@ -971,7 +971,7 @@ const App: React.FC = () => {
                             <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Empresa</th>
                             <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Telefone</th>
                             <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">E-mail</th>
-                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Faturamento</th>
+                            <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Fat. / Colab.</th>
                             <th className="sticky top-0 z-10 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-400 font-medium text-xs border-b border-slate-200 dark:border-slate-700/50">Plataforma</th>
                           </tr>
                         </thead>
@@ -992,7 +992,7 @@ const App: React.FC = () => {
                                 <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-xs truncate max-w-[180px]">{lead.email || '-'}</td>
                                 <td className="px-3 py-2">
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${lead.isMql ? 'bg-violet-500/20 text-violet-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                                    {lead.faturamento || 'N/A'}
+                                    {lead.faturamento || (lead.colaboradores ? `${lead.colaboradores} colab.` : 'N/A')}
                                   </span>
                                 </td>
                                 <td className="px-3 py-2 text-slate-500 dark:text-slate-400 text-[10px]">{lead.medium || lead.source}</td>

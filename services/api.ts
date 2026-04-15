@@ -21,7 +21,7 @@ export interface DashboardData {
    metaDemographics: MetaDemographicData;
    leadsByPlatform: { platform: string; count: number; origin: string; mqls: number; leads: number }[];
    wonDealsTimeline: { id: string; name: string; valor: number; owner: string; date: string }[];
-   formLeadsList: { nome: string; telefone: string; email: string; empresa: string; cargo: string; faturamento: string; produto: string; source: string; medium: string; isMql: boolean }[];
+   formLeadsList: { nome: string; telefone: string; email: string; empresa: string; cargo: string; faturamento: string; colaboradores: string; produto: string; source: string; medium: string; isMql: boolean }[];
 }
 
 // --- Config ---
@@ -107,6 +107,17 @@ function isFaturamento70kPlus(faturamento: string): boolean {
    if (!isNaN(num) && num >= 70000) return true;
    if (!isNaN(num) && f.includes('k') && !f.includes('mil') && num >= 70) return true;
 
+   return false;
+}
+
+// Check if lead qualifies as MQL: Fat >= 70k OR (no fat but >= 5 colaboradores)
+function isLeadMql(faturamento: string, colaboradores: string): boolean {
+   if (isFaturamento70kPlus(faturamento)) return true;
+   if (!faturamento && colaboradores) {
+      const c = colaboradores.toLowerCase();
+      // >= 5 colaboradores qualifies
+      if (c.includes('de 8') || c.includes('de 16') || c.includes('de 31') || c.includes('mais de 100')) return true;
+   }
    return false;
 }
 
@@ -258,7 +269,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          const src = (f.utm_source || '').toLowerCase();
          const med = (f.utm_medium || '').toLowerCase();
          const fat = f.Faturamento || '';
-         const isMql = isFaturamento70kPlus(fat);
+         const colab = f.Colaboradores || '';
+         const isMql = isLeadMql(fat, colab);
          if (isMql) formMqls++;
 
          let origin: 'Ads' | 'Orgânico' | 'Outbound';
@@ -318,10 +330,11 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             empresa: f.Empresa || '',
             cargo: f.Cargo || '',
             faturamento: f.Faturamento || '',
+            colaboradores: f.Colaboradores || '',
             produto: f.Produto || '',
             source: f.utm_source || '',
             medium: f.utm_medium || '',
-            isMql: isFaturamento70kPlus(f.Faturamento || ''),
+            isMql: isLeadMql(f.Faturamento || '', f.Colaboradores || ''),
          }));
 
       // --- 4b. Compute commercial KPIs from CRM ---
