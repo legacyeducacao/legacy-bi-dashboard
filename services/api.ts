@@ -638,6 +638,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
                date: dateKey, cost: 0, leads: 0, mqls: 0, vendas: 0,
                faturamento: 0, rm: 0, rr: 0, impressions: 0, clicks: 0,
                no_shows: 0, rescheduled: 0,
+               connected: 0, activities: 0, prequalificacoes: 0,
             });
          }
          return trendsMap.get(dateKey);
@@ -672,13 +673,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          t.faturamento += d.valor || 0;
       });
 
-      // CRM activities → meetings per day
+      // CRM activities → per day (connections, meetings, total activities)
       activitiesCreated.forEach(act => {
          const dateKey = act.created_at?.substring(0, 10);
          if (!dateKey) return;
          const t = ensureTrendDay(dateKey);
-         if (isMeetingSubject(act.subject, act.type)) t.rm++;
-         if (isNoShow(act.type)) { t.rm++; t.no_shows++; }
+         t.activities++;
+         if (isConnectionAttempt(act.subject)) t.connected++;
+         if (act.subject === 'Pré-qualificação') t.prequalificacoes++;
+         if (isMeetingSubject(act.subject, act.type) && isSessionSubject(act.subject) && !isRolePlay(act.subject)) t.rm++;
          if (isSchedulingAttempt(act.subject)) t.rescheduled++;
       });
 
@@ -686,7 +689,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          const dateKey = act.created_at?.substring(0, 10);
          if (!dateKey) return;
          const t = ensureTrendDay(dateKey);
-         if (isMeetingSubject(act.Subject, act.type)) t.rr++;
+         t.activities++;
+         if (isNoShow(act.type)) t.no_shows++;
+         if (isMeetingSubject(act.Subject, act.type) && isSessionSubject(act.Subject) && !isRolePlay(act.Subject)) t.rr++;
       });
 
       const dailyTrends = Array.from(trendsMap.values())
@@ -698,7 +703,9 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             leads: row.leads, mqls: row.mqls,
             investment: row.cost,
             revenue: row.faturamento, sales: row.vendas,
-            connections: 0, opportunities: 0,
+            connections: row.connected, opportunities: 0,
+            connected: row.connected, activities: row.activities,
+            prequalificacoes: row.prequalificacoes,
             meetings_booked: row.rm, meetings_held: row.rr,
             no_shows: row.no_shows, rescheduled: row.rescheduled,
             impressions: row.impressions, clicks: row.clicks,

@@ -1452,7 +1452,7 @@ const App: React.FC = () => {
           {/* SDR Activity Trends */}
           <div className="h-full min-h-[300px]">
             <TrendChart
-              title="Evolução de Atividades (Conexões)"
+              title="Atividades SDR (Conexões x Total)"
               data={filteredTrends}
               dataKeyBar="connected"
               dataKeyLine="activities"
