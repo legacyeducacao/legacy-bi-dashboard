@@ -1,4 +1,73 @@
 
+// === Supabase CRM Types (Pipedrive webhook mirror) ===
+
+export interface CRMDealCreated {
+  id: string;
+  Nome: string;
+  status: string;
+  person_id: string;
+  user_id: string;
+  owner_id: string;
+  pipeline_id: string;
+  entidade_id: string;
+  created_at: string;
+}
+
+export interface CRMDealUpdated {
+  uid: string;
+  id: string;
+  Nome: string;
+  Status: 'open' | 'won' | 'lost';
+  stage_id: string;
+  owner_id: string;
+  person_id: string;
+  pipeline_id: string;
+  valor: number;
+  'Lost Reason': string | null;
+  org_id: string | null;
+  created_at: string;
+}
+
+export interface CRMActivityCreated {
+  type: string;
+  subject: string;
+  action: string;
+  user_id: string;
+  entidade_id: string;
+  company_id: string;
+  created_at: string;
+}
+
+export interface CRMActivityUpdated {
+  deal_id: string | null;
+  type: string;
+  Subject: string;
+  Action: string;
+  owner_id: string;
+  person_id: string | null;
+  user_id: string;
+  Entidade_id: string;
+  Company_id: string;
+  public_description: string;
+  created_at: string;
+}
+
+export interface CRMPersonCreated {
+  Nome: string;
+  Email: string;
+  Telefone: string;
+  From: string;
+  Campanha: string;
+  Faturamento: string;
+  Segmento: string;
+  Cargo: string;
+  Empresa: string;
+  Owner_ID: string;
+  entidade_id: string;
+  Action: string;
+  created_at: string;
+}
+
 // Metric Data Structure
 export interface MetricData {
   id: string;

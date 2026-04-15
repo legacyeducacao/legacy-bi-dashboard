@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import { fetchAllMetaData } from './meta';
-import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChannelStats, MarketingProductStats, FollowUpDeal, MetaCampaignData, MetaLeadData, MetaDemographicData } from '../types';
+import { fetchAllCRMData, getLatestDealStates, getUniqueWonDeals } from './supabaseCRM';
+import { MetricData, RepPerformance, PeriodContext, FunnelStage, MarketingChannelStats, MarketingProductStats, FollowUpDeal, MetaCampaignData, MetaLeadData, MetaDemographicData, CRMDealUpdated, CRMActivityCreated, CRMActivityUpdated } from '../types';
 
 export interface DashboardData {
    kpis: Record<string, MetricData>;
@@ -20,38 +21,27 @@ export interface DashboardData {
    metaDemographics: MetaDemographicData;
 }
 
-// --- Pipedrive Config ---
-// API token is now server-side only (in Vercel env vars)
-// Frontend calls go through /api/pipedrive proxy
-const PIPEDRIVE_PROXY = '/api/pipedrive';
-const PIPELINE_VENDAS = 2;
-
-const STAGE_MAP: Record<number, string> = {
-   6: 'Oportunidades', 7: 'Filtro 1', 8: 'Filtro 2', 9: 'Agendado',
-   22: 'Reagendamento', 10: 'Maturação', 20: 'Negociação',
-   21: 'Envio de Contrato', 11: 'Vendido'
+// --- Config ---
+const STAGE_MAP: Record<string, string> = {
+   '6': 'Oportunidades', '7': 'Filtro 1', '8': 'Filtro 2', '9': 'Agendado',
+   '22': 'Reagendamento', '10': 'Maturação', '20': 'Negociação',
+   '21': 'Envio de Contrato', '11': 'Vendido'
 };
 
-// Custom field keys from Pipedrive
-const FIELD_CANAL_ORIGEM = 'af9399eff946d6d06390b9c1f7eec1af620a89a5';
-const FIELD_SDR_RESPONSAVEL = '17d4f2deba2b2d6302b1f5ac1a2d18abc855fc3c';
-
-const ORIGIN_MAP: Record<number, string> = {
-   49: 'Outbound', 50: 'Allbound', 51: 'Inbound', 52: 'Eventos', 53: 'Indicação', 54: 'Upsell'
+const STAGE_ORDER: Record<string, number> = {
+   '6': 1, '7': 2, '8': 3, '9': 4, '22': 5, '10': 6, '20': 7, '21': 8, '11': 9
 };
 
-// SDR users (pre-vendas): Isaque, Luan, Rodrigo
-// Closer users (fechamento): Joel, Leonardo (Padilha), Leonardo Souza
-const USER_ROLES: Record<number, { name: string; role: 'SDR' | 'Closer' }> = {
-   25959419: { name: 'Isaque Inacio', role: 'SDR' },
-   25955327: { name: 'Luan Gabriel', role: 'SDR' },
-   25955316: { name: 'Rodrigo Fernandes', role: 'SDR' },
-   25909798: { name: 'João Vitor Gaspar', role: 'SDR' },
-   25963379: { name: 'Paim', role: 'SDR' },
-   25952137: { name: 'Joel Carlos', role: 'Closer' },
-   25952181: { name: 'Leonardo Padilha', role: 'Closer' },
-   25959529: { name: 'Leonardo Souza', role: 'Closer' },
-   25839024: { name: 'Allan Silva', role: 'Closer' },
+const USER_ROLES: Record<string, { name: string; role: 'SDR' | 'Closer' }> = {
+   '25959419': { name: 'Isaque Inacio', role: 'SDR' },
+   '25955327': { name: 'Luan Gabriel', role: 'SDR' },
+   '25955316': { name: 'Rodrigo Fernandes', role: 'SDR' },
+   '25909798': { name: 'João Vitor Gaspar', role: 'SDR' },
+   '25963379': { name: 'Paim', role: 'SDR' },
+   '25952137': { name: 'Joel Carlos', role: 'Closer' },
+   '25952181': { name: 'Leonardo Padilha', role: 'Closer' },
+   '25959529': { name: 'Leonardo Souza', role: 'Closer' },
+   '25839024': { name: 'Allan Silva', role: 'Closer' },
 };
 
 const N8N_META_ADS_WEBHOOK = 'https://automacao-n8n.zs0trp.easypanel.host/webhook/30135616-a1ea-4196-abb1-367e88b1d882';
@@ -84,74 +74,32 @@ const extractProductFromCampaign = (campaignName: string): string => {
    const map: Record<string, string> = {
       'Legado': 'Executória', 'IE': 'Inteligência Empresarial',
       'Imersão': 'Impulsão Empresarial', 'TESTE': 'Teste',
+      'LEGADO': 'Executória',
    };
    return map[tag] || tag;
 };
 
-// Activity types that represent meetings (booked / held)
-const MEETING_TYPES = new Set(['sessao_estrategica', 'reuniao_de_fechamento', 'meeting']);
-const NO_SHOW_TYPE = 'no_show';
-const RESCHEDULED_TYPE = 'reagendado';
-
-// --- Pipedrive API (via serverless proxy) ---
-async function fetchPipedriveEndpoint(endpoint: string, params: Record<string, string>): Promise<any> {
-   const searchParams = new URLSearchParams({ endpoint, ...params });
-   const res = await fetch(`${PIPEDRIVE_PROXY}?${searchParams}`);
-   if (!res.ok) {
-      console.warn(`Pipedrive proxy error (${endpoint}):`, res.status);
-      return { success: false, data: null };
-   }
-   return res.json();
+// Activity subject classification
+function isConnectionAttempt(subject: string): boolean {
+   return /tentativa de conex/i.test(subject) || subject === 'Pré-qualificação';
 }
 
-async function fetchPipedriveDeals(status: 'open' | 'won' | 'lost' | 'all_not_deleted', pipelineId?: number): Promise<any[]> {
-   const allDeals: any[] = [];
-   let start = 0;
-   const limit = 500;
-
-   while (true) {
-      const params: Record<string, string> = {
-         limit: String(limit),
-         start: String(start),
-         status,
-         ...(pipelineId ? { pipeline_id: String(pipelineId) } : {})
-      };
-
-      const json = await fetchPipedriveEndpoint('deals', params);
-      if (!json.success || !json.data) break;
-
-      allDeals.push(...json.data);
-
-      if (!json.additional_data?.pagination?.more_items_in_collection) break;
-      start += limit;
-   }
-
-   return allDeals;
+function isMeetingSubject(subject: string, type: string): boolean {
+   return type === 'sessao_estrategica' || type === 'meeting' ||
+      /sess[aã]o estrat[eé]g/i.test(subject) || /sess[aã]o impuls/i.test(subject) ||
+      /fechamento/i.test(subject);
 }
 
-async function fetchPipedriveActivities(startDate: string, endDate: string): Promise<any[]> {
-   const allActivities: any[] = [];
-   let start = 0;
-   const limit = 500;
+function isNoShow(type: string): boolean {
+   return type === 'no_show';
+}
 
-   while (true) {
-      const params: Record<string, string> = {
-         limit: String(limit),
-         start: String(start),
-         start_date: startDate,
-         end_date: endDate,
-      };
+function isSchedulingAttempt(subject: string): boolean {
+   return /tentativa de agendamento/i.test(subject) || /tentativa de reagendamento/i.test(subject);
+}
 
-      const json = await fetchPipedriveEndpoint('activities', params);
-      if (!json.success || !json.data) break;
-
-      allActivities.push(...json.data);
-
-      if (!json.additional_data?.pagination?.more_items_in_collection) break;
-      start += limit;
-   }
-
-   return allActivities;
+function getUserInfo(userId: string): { name: string; role: 'SDR' | 'Closer' } {
+   return USER_ROLES[userId] || { name: `User ${userId}`, role: 'SDR' };
 }
 
 // --- Main fetch ---
@@ -164,126 +112,46 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
    };
 
    try {
-      console.log("Fetching dashboard data (Pipedrive + Supabase)...");
+      console.log("Fetching dashboard data (Supabase CRM + Meta API)...");
 
-      // --- 1. Fetch Pipedrive data (deals + activities) - graceful on failure ---
-      let wonDeals: any[] = [];
-      let openDeals: any[] = [];
-      try {
-         [wonDeals, openDeals] = await Promise.all([
-            fetchPipedriveDeals('won', PIPELINE_VENDAS),
-            fetchPipedriveDeals('open', PIPELINE_VENDAS),
-         ]);
-      } catch (e) {
-         console.warn('Pipedrive deals fetch failed (rate limit?), continuing with Supabase data only');
-      }
+      // --- 1. Determine current data month ---
+      const now = new Date();
+      const brazilNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+      const dataYear = brazilNow.getFullYear();
+      const dataMonth = brazilNow.getMonth();
+      const monthStart = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-01`;
+      const maxDay = new Date(dataYear, dataMonth + 1, 0).getDate();
+      const monthEnd = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-${maxDay}`;
 
-      // --- 2. Fetch Supabase marketing data ---
-      // Determine data month from latest Supabase data
-      let dataFirstOfMonth: string, dataLastOfMonth: string;
-      let dataYear: number, dataMonth: number;
+      // --- 2. Fetch all data in parallel ---
+      const [crmData, metaData, marketingResult] = await Promise.all([
+         // CRM data from Supabase (primary source)
+         fetchAllCRMData(monthStart, monthEnd).catch(e => {
+            console.warn('CRM data fetch failed:', e);
+            return { dealsCreated: [], dealsUpdated: [], wonDeals: [], lostDeals: [], activitiesCreated: [], activitiesUpdated: [], personsCreated: [] };
+         }),
+         // Meta Ads API
+         fetchAllMetaData(monthStart, monthEnd).catch(() => ({
+            campaigns: [] as MetaCampaignData[], insights: [] as any[],
+            leads: [] as MetaLeadData[], demographics: { ageGender: [], regions: [] } as MetaDemographicData
+         })),
+         // Supabase marketing data (fact_daily_marketing)
+         isSupabaseConfigured
+            ? supabase.from('fact_daily_marketing').select('*').gte('date', monthStart).lte('date', monthEnd).order('date', { ascending: true }).limit(5000)
+            : Promise.resolve({ data: [] as any[] }),
+      ]);
 
-      if (isSupabaseConfigured) {
-         const { data: latestRow } = await supabase
-            .from('fact_daily_marketing').select('date').order('date', { ascending: false }).limit(1);
-         const latestDate = latestRow?.[0]?.date;
-         if (latestDate) {
-            const d = new Date(latestDate + 'T00:00:00');
-            dataYear = d.getFullYear();
-            dataMonth = d.getMonth();
-         } else {
-            dataYear = new Date().getFullYear();
-            dataMonth = new Date().getMonth();
-         }
-      } else {
-         dataYear = new Date().getFullYear();
-         dataMonth = new Date().getMonth();
-      }
+      const marketingRows = (marketingResult as any).data || [];
+      const { dealsCreated, wonDeals: rawWonDeals, lostDeals, activitiesCreated, activitiesUpdated, personsCreated, dealsUpdated } = crmData;
 
-      dataFirstOfMonth = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-01`;
-      dataLastOfMonth = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}-${new Date(dataYear, dataMonth + 1, 0).getDate()}`;
+      // Deduplicate deals
+      const latestOpenDeals = getLatestDealStates(dealsUpdated.filter(d => d.Status === 'open'));
+      const uniqueWonDeals = getUniqueWonDeals(rawWonDeals);
+      const uniqueLostDeals = getUniqueWonDeals(lostDeals); // same dedup logic
 
-      let marketingRows: any[] = [];
-      if (isSupabaseConfigured) {
-         const { data: rawRows } = await supabase
-            .from('fact_daily_marketing').select('*')
-            .gte('date', dataFirstOfMonth).lte('date', dataLastOfMonth)
-            .order('date', { ascending: true }).limit(5000);
-         marketingRows = rawRows || [];
-      }
+      console.log(`CRM: ${dealsCreated.length} created, ${latestOpenDeals.length} open, ${uniqueWonDeals.length} won, ${uniqueLostDeals.length} lost | Activities: ${activitiesCreated.length} created, ${activitiesUpdated.length} updated | Persons: ${personsCreated.length} | Marketing: ${marketingRows.length} rows | Meta: ${metaData.campaigns.length} campaigns`);
 
-      // --- 2b. Fetch Pipedrive activities for the month ---
-      let allActivities: any[] = [];
-      try {
-         allActivities = await fetchPipedriveActivities(dataFirstOfMonth, dataLastOfMonth);
-      } catch (e) {
-         console.warn('Pipedrive activities fetch failed (rate limit?), continuing without');
-      }
-
-      // --- 2c. Fetch Supabase leads and qualifications ---
-      let supabaseLeads: any[] = [];
-      let supabaseQualificacoes: any[] = [];
-      if (isSupabaseConfigured) {
-         const [leadsRes, qualsRes] = await Promise.all([
-            supabase.from('formularios_anuncios').select('*')
-               .not('Nome', 'is', null)
-               .limit(5000),
-            supabase.from('qualificacao_do_lead_na_3C_ao_encerrar_chamada').select('*')
-               .gte('created_at', dataFirstOfMonth)
-               .limit(5000),
-         ]);
-         supabaseLeads = leadsRes.data || [];
-         supabaseQualificacoes = qualsRes.data || [];
-      }
-
-      // --- 2d. Fetch Meta Ads data directly from API ---
-      let metaData = { campaigns: [] as MetaCampaignData[], insights: [] as any[], leads: [] as MetaLeadData[], demographics: { ageGender: [], regions: [] } as MetaDemographicData };
-      try {
-         metaData = await fetchAllMetaData(dataFirstOfMonth, dataLastOfMonth);
-         console.log(`Meta API: ${metaData.campaigns.length} campaigns, ${metaData.leads.length} leads, ${metaData.insights.length} daily insights`);
-      } catch (e) {
-         console.warn('Meta API fetch failed, continuing with Supabase marketing data only');
-      }
-
-      // Enrich Meta leads with Supabase pipeline status
-      if (metaData.leads.length > 0 && supabaseQualificacoes.length > 0) {
-         metaData.leads = metaData.leads.map(lead => {
-            const phone = lead.phone.replace(/\D/g, '');
-            const match = supabaseQualificacoes.find((q: any) => {
-               const qPhone = (q.Telefone || q.telefone || '').replace(/\D/g, '');
-               return qPhone && phone && qPhone.endsWith(phone.slice(-8));
-            });
-            return {
-               ...lead,
-               pipelineStatus: match ? (match['Qualificação'] || '') : '',
-            };
-         });
-      }
-
-      // Use Meta API insights to supplement Supabase marketing data if available
-      if (metaData.insights.length > 0 && marketingRows.length === 0) {
-         marketingRows = metaData.insights.map((row: any) => ({
-            date: row.date,
-            campaign_name: 'Meta Ads',
-            cost: row.spend,
-            impressions: row.impressions,
-            clicks: row.clicks,
-            leads: row.leads,
-            mqls: 0,
-            vendas: 0,
-            faturamento: 0,
-         }));
-      }
-
-      console.log(`Marketing: ${marketingRows.length} rows | Pipedrive: ${wonDeals.length} won, ${openDeals.length} open | Activities: ${allActivities.length} | Leads: ${supabaseLeads.length} | Qualificações: ${supabaseQualificacoes.length} | Meta Campaigns: ${metaData.campaigns.length}`);
-
-      // --- 3. Filter Pipedrive deals by data month ---
-      const monthPrefix = `${dataYear}-${String(dataMonth + 1).padStart(2, '0')}`;
-
-      const monthWonDeals = wonDeals.filter(d => d.won_time?.startsWith(monthPrefix));
-      const monthOpenDeals = openDeals; // Open deals are always current
-
-      // --- 4. Aggregate marketing totals ---
+      // --- 3. Aggregate marketing totals ---
       let totalCost = 0, totalImpressions = 0, totalClicks = 0;
       let mktVendas = 0, mktFaturamento = 0;
 
@@ -295,179 +163,122 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          mktFaturamento += safeNumber(r.faturamento);
       });
 
-      // Leads from Supabase formularios_anuncios (real form submissions)
-      const totalLeads = supabaseLeads.length || safeNumber(marketingRows.reduce((s: number, r: any) => s + safeNumber(r.leads), 0));
-
-      // MQLs from Supabase qualificações (leads that were called and qualified)
-      const qualifiedStatuses = ['Ganho', 'Sessão Estratégica Agendada', 'Ligação Agendada', 'Lead Qualificado / Filtro 2'];
-      const totalMqls = supabaseQualificacoes.filter((q: any) =>
-         qualifiedStatuses.includes(q['Qualificação'])
-      ).length || safeNumber(marketingRows.reduce((s: number, r: any) => s + safeNumber(r.mqls), 0));
-
-      // Extract sales/meetings from qualificações when Pipedrive is unavailable
-      const sessionsFromQuals = supabaseQualificacoes.filter((q: any) =>
-         q['Qualificação'] === 'Sessão Estratégica Agendada'
-      ).length;
-      const winsFromQuals = supabaseQualificacoes.filter((q: any) =>
-         q['Qualificação'] === 'Ganho'
-      ).length;
-
-      // --- 5. Aggregate Pipedrive commercial data ---
-      // Use Pipedrive data if available, fallback to Supabase qualificações
-      const pipedriveAvailable = monthWonDeals.length > 0 || monthOpenDeals.length > 0;
-      const totalSales = pipedriveAvailable ? monthWonDeals.length : winsFromQuals;
-      const totalRevenue = monthWonDeals.reduce((sum, d) => sum + (d.value || 0), 0);
-
-      // Inbound vs Outbound from Canal de Origem
-      let salesInbound = 0, salesOutbound = 0;
-      monthWonDeals.forEach(d => {
-         const originId = d[FIELD_CANAL_ORIGEM];
-         const origin = ORIGIN_MAP[originId] || '';
-         if (origin === 'Inbound' || origin === 'Allbound') salesInbound++;
-         else if (origin === 'Outbound') salesOutbound++;
-         else salesInbound++; // Default to inbound for Eventos, Indicação, Upsell, etc
-      });
-
-      // Funnel stages from open deals
-      const stageCountMap: Record<string, number> = {};
-      monthOpenDeals.forEach(d => {
-         const stage = STAGE_MAP[d.stage_id] || 'Outro';
-         stageCountMap[stage] = (stageCountMap[stage] || 0) + 1;
-      });
-
-      // Connections = deals that passed beyond 'Oportunidades' stage (stage_order >= 2)
-      const connectionsFromDeals = monthOpenDeals.filter(d => d.stage_order_nr >= 2).length + totalSales;
-      // Fallback: connections from qualificações (total calls made)
-      const connections = pipedriveAvailable ? connectionsFromDeals : supabaseQualificacoes.length;
-
-      // --- 5b. Aggregate activity data for meetings, no-shows, rescheduled ---
-      let meetingsBooked = 0;   // All meeting-type activities (scheduled)
-      let meetingsHeld = 0;     // Meeting-type activities marked done (excluding no-shows)
-      let totalNoShows = 0;     // Activities of type no_show
-      let totalRescheduled = 0; // Activities of type reagendado
-
-      if (allActivities.length > 0) {
-         // Use real Pipedrive activity data
-         allActivities.forEach(act => {
-            const type = act.type || '';
-            if (MEETING_TYPES.has(type)) {
-               meetingsBooked++;
-               if (act.done) meetingsHeld++;
-            }
-            if (type === NO_SHOW_TYPE) {
-               totalNoShows++;
-               meetingsBooked++;
-            }
-            if (type === RESCHEDULED_TYPE) {
-               totalRescheduled++;
-            }
+      // If no Supabase marketing data, use Meta API insights
+      if (marketingRows.length === 0 && metaData.insights.length > 0) {
+         metaData.insights.forEach((row: any) => {
+            totalCost += row.spend || 0;
+            totalImpressions += row.impressions || 0;
+            totalClicks += row.clicks || 0;
          });
-      } else if (supabaseQualificacoes.length > 0) {
-         // Fallback: derive meeting metrics from Supabase qualificações
-         meetingsBooked = sessionsFromQuals + winsFromQuals;
-         meetingsHeld = winsFromQuals;
-         totalNoShows = supabaseQualificacoes.filter((q: any) =>
-            q['Qualificação'] === 'Não qualificada' || q['Qualificação'] === 'Caixa Postal'
-         ).length;
       }
 
-      // --- 6. Build team data from Pipedrive (deals + activities) + Supabase fallback ---
+      // --- 4. Compute commercial KPIs from CRM ---
+      const totalLeads = personsCreated.length || dealsCreated.length;
+      const totalSales = uniqueWonDeals.length;
+      const totalRevenue = uniqueWonDeals.reduce((sum, d) => sum + (d.valor || 0), 0);
+
+      // MQLs = leads that passed Filtro 1+ (stage_id >= 7) or were qualified
+      const mqls = latestOpenDeals.filter(d => {
+         const order = STAGE_ORDER[d.stage_id] || 0;
+         return order >= 2; // Past Oportunidades
+      }).length + totalSales;
+
+      // Connections = deals past Oportunidades (stage >= Filtro 1)
+      const connections = latestOpenDeals.filter(d => {
+         const order = STAGE_ORDER[d.stage_id] || 0;
+         return order >= 2;
+      }).length + totalSales;
+
+      // Person origins for inbound/outbound split
+      let salesInbound = 0, salesOutbound = 0;
+      uniqueWonDeals.forEach(d => {
+         const person = personsCreated.find(p => p.entidade_id === d.person_id);
+         const from = (person?.From || '').toLowerCase();
+         if (from === 'outbound') salesOutbound++;
+         else salesInbound++;
+      });
+
+      // --- 5. Aggregate activities ---
+      let meetingsBooked = 0, meetingsHeld = 0, totalNoShows = 0, totalRescheduled = 0;
+
+      // From atividade_criada: count meetings booked, connections
+      activitiesCreated.forEach(act => {
+         if (isMeetingSubject(act.subject, act.type)) meetingsBooked++;
+         if (isNoShow(act.type)) { totalNoShows++; meetingsBooked++; }
+         if (isSchedulingAttempt(act.subject)) totalRescheduled++;
+      });
+
+      // From Atividade Alterada: count meetings held (done activities)
+      activitiesUpdated.forEach(act => {
+         if (isMeetingSubject(act.Subject, act.type)) meetingsHeld++;
+         if (isNoShow(act.type)) totalNoShows++;
+      });
+
+      // Avoid double counting
+      if (totalNoShows > 0) totalNoShows = Math.ceil(totalNoShows / 2);
+
+      // --- 6. Build team data from CRM ---
       const teamMap = new Map<string, any>();
 
-      const initTeamMemberByName = (name: string, role: 'SDR' | 'Closer') => {
-         if (!teamMap.has(name)) {
-            teamMap.set(name, {
-               id: name.replace(/\s+/g, ''),
-               name,
-               role,
+      const initTeamMember = (userId: string) => {
+         const info = getUserInfo(userId);
+         if (!teamMap.has(info.name)) {
+            teamMap.set(info.name, {
+               id: info.name.replace(/\s+/g, ''),
+               name: info.name,
+               role: info.role,
                opportunities: 0, connections: 0, meetingsBooked: 0,
                meetingsHeld: 0, sales: 0, revenue: 0, noShowCount: 0,
-               rescheduled: 0,
+               rescheduled: 0, calls: 0,
             });
          }
-         return teamMap.get(name);
+         return teamMap.get(info.name);
       };
 
-      const initTeamMember = (userId: number) => {
-         const info = USER_ROLES[userId] || { name: `User ${userId}`, role: 'SDR' as const };
-         return initTeamMemberByName(info.name, info.role);
-      };
+      // Deals created → opportunities by owner
+      dealsCreated.forEach(d => {
+         if (!d.owner_id) return;
+         const member = initTeamMember(d.owner_id);
+         member.opportunities++;
+      });
 
-      if (pipedriveAvailable) {
-         // Count opportunities and connections from deals
-         monthOpenDeals.forEach(d => {
-            const member = initTeamMember(d.user_id?.id || d.user_id);
-            member.opportunities++;
-            if (d.stage_order_nr >= 2) member.connections++;
-         });
+      // Open deals → connections (stage >= Filtro 1)
+      latestOpenDeals.forEach(d => {
+         if (!d.owner_id) return;
+         const member = initTeamMember(d.owner_id);
+         const order = STAGE_ORDER[d.stage_id] || 0;
+         if (order >= 2) member.connections++;
+      });
 
-         // Count won deals by owner
-         monthWonDeals.forEach(d => {
-            const member = initTeamMember(d.user_id?.id || d.user_id);
-            member.sales++;
-            member.revenue += d.value || 0;
-            member.connections++;
-         });
+      // Won deals → sales + revenue by owner
+      uniqueWonDeals.forEach(d => {
+         if (!d.owner_id) return;
+         const member = initTeamMember(d.owner_id);
+         member.sales++;
+         member.revenue += d.valor || 0;
+         member.connections++;
+      });
 
-         // Enrich team members with REAL activity data (meetings, no-shows, rescheduled)
-         allActivities.forEach(act => {
-            const userId = act.assigned_to_user_id || act.user_id;
-            if (!userId) return;
-            const member = initTeamMember(userId);
-            const type = act.type || '';
+      // Activities created → per user
+      activitiesCreated.forEach(act => {
+         if (!act.user_id) return;
+         const member = initTeamMember(act.user_id);
+         if (isConnectionAttempt(act.subject)) member.connections++;
+         if (isMeetingSubject(act.subject, act.type)) member.meetingsBooked++;
+         if (isNoShow(act.type)) member.noShowCount++;
+         if (isSchedulingAttempt(act.subject)) member.rescheduled++;
+         if (act.type === 'call') member.calls++;
+      });
 
-            if (MEETING_TYPES.has(type)) {
-               member.meetingsBooked++;
-               if (act.done) member.meetingsHeld++;
-            }
-            if (type === NO_SHOW_TYPE) {
-               member.noShowCount++;
-               member.meetingsBooked++;
-            }
-            if (type === RESCHEDULED_TYPE) {
-               member.rescheduled++;
-            }
-         });
-      } else if (supabaseQualificacoes.length > 0) {
-         // Fallback: build team data from Supabase qualificações
-         // Map agent names from discadora to proper names/roles
-         const AGENT_MAP: Record<string, { name: string; role: 'SDR' | 'Closer' }> = {
-            'isaque': { name: 'Isaque Inacio', role: 'SDR' },
-            'luan': { name: 'Luan Gabriel', role: 'SDR' },
-            'rodrigo': { name: 'Rodrigo Fernandes', role: 'SDR' },
-            'paim': { name: 'Paim', role: 'SDR' },
-            'joao': { name: 'João Vitor Gaspar', role: 'SDR' },
-         };
+      // Activities updated → meetings held per user
+      activitiesUpdated.forEach(act => {
+         if (!act.user_id) return;
+         const member = initTeamMember(act.user_id);
+         if (isMeetingSubject(act.Subject, act.type)) member.meetingsHeld++;
+      });
 
-         supabaseQualificacoes.forEach((q: any) => {
-            const agentRaw = (q.Agente || '').toLowerCase().trim();
-            const agentInfo = AGENT_MAP[agentRaw] || { name: q.Agente || 'Desconhecido', role: 'SDR' as const };
-            const member = initTeamMemberByName(agentInfo.name, agentInfo.role);
-            member.connections++;
-
-            const qual = q['Qualificação'] || '';
-            if (qual === 'Sessão Estratégica Agendada' || qual === 'Ligação Agendada') {
-               member.meetingsBooked++;
-            }
-            if (qual === 'Ganho') {
-               member.sales++;
-               member.meetingsHeld++;
-               member.meetingsBooked++;
-            }
-            if (qual === 'Não qualificada' || qual === 'Caixa Postal') {
-               member.noShowCount++;
-            }
-         });
-      }
-
-      // Convert to flat format that App.tsx expects (snake_case fields for rawTeamData)
-      const allTeamMembers = Array.from(teamMap.values()).map(m => ({
-         ...m,
-         rep_name: m.name,
-         meetings_booked: m.meetingsBooked,
-         meetings_held: m.meetingsHeld,
-         no_shows: m.noShowCount,
-      }));
+      // Build SDR and Closer arrays
+      const allTeamMembers = Array.from(teamMap.values());
 
       const sdrData: RepPerformance[] = allTeamMembers
          .filter(m => m.role === 'SDR')
@@ -490,7 +301,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
       // --- 7. Build KPIs ---
       const cpl = totalLeads > 0 ? totalCost / totalLeads : 0;
-      const cpmql = totalMqls > 0 ? totalCost / totalMqls : 0;
+      const cpmql = mqls > 0 ? totalCost / mqls : 0;
       const cac = totalSales > 0 ? totalCost / totalSales : 0;
       const roas = totalCost > 0 ? totalRevenue / totalCost : 0;
       const ticket = totalSales > 0 ? totalRevenue / totalSales : 0;
@@ -503,7 +314,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          investment: { id: 'investment', label: 'Investimento', value: totalCost, goal: 120000, unit: 'currency' },
          leads: { id: 'leads', label: 'Leads', value: totalLeads, goal: 800, unit: 'number' },
          cpl: { id: 'cpl', label: 'CPL', value: cpl, goal: 150, unit: 'currency' },
-         mqls: { id: 'mqls', label: 'MQLs', value: totalMqls, goal: 700, unit: 'number' },
+         mqls: { id: 'mqls', label: 'MQLs', value: mqls, goal: 700, unit: 'number' },
          cpmql: { id: 'cpmql', label: 'Custo por MQL', value: cpmql, goal: 180, unit: 'currency' },
          sales: { id: 'sales', label: 'Vendas Total', value: totalSales, goal: 20, unit: 'number' },
          revenue: { id: 'revenue', label: 'Faturamento', value: totalRevenue, goal: 600000, unit: 'currency' },
@@ -517,7 +328,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          salesInbound: { id: 'salesInbound', label: 'Vendas Inbound', value: salesInbound, goal: 15, unit: 'number' },
          salesOutbound: { id: 'salesOutbound', label: 'Vendas Outbound', value: salesOutbound, goal: 5, unit: 'number' },
          conversionMeetingSale: { id: 'conversionMeetingSale', label: 'Conv. Venda/Realizada', value: convMeetSale, goal: 20, unit: 'percentage' },
-         opportunities: { id: 'opportunities', label: 'Oportunidades', value: monthOpenDeals.length + totalSales, goal: 500, unit: 'number' },
+         opportunities: { id: 'opportunities', label: 'Oportunidades', value: dealsCreated.length, goal: 500, unit: 'number' },
          marketingSales: { id: 'marketingSales', label: 'Vendas MKT', value: totalSales, goal: 20, unit: 'number' },
          marketingRevenue: { id: 'marketingRevenue', label: 'Faturamento MKT', value: totalRevenue, goal: 600000, unit: 'currency' },
          noShows: { id: 'noShows', label: 'No-Shows', value: totalNoShows, goal: 20, unit: 'number' },
@@ -525,18 +336,15 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       };
 
       // --- 8. Business day context ---
-      const maxDaysInMonth = new Date(dataYear, dataMonth + 1, 0).getDate();
       let totalBusinessDays = 0;
-      for (let d = 1; d <= maxDaysInMonth; d++) {
+      for (let d = 1; d <= maxDay; d++) {
          const date = new Date(dataYear, dataMonth, d);
          if (date.getDay() !== 0 && date.getDay() !== 6) totalBusinessDays++;
       }
 
-      // Find latest data day
-      const latestMarketingDate = marketingRows.length > 0 ? marketingRows[marketingRows.length - 1].date : dataLastOfMonth;
-      const latestDay = new Date(latestMarketingDate + 'T00:00:00').getDate();
+      const todayDay = brazilNow.getDate();
       let currentBusinessDay = 0;
-      for (let d = 1; d <= latestDay; d++) {
+      for (let d = 1; d <= todayDay; d++) {
          const date = new Date(dataYear, dataMonth, d);
          if (date.getDay() !== 0 && date.getDay() !== 6) currentBusinessDay++;
       }
@@ -548,7 +356,6 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
 
       // --- 9. Daily trends ---
       const trendsMap = new Map<string, any>();
-
       const ensureTrendDay = (dateKey: string) => {
          if (!trendsMap.has(dateKey)) {
             trendsMap.set(dateKey, {
@@ -560,6 +367,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          return trendsMap.get(dateKey);
       };
 
+      // Marketing rows
       marketingRows.forEach((r: any) => {
          const t = ensureTrendDay(r.date);
          t.cost += safeNumber(r.cost);
@@ -571,32 +379,38 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          t.clicks += safeNumber(r.clicks);
       });
 
-      // Enrich trends with Pipedrive won deals by date
-      monthWonDeals.forEach(d => {
-         const dateKey = d.won_time?.substring(0, 10);
+      // CRM deals created → leads per day
+      dealsCreated.forEach(d => {
+         const dateKey = d.created_at?.substring(0, 10);
+         if (!dateKey) return;
+         const t = ensureTrendDay(dateKey);
+         t.leads++;
+      });
+
+      // CRM won deals → sales per day
+      uniqueWonDeals.forEach(d => {
+         const dateKey = d.created_at?.substring(0, 10);
          if (!dateKey) return;
          const t = ensureTrendDay(dateKey);
          t.vendas++;
-         t.faturamento += d.value || 0;
+         t.faturamento += d.valor || 0;
       });
 
-      // Enrich trends with Pipedrive activities by date (meetings, no-shows, rescheduled)
-      allActivities.forEach(act => {
-         const dateKey = act.due_date;
+      // CRM activities → meetings per day
+      activitiesCreated.forEach(act => {
+         const dateKey = act.created_at?.substring(0, 10);
          if (!dateKey) return;
          const t = ensureTrendDay(dateKey);
-         const type = act.type || '';
-         if (MEETING_TYPES.has(type)) {
-            t.rm++; // meetings booked
-            if (act.done) t.rr++; // meetings held (done)
-         }
-         if (type === NO_SHOW_TYPE) {
-            t.rm++; // was booked
-            t.no_shows++;
-         }
-         if (type === RESCHEDULED_TYPE) {
-            t.rescheduled++;
-         }
+         if (isMeetingSubject(act.subject, act.type)) t.rm++;
+         if (isNoShow(act.type)) { t.rm++; t.no_shows++; }
+         if (isSchedulingAttempt(act.subject)) t.rescheduled++;
+      });
+
+      activitiesUpdated.forEach(act => {
+         const dateKey = act.created_at?.substring(0, 10);
+         if (!dateKey) return;
+         const t = ensureTrendDay(dateKey);
+         if (isMeetingSubject(act.Subject, act.type)) t.rr++;
       });
 
       const dailyTrends = Array.from(trendsMap.values())
@@ -635,7 +449,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       const channels: MarketingChannelStats[] = [{
          channel: 'Meta Ads',
          investment: totalCost, leads: totalLeads, cpl,
-         mqls: totalMqls, sales: totalSales, revenue: totalRevenue,
+         mqls, sales: totalSales, revenue: totalRevenue,
          roas, cac,
          impressions: totalImpressions, clicks: totalClicks,
          cpm: totalImpressions > 0 ? (totalCost / totalImpressions) * 1000 : 0,
@@ -662,10 +476,16 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          roas: p.investment > 0 ? p.revenue / p.investment : 0,
       }));
 
-      // --- 13. Funnel data ---
+      // --- 13. Funnel data from CRM pipeline ---
+      const stageCountMap: Record<string, number> = {};
+      latestOpenDeals.forEach(d => {
+         const stage = STAGE_MAP[d.stage_id] || 'Outro';
+         stageCountMap[stage] = (stageCountMap[stage] || 0) + 1;
+      });
+
       const funnelData: FunnelStage[] = [
          { name: 'Leads', value: totalLeads },
-         { name: 'MQLs', value: totalMqls },
+         { name: 'MQLs', value: mqls },
          { name: 'Conexões', value: connections },
          { name: 'Agendadas', value: meetingsBooked },
          { name: 'Realizadas', value: meetingsHeld },
@@ -673,23 +493,47 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       ].filter(item => item.value > 0);
 
       // --- 14. Raw deals for follow-up table ---
-      const rawDeals: FollowUpDeal[] = [...monthOpenDeals, ...monthWonDeals]
-         .filter(d => d.stage_order_nr >= 6 || d.status === 'won') // Maturação+ or won
-         .map(d => ({
-            deal_id: String(d.id),
-            deal_name: d.title || 'Sem título',
-            owner_id: d.owner_name || USER_ROLES[d.user_id?.id || d.user_id]?.name || 'Desconhecido',
-            stage_id: STAGE_MAP[d.stage_id] || `Stage ${d.stage_id}`,
-            amount: d.value || 0,
-            created_date: d.add_time?.substring(0, 10) || '',
-            closed_date: d.won_time?.substring(0, 10) || '',
-            status: d.status,
-         })) as any[];
+      const rawDeals: FollowUpDeal[] = [
+         ...latestOpenDeals.filter(d => (STAGE_ORDER[d.stage_id] || 0) >= 6), // Maturação+
+         ...uniqueWonDeals,
+      ].map(d => ({
+         deal_id: String(d.id),
+         deal_name: d.Nome || 'Sem título',
+         owner_id: USER_ROLES[d.owner_id]?.name || d.owner_id || 'Desconhecido',
+         stage_id: STAGE_MAP[d.stage_id] || `Stage ${d.stage_id}`,
+         amount: d.valor || 0,
+         created_date: d.created_at?.substring(0, 10) || '',
+         closed_date: d.Status === 'won' ? d.created_at?.substring(0, 10) || '' : '',
+         status: d.Status,
+      })) as any[];
+
+      // Enrich Meta leads with Supabase qualifications
+      if (metaData.leads.length > 0 && isSupabaseConfigured) {
+         const { data: qualificacoes } = await supabase
+            .from('qualificacao_do_lead_na_3C_ao_encerrar_chamada')
+            .select('*').gte('created_at', monthStart).limit(5000);
+         if (qualificacoes && qualificacoes.length > 0) {
+            metaData.leads = metaData.leads.map(lead => {
+               const phone = lead.phone.replace(/\D/g, '');
+               const match = qualificacoes.find((q: any) => {
+                  const qPhone = (q.Telefone || q.telefone || '').replace(/\D/g, '');
+                  return qPhone && phone && qPhone.endsWith(phone.slice(-8));
+               });
+               return { ...lead, pipelineStatus: match ? (match['Qualificação'] || '') : '' };
+            });
+         }
+      }
 
       return {
          kpis, dailyTrends, rawMarketingData, sdrData, closerData,
          channels, products, context, funnelData,
-         lastUpdated: new Date(), rawTeamData: allTeamMembers, rawDeals,
+         lastUpdated: new Date(),
+         rawTeamData: allTeamMembers.map(m => ({
+            ...m, rep_name: m.name,
+            meetings_booked: m.meetingsBooked, meetings_held: m.meetingsHeld,
+            no_shows: m.noShowCount,
+         })),
+         rawDeals,
          metaCampaigns: metaData.campaigns,
          metaLeads: metaData.leads,
          metaDemographics: metaData.demographics,
@@ -722,12 +566,12 @@ export const uploadMarketingSector = async (parsedData: any[]) => {
 };
 
 export const uploadCommercialSector = async (_parsedData: any[]) => {
-   console.warn('Commercial data comes from Pipedrive automatically');
+   console.warn('Commercial data comes from Supabase CRM automatically');
    return true;
 };
 
 export const uploadGoalsSector = async (_parsedData: any[]) => {
-   console.warn('KPIs are computed from Pipedrive + Supabase data');
+   console.warn('KPIs are computed from CRM + marketing data');
    return true;
 };
 
