@@ -19,6 +19,8 @@ export interface DashboardData {
    metaCampaigns: MetaCampaignData[];
    metaLeads: MetaLeadData[];
    metaDemographics: MetaDemographicData;
+   leadsByPlatform: { platform: string; count: number; origin: string }[];
+   wonDealsTimeline: { id: string; name: string; valor: number; owner: string; date: string }[];
 }
 
 // --- Config ---
@@ -53,6 +55,27 @@ function classifyOrigin(from: string): 'Ads' | 'Orgânico' | 'Outbound' {
    if (['facebook', 'fb', 'ig', 'google', 'meta'].some(x => f.includes(x))) return 'Ads';
    if (f === 'outbound') return 'Outbound';
    return 'Orgânico';
+}
+
+// Classify platform from Rede Social field
+function classifyPlatform(redeSocial: string, from: string): string {
+   const rs = (redeSocial || '').toLowerCase();
+   if (rs.includes('instagram_reels') || rs === 'reels') return 'Instagram Reels';
+   if (rs.includes('instagram_feed')) return 'Instagram Feed';
+   if (rs.includes('instagram_stories')) return 'Instagram Stories';
+   if (rs === 'ig' || rs === 'instagram') return 'Instagram';
+   if (rs.includes('facebook_mobile_reels')) return 'Facebook Reels';
+   if (rs.includes('facebook_mobile_feed') || rs === 'fb') return 'Facebook Feed';
+   if (rs === 'search') return 'Google';
+   if (rs === 'tiktok') return 'TikTok';
+   if (rs === 'youtube') return 'YouTube';
+   const f = (from || '').toLowerCase();
+   if (f === 'google') return 'Google';
+   if (f === 'facebook' || f === 'fb') return 'Facebook';
+   if (f === 'organico') return 'Orgânico Direto';
+   if (f === 'outbound') return 'Outbound';
+   if (f === 'inbound') return 'Inbound';
+   return 'Outros';
 }
 
 // MQL qualification: Faturamento >= 70k
@@ -138,7 +161,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
       kpis: {}, dailyTrends: [], rawMarketingData: [], sdrData: [], closerData: [],
       channels: [], products: [], context: { currentDay: 1, totalDays: 30 },
       funnelData: [], lastUpdated: new Date(), rawTeamData: [], rawDeals: [],
-      metaCampaigns: [], metaLeads: [], metaDemographics: { ageGender: [], regions: [] }
+      metaCampaigns: [], metaLeads: [], metaDemographics: { ageGender: [], regions: [] },
+      leadsByPlatform: [], wonDealsTimeline: []
    };
 
    try {
@@ -234,6 +258,28 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          if (origin === 'Outbound') salesOutbound++;
          else salesInbound++;
       });
+
+      // --- 4b. Platform breakdown ---
+      const platformMap = new Map<string, { count: number; origin: string }>();
+      personsCreated.forEach(p => {
+         const platform = classifyPlatform(p['Rede Social'] as any || '', p.From);
+         const origin = classifyOrigin(p.From);
+         const existing = platformMap.get(platform);
+         if (existing) existing.count++;
+         else platformMap.set(platform, { count: 1, origin });
+      });
+      const leadsByPlatform = Array.from(platformMap.entries())
+         .map(([platform, data]) => ({ platform, count: data.count, origin: data.origin }))
+         .sort((a, b) => b.count - a.count);
+
+      // --- 4c. Won deals timeline ---
+      const wonDealsTimeline = uniqueWonDeals.map(d => ({
+         id: String(d.id),
+         name: d.Nome || 'Sem título',
+         valor: d.valor || 0,
+         owner: USER_ROLES[d.owner_id]?.name || d.owner_id || 'Desconhecido',
+         date: d.created_at?.substring(0, 10) || '',
+      })).sort((a, b) => b.date.localeCompare(a.date));
 
       // --- 5. Aggregate activities (SDR cria → Closer confirma) ---
       let meetingsBooked = 0, meetingsHeld = 0, totalNoShows = 0, totalRescheduled = 0;
@@ -587,6 +633,8 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
          metaCampaigns: metaData.campaigns,
          metaLeads: metaData.leads,
          metaDemographics: metaData.demographics,
+         leadsByPlatform,
+         wonDealsTimeline,
       };
 
    } catch (error: any) {

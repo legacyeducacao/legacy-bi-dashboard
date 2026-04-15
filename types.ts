@@ -58,6 +58,8 @@ export interface CRMPersonCreated {
   Telefone: string;
   From: string;
   Campanha: string;
+  Anuncio: string;
+  'Rede Social': string;
   Faturamento: string;
   Segmento: string;
   Cargo: string;

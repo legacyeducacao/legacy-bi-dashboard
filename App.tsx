@@ -87,6 +87,7 @@ const App: React.FC = () => {
 
   // Marketing Micro View Toggle State
   const [microView, setMicroView] = useState<'meta_campaigns' | 'demographics'>('meta_campaigns');
+  const [platformDrilldown, setPlatformDrilldown] = useState<string | null>(null);
 
   // Data State
   const [isLoading, setIsLoading] = useState(true);
@@ -844,22 +845,58 @@ const App: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Funil Comercial</h4>
           </div>
 
-          {/* Origem dos Leads */}
+          {/* Origem dos Leads - Clickable Cards */}
           {activeKPIs.leadsAds && activeKPIs.leadsOrganic && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
-              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
-                <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Ads</div>
-                <div className="text-xl font-bold text-blue-500">{activeKPIs.leadsAds.value}</div>
+            <div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
+                <button onClick={() => setPlatformDrilldown(platformDrilldown === 'Ads' ? null : 'Ads')}
+                  className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${platformDrilldown === 'Ads' ? 'border-blue-500 ring-1 ring-blue-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-blue-400'}`}>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Ads</div>
+                  <div className="text-xl font-bold text-blue-500">{activeKPIs.leadsAds.value}</div>
+                  <div className="text-[10px] text-blue-400 mt-0.5">Clique para detalhar</div>
+                </button>
+                <button onClick={() => setPlatformDrilldown(platformDrilldown === 'Orgânico' ? null : 'Orgânico')}
+                  className={`bg-white dark:bg-slate-800/40 rounded-xl p-3 border text-left transition-all ${platformDrilldown === 'Orgânico' ? 'border-emerald-500 ring-1 ring-emerald-500/30' : 'border-slate-200 dark:border-slate-700/50 hover:border-emerald-400'}`}>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Orgânico</div>
+                  <div className="text-xl font-bold text-emerald-500">{activeKPIs.leadsOrganic.value}</div>
+                  <div className="text-[10px] text-emerald-400 mt-0.5">Clique para detalhar</div>
+                </button>
+                {activeKPIs.mqls && (
+                  <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">MQL (Fat. 70k+)</div>
+                    <div className="text-xl font-bold text-violet-500">{activeKPIs.mqls.value}</div>
+                    <div className="text-[10px] text-slate-400">Meta: {activeKPIs.mqls.goal}</div>
+                  </div>
+                )}
               </div>
-              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
-                <div className="text-[10px] text-slate-400 uppercase tracking-wider">Leads Orgânico</div>
-                <div className="text-xl font-bold text-emerald-500">{activeKPIs.leadsOrganic.value}</div>
-              </div>
-              {activeKPIs.mqls && (
-                <div className="bg-white dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/50">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">MQL (Fat. 70k+)</div>
-                  <div className="text-xl font-bold text-violet-500">{activeKPIs.mqls.value}</div>
-                  <div className="text-[10px] text-slate-400">Meta: {activeKPIs.mqls.goal}</div>
+
+              {/* Drill-down: Platform breakdown */}
+              {platformDrilldown && (
+                <div className="bg-white dark:bg-slate-800/30 rounded-xl p-4 border border-slate-200 dark:border-slate-700/50 mb-3 animate-in fade-in duration-300">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Detalhamento: Leads {platformDrilldown}
+                    </h4>
+                    <button onClick={() => setPlatformDrilldown(null)} className="text-xs text-slate-400 hover:text-slate-600">Fechar</button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {data.leadsByPlatform
+                      .filter(p => p.origin === platformDrilldown)
+                      .map(p => (
+                        <div key={p.platform} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2.5 border border-slate-100 dark:border-slate-700/30">
+                          <div className="text-[10px] text-slate-400 uppercase tracking-wider truncate">{p.platform}</div>
+                          <div className="text-lg font-bold text-slate-800 dark:text-white">{p.count}</div>
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1 mt-1">
+                            <div className={`h-1 rounded-full ${platformDrilldown === 'Ads' ? 'bg-blue-500' : 'bg-emerald-500'}`}
+                              style={{ width: `${Math.min(100, (p.count / (activeKPIs.leads?.value || 1)) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">
+                            {((p.count / (activeKPIs.leads?.value || 1)) * 100).toFixed(1)}% do total
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
                 </div>
               )}
             </div>
@@ -1412,67 +1449,79 @@ const App: React.FC = () => {
             />
           </div>
 
-          {/* Follow-up / Pipeline Table */}
-          <div className="lg:col-span-2 h-full min-h-[300px] flex flex-col overflow-hidden">
-            <DataTable<import('./types').FollowUpDeal>
-              title="Follow-up: Deals Ativos em Negociação / Assinatura / Vendido"
-              data={data.rawDeals
-                .filter(deal => {
-                  // Closer Filter
-                  if (filters.closerId !== 'all') {
-                    const closerInfo = data.closerData.find(c => c.id === filters.closerId);
-                    if (closerInfo && deal.owner_id !== closerInfo.name) return false;
-                  }
+          {/* Forecast */}
+          <div className="lg:col-span-2 h-full min-h-[300px] flex flex-col gap-4 overflow-y-auto">
+            {/* Forecast Cards */}
+            <div className="bg-white dark:bg-slate-800/30 rounded-xl p-4 border border-slate-200 dark:border-slate-700/50">
+              <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Forecast de Vendas</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+                  <div className="text-[10px] text-slate-400 uppercase">Vendas Realizadas</div>
+                  <div className="text-xl font-bold text-emerald-500">{activeKPIs.sales?.value || 0}</div>
+                  <div className="text-[10px] text-slate-400">Meta: {activeKPIs.sales?.goal || 0}</div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+                  <div className="text-[10px] text-slate-400 uppercase">Projeção Vendas</div>
+                  <div className="text-xl font-bold text-blue-500">
+                    {data.context.currentDay > 0 ? Math.round((activeKPIs.sales?.value || 0) / data.context.currentDay * data.context.totalDays) : 0}
+                  </div>
+                  <div className="text-[10px] text-slate-400">{data.context.totalDays} dias úteis</div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+                  <div className="text-[10px] text-slate-400 uppercase">Faturamento Atual</div>
+                  <div className="text-xl font-bold text-emerald-500">{formatValue(activeKPIs.revenue?.value || 0, 'currency')}</div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+                  <div className="text-[10px] text-slate-400 uppercase">Projeção Faturamento</div>
+                  <div className={`text-xl font-bold ${data.context.currentDay > 0 && ((activeKPIs.revenue?.value || 0) / data.context.currentDay * data.context.totalDays) >= (activeKPIs.revenue?.goal || 1) ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {formatValue(data.context.currentDay > 0 ? (activeKPIs.revenue?.value || 0) / data.context.currentDay * data.context.totalDays : 0, 'currency')}
+                  </div>
+                  <div className="text-[10px] text-slate-400">Meta: {formatValue(activeKPIs.revenue?.goal || 0, 'currency')}</div>
+                </div>
+              </div>
+              {/* Forecast by Closer */}
+              {filteredClosers.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">Por Closer</div>
+                  {filteredClosers.filter(c => c.revenueGoal && c.revenueGoal > 0).map(closer => {
+                    const projection = data.context.currentDay > 0 ? (closer.revenue || 0) / data.context.currentDay * data.context.totalDays : 0;
+                    const pct = closer.revenueGoal ? (projection / closer.revenueGoal) * 100 : 0;
+                    return (
+                      <div key={closer.id} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2">
+                        <span className="text-xs text-slate-600 dark:text-slate-300 w-32 truncate">{closer.name}</span>
+                        <div className="flex-1">
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                            <div className={`h-2 rounded-full ${pct >= 100 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500'}`}
+                              style={{ width: `${Math.min(100, pct)}%` }} />
+                          </div>
+                        </div>
+                        <span className="text-xs text-slate-500 w-24 text-right">{formatValue(projection, 'currency')}</span>
+                        <span className={`text-xs font-bold w-12 text-right ${pct >= 100 ? 'text-emerald-500' : 'text-amber-500'}`}>{pct.toFixed(0)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-                  // Period / Date Filter 
-                  const comparisonDate = (deal.stage_id === '1225098152' && deal.closed_date) 
-                    ? deal.closed_date 
-                    : deal.created_date;
-
-                  if (!comparisonDate) return true;
-                  
-                  if (filters.period === 'today') {
-                    const now = new Date();
-                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-                    if (comparisonDate !== todayStr) return false;
-                  } else if (filters.period === 'this_month') {
-                    const now = new Date();
-                    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                    if (!comparisonDate.startsWith(currentMonth)) return false;
-                  } else if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
-                    if (comparisonDate < filters.customStartDate || comparisonDate > filters.customEndDate) return false;
-                  } else if (filters.period === '7d' || filters.period === '15d' || filters.period === '30d') {
-                    let days = 30;
-                    if (filters.period === '7d') days = 7;
-                    else if (filters.period === '15d') days = 15;
-                    
-                    const now = new Date();
-                    now.setDate(now.getDate() - days);
-                    const cutoff = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-                    if (comparisonDate < cutoff) return false;
-                  }
-
-                  return true;
-                })
-                .sort((a,b) => b.amount - a.amount)
-              }
-              columns={[
-                { header: 'Negócio', accessor: (row) => <span className="font-semibold text-slate-800 dark:text-white truncate max-w-[200px] block">{row.deal_name}</span> },
-                { header: 'Fase', accessor: (row) => {
-                  const map: Record<string,any> = {
-                    '1225098151': { name: 'Negociação', color: 'bg-amber-100 text-amber-600' },
-                    '1225024929': { name: 'Assinatura', color: 'bg-indigo-100 text-indigo-600' },
-                    '1225098152': { name: 'Vendido', color: 'bg-emerald-100 text-emerald-600' }
-                  };
-                  const stage = map[row.stage_id] || { name: 'Desconhecido', color: 'bg-slate-100 text-slate-600' };
-                  return <span className={`px-2 py-0.5 rounded text-xs font-bold ${stage.color}`}>{stage.name}</span>;
-                }},
-                { header: 'Closer', accessor: (row) => row.owner_id },
-                { header: 'Entrada', accessor: (row) => row.created_date ? new Date(row.created_date + 'T00:00:00-03:00').toLocaleDateString('pt-BR') : '-' },
-                { header: 'Valor', accessor: (row) => formatValue(row.amount, 'currency'), align: 'right' }
-              ]}
-              showBorder={true}
-            />
+            {/* Deals Fechados */}
+            <div className="bg-white dark:bg-slate-800/30 rounded-xl p-4 border border-slate-200 dark:border-slate-700/50">
+              <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Deals Fechados ({data.wonDealsTimeline.length})</h4>
+              <div className="space-y-2 max-h-[250px] overflow-y-auto">
+                {data.wonDealsTimeline.map((deal, i) => (
+                  <div key={deal.id + '-' + i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/30">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-slate-800 dark:text-white truncate">{deal.name}</div>
+                      <div className="text-xs text-slate-400">{deal.owner} &middot; {deal.date ? new Date(deal.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</div>
+                    </div>
+                    <div className="text-sm font-bold text-emerald-500 ml-3 whitespace-nowrap">{formatValue(deal.valor, 'currency')}</div>
+                  </div>
+                ))}
+                {data.wonDealsTimeline.length === 0 && (
+                  <div className="text-center text-slate-400 py-4 text-sm">Nenhum deal fechado no período</div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
