@@ -401,11 +401,16 @@ const App: React.FC = () => {
     if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
       return raw.filter((r: any) => r.date >= filters.customStartDate && r.date <= filters.customEndDate);
     }
-    // Períodos fixos: 7d, 15d, 30d
-    const days = filters.period === '7d' ? 7 : filters.period === '15d' ? 15 : filters.period === '30d' ? 30 : raw.length;
-    const dates = [...new Set(raw.map((r: any) => r.date))].sort().slice(-days) as string[];
-    const dateSet = new Set(dates);
-    return raw.filter((r: any) => dateSet.has(r.date));
+    // Rolling window: filter by actual calendar days from today
+    let daysBack = 30;
+    if (filters.period === '7d') daysBack = 7;
+    else if (filters.period === '15d') daysBack = 15;
+    else if (filters.period === '30d') daysBack = 30;
+
+    const now = new Date();
+    now.setDate(now.getDate() - daysBack);
+    const cutoff = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return raw.filter((r: any) => r.date >= cutoff);
   }, [data.rawMarketingData, filters.period, filters.customStartDate, filters.customEndDate]);
 
   const filteredChannels = useMemo(() => {
@@ -514,12 +519,16 @@ const App: React.FC = () => {
       return data.dailyTrends.filter(t => t.date >= filters.customStartDate && t.date <= filters.customEndDate);
     }
 
-    days = data.dailyTrends.length;
-    if (filters.period === '7d') days = 7;
-    else if (filters.period === '15d') days = 15;
-    else if (filters.period === '30d') days = 30;
+    // Rolling window: filter by actual calendar days from today
+    let daysBack = 30;
+    if (filters.period === '7d') daysBack = 7;
+    else if (filters.period === '15d') daysBack = 15;
+    else if (filters.period === '30d') daysBack = 30;
 
-    return data.dailyTrends.slice(-Math.min(days, data.dailyTrends.length));
+    const now = new Date();
+    now.setDate(now.getDate() - daysBack);
+    const cutoff = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return data.dailyTrends.filter(t => t.date >= cutoff);
   }, [filters.period, filters.customStartDate, filters.customEndDate, data.dailyTrends]);
 
   // 3. Dynamic KPIs (Recalculate global metrics based on active filters)
