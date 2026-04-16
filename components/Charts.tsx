@@ -238,11 +238,16 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
 
   return (
     <div className={`w-full bg-white dark:bg-slate-800/30 rounded-xl p-4 border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none flex flex-col ${className || 'h-full'}`}>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-2">
         <h3 className="text-slate-700 dark:text-slate-300 font-medium text-sm">{title}</h3>
         <span className={`text-xs font-bold px-2 py-1 rounded ${isOnTrack ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
           {percentAchieved}% da Meta
         </span>
+      </div>
+      <div className="flex gap-4 mb-2 text-[10px]">
+        <div><span className="text-slate-400">Realizado: </span><span className="text-white font-bold">{formatValue(currentTotal, unit as MetricData['unit'])}</span></div>
+        <div><span className="text-slate-400">Meta: </span><span className="text-slate-300">{formatValue(goal, unit as MetricData['unit'])}</span></div>
+        <div><span className="text-slate-400">Projeção: </span><span className={`font-bold ${isOnTrack ? 'text-emerald-400' : 'text-rose-400'}`}>{formatValue(Math.round(avgPace * totalDays), unit as MetricData['unit'])}</span></div>
       </div>
 
       <div className="flex-1 min-h-0 w-full relative">
@@ -285,7 +290,10 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
               itemStyle={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }}
               labelStyle={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }}
               labelFormatter={(label) => `Dia ${label}`}
-              formatter={(value: number, name: string) => [formatValue(value, unit as MetricData['unit']), name]}
+              formatter={(value: number, name: string) => {
+                const labels: Record<string, string> = { 'Meta Ideal': 'Meta Ideal', 'Projeção': 'Projeção', 'Faturamento': 'Faturamento Acumulado' };
+                return [formatValue(value, unit as MetricData['unit']), labels[name] || name];
+              }}
             />
 
             {/* Goal Line (Dotted) */}
@@ -319,7 +327,7 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
               stroke={isOnTrack ? COLOR_SUCCESS : COLOR_DANGER}
               fill={isOnTrack ? "url(#colorActualSuccess)" : "url(#colorActualDanger)"}
               strokeWidth={3}
-              name="Realizado"
+              name="Faturamento"
             />
 
           </AreaChart>
