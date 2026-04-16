@@ -198,17 +198,22 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
   className,
   unit = 'currency' // Default to currency as it's mostly used for revenue
 }) => {
-  // Process Data for Accumulated View
+  // Process Data for Accumulated View — match by day number from date field
   const chartData = [];
   let runningTotal = 0;
+
+  // Build a map of day-of-month → value from currentData
+  const dayValueMap: Record<number, number> = {};
+  currentData.forEach((d: any) => {
+    const dayNum = d.date ? parseInt(d.date.split('-')[2], 10) : (d.dayIndex || 0);
+    if (dayNum > 0) dayValueMap[dayNum] = (dayValueMap[dayNum] || 0) + (d[dataKey] || 0);
+  });
 
   for (let i = 1; i <= totalDays; i++) {
     const goalValue = (goal / totalDays) * i;
     let actualValue = null;
     if (i <= currentDay) {
-      const dayData = currentData[i - 1];
-      const dailyVal = dayData ? dayData[dataKey] : 0;
-      runningTotal += dailyVal;
+      runningTotal += dayValueMap[i] || 0;
       actualValue = runningTotal;
     }
     chartData.push({
