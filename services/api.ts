@@ -21,7 +21,7 @@ export interface DashboardData {
    metaDemographics: MetaDemographicData;
    leadsByPlatform: { platform: string; count: number; origin: string; mqls: number; leads: number }[];
    wonDealsTimeline: { id: string; name: string; valor: number; closer: string; sdr: string; date: string }[];
-   formLeadsList: { nome: string; telefone: string; email: string; empresa: string; cargo: string; faturamento: string; colaboradores: string; produto: string; source: string; medium: string; isMql: boolean }[];
+   formLeadsList: { nome: string; telefone: string; email: string; empresa: string; cargo: string; faturamento: string; colaboradores: string; produto: string; source: string; medium: string; isMql: boolean; date: string }[];
    meetingsList: { subject: string; type: string; userName: string; role: string; date: string; time: string; dealId: string | null; personId: string | null }[];
    noShowsList: { subject: string; userName: string; role: string; date: string; time: string }[];
    reagendamentosList: { subject: string; userName: string; role: string; date: string; time: string; dealId: string | null }[];
@@ -372,6 +372,7 @@ export const fetchDashboardData = async (): Promise<DashboardData> => {
             source: f.utm_source || '',
             medium: f.utm_medium || '',
             isMql: isLeadMql(f.Faturamento || '', f.Colaboradores || ''),
+            date: (f.created_at || '').substring(0, 10),
          }));
 
       // --- 4a3. Regional breakdown from phone DDDs ---

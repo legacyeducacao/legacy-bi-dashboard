@@ -851,14 +851,66 @@ const App: React.FC = () => {
 
           {/* Origem: Ads vs Orgânico - Side by side with MQL/Lead breakdown */}
           {(() => {
-            const adsLeads = data.formLeadsList.filter(l => ['facebook','ig','source'].includes(l.source.toLowerCase()));
-            const orgLeads = data.formLeadsList.filter(l => ['organico','direto'].includes(l.source.toLowerCase()) || (!['facebook','ig','source'].includes(l.source.toLowerCase())));
+            // Apply active period filter to form leads
+            let filteredFormLeads = data.formLeadsList;
+            if (filters.period === 'today') {
+              const now = new Date();
+              const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+              filteredFormLeads = filteredFormLeads.filter(l => (l as any).date === todayStr);
+            } else if (filters.period === 'this_month') {
+              const now = new Date();
+              const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+              filteredFormLeads = filteredFormLeads.filter(l => ((l as any).date || '').startsWith(monthStr));
+            } else if (filters.period === '7d' || filters.period === '15d' || filters.period === '30d') {
+              const daysBack = filters.period === '7d' ? 7 : filters.period === '15d' ? 15 : 30;
+              const now = new Date();
+              now.setDate(now.getDate() - daysBack);
+              const cutoff = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+              filteredFormLeads = filteredFormLeads.filter(l => (l as any).date >= cutoff);
+            } else if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
+              filteredFormLeads = filteredFormLeads.filter(l => (l as any).date >= filters.customStartDate! && (l as any).date <= filters.customEndDate!);
+            }
+
+            const isAdsSource = (s: string) => ['facebook','ig','source'].includes(s.toLowerCase());
+            const adsLeads = filteredFormLeads.filter(l => isAdsSource(l.source));
+            const orgLeads = filteredFormLeads.filter(l => !isAdsSource(l.source));
             const adsMql = adsLeads.filter(l => l.isMql).length;
             const adsLead = adsLeads.filter(l => !l.isMql).length;
             const orgMql = orgLeads.filter(l => l.isMql).length;
             const orgLead = orgLeads.filter(l => !l.isMql).length;
-            const adsPlatforms = data.leadsByPlatform.filter(p => p.origin === 'Ads');
-            const orgPlatforms = data.leadsByPlatform.filter(p => p.origin !== 'Ads');
+
+            // Rebuild platform breakdown from filtered leads
+            const buildPlatforms = (leads: typeof filteredFormLeads, origin: string) => {
+              const map = new Map<string, { count: number; mqls: number; leads: number }>();
+              leads.forEach(l => {
+                const med = (l.medium || '').toLowerCase();
+                let platform: string;
+                if (origin === 'Ads') {
+                  if (med.includes('instagram_reels') || med === 'reels') platform = 'IG Reels (Ads)';
+                  else if (med.includes('instagram_stories')) platform = 'IG Stories (Ads)';
+                  else if (med.includes('instagram_feed')) platform = 'IG Feed (Ads)';
+                  else if (med === 'ig') platform = 'Instagram (Ads)';
+                  else if (med === 'fb') platform = 'Facebook (Ads)';
+                  else if (med.includes('facebook_mobile_reels')) platform = 'FB Reels (Ads)';
+                  else platform = 'Meta Ads';
+                } else {
+                  if (med.includes('reels')) platform = 'Reels';
+                  else if (med.includes('stories')) platform = 'Stories';
+                  else if (med.includes('instagram') || med === 'ig') platform = 'Instagram';
+                  else if (med.includes('tiktok')) platform = 'TikTok';
+                  else if (med.includes('youtube')) platform = 'YouTube';
+                  else if (med === 'none' || !med) platform = 'Direto';
+                  else platform = med;
+                }
+                const e = map.get(platform) || { count: 0, mqls: 0, leads: 0 };
+                e.count++;
+                if (l.isMql) e.mqls++; else e.leads++;
+                map.set(platform, e);
+              });
+              return Array.from(map.entries()).map(([p, d]) => ({ platform: p, ...d, origin })).sort((a, b) => b.count - a.count);
+            };
+            const adsPlatforms = buildPlatforms(adsLeads, 'Ads');
+            const orgPlatforms = buildPlatforms(orgLeads, 'Orgânico');
             return (
               <div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
