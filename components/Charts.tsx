@@ -198,21 +198,26 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
   className,
   unit = 'currency' // Default to currency as it's mostly used for revenue
 }) => {
-  // Process Data for Accumulated View — match by day number from date field
-  const chartData = [];
+  // Process Data for Accumulated View — use calendar days (1-31)
+  const chartData: any[] = [];
   let runningTotal = 0;
 
-  // Build a map of day-of-month → value from currentData
+  // Get current month's total calendar days
+  const now = new Date();
+  const calendarDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const todayCalendar = now.getDate();
+
+  // Build a map of calendar day → value
   const dayValueMap: Record<number, number> = {};
   currentData.forEach((d: any) => {
-    const dayNum = d.date ? parseInt(d.date.split('-')[2], 10) : (d.dayIndex || 0);
+    const dayNum = d.date ? parseInt(d.date.split('-')[2], 10) : 0;
     if (dayNum > 0) dayValueMap[dayNum] = (dayValueMap[dayNum] || 0) + (d[dataKey] || 0);
   });
 
-  for (let i = 1; i <= totalDays; i++) {
-    const goalValue = (goal / totalDays) * i;
+  for (let i = 1; i <= calendarDays; i++) {
+    const goalValue = (goal / calendarDays) * i;
     let actualValue = null;
-    if (i <= currentDay) {
+    if (i <= todayCalendar) {
       runningTotal += dayValueMap[i] || 0;
       actualValue = runningTotal;
     }
@@ -223,22 +228,22 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
     });
   }
 
-  // Projection logic
+  // Projection logic based on calendar days
   const currentTotal = runningTotal;
-  const avgPace = currentDay > 0 ? currentTotal / currentDay : 0;
+  const avgPace = todayCalendar > 0 ? currentTotal / todayCalendar : 0;
 
   chartData.forEach(point => {
-    if (point.day >= currentDay) {
-      const daysFromNow = point.day - currentDay;
+    if (point.day >= todayCalendar) {
+      const daysFromNow = point.day - todayCalendar;
       point.projection = Math.round(currentTotal + (avgPace * daysFromNow));
     }
   });
 
   // Calculate percentage of goal achieved
-  const percentAchieved = Math.min((currentTotal / goal) * 100, 100).toFixed(1);
+  const percentAchieved = goal > 0 ? ((currentTotal / goal) * 100).toFixed(1) : '0';
 
   // Determine if Currently On Track (for color selection)
-  const idealPaceToday = (goal / totalDays) * currentDay;
+  const idealPaceToday = (goal / calendarDays) * todayCalendar;
   const isOnTrack = currentTotal >= idealPaceToday;
 
   return (
@@ -252,7 +257,7 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
       <div className="flex gap-4 mb-2 text-[10px]">
         <div><span className="text-slate-400">Realizado: </span><span className="text-white font-bold">{formatValue(currentTotal, unit as MetricData['unit'])}</span></div>
         <div><span className="text-slate-400">Meta: </span><span className="text-slate-300">{formatValue(goal, unit as MetricData['unit'])}</span></div>
-        <div><span className="text-slate-400">Projeção: </span><span className={`font-bold ${isOnTrack ? 'text-emerald-400' : 'text-rose-400'}`}>{formatValue(Math.round(avgPace * totalDays), unit as MetricData['unit'])}</span></div>
+        <div><span className="text-slate-400">Projeção: </span><span className={`font-bold ${isOnTrack ? 'text-emerald-400' : 'text-rose-400'}`}>{formatValue(Math.round(avgPace * calendarDays), unit as MetricData['unit'])}</span></div>
       </div>
 
       <div className="flex-1 min-h-0 w-full relative">
@@ -268,7 +273,7 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
             <XAxis
               dataKey="day"
               type="number"
-              domain={[1, totalDays]}
+              domain={[1, calendarDays]}
               tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
