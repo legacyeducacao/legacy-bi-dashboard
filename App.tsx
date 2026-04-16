@@ -299,6 +299,10 @@ const App: React.FC = () => {
   // Helper: filter raw team activities by period
   const filteredRawTeam = useMemo(() => {
     const raw = data.rawTeamData || [];
+    // rawTeamData may not have a 'date' field — if so, return all (no date filtering)
+    const hasDate = raw.length > 0 && raw[0]?.date;
+    if (!hasDate) return raw;
+
     if (filters.period === 'today') {
       const now = new Date();
       const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -306,14 +310,13 @@ const App: React.FC = () => {
     }
     if (filters.period === 'this_month') {
       const now = new Date();
-      // Ensure local timezone month matching
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      return raw.filter((r: any) => r.date.startsWith(currentMonth));
+      return raw.filter((r: any) => (r.date || '').startsWith(currentMonth));
     }
     if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
       return raw.filter((r: any) => r.date >= filters.customStartDate && r.date <= filters.customEndDate);
     }
-    // For 7d, 15d, 30d
+    // Rolling window: 7d, 15d, 30d
     let days = 30;
     if (filters.period === '7d') days = 7;
     else if (filters.period === '15d') days = 15;
@@ -396,7 +399,7 @@ const App: React.FC = () => {
     if (filters.period === 'this_month') {
       const now = new Date();
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      return raw.filter((r: any) => r.date.startsWith(currentMonth));
+      return raw.filter((r: any) => (r.date || '').startsWith(currentMonth));
     }
     if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
       return raw.filter((r: any) => r.date >= filters.customStartDate && r.date <= filters.customEndDate);
@@ -512,7 +515,7 @@ const App: React.FC = () => {
     if (filters.period === 'this_month') {
       const now = new Date();
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      return data.dailyTrends.filter(t => t.date.startsWith(currentMonth));
+      return data.dailyTrends.filter(t => (t.date || '').startsWith(currentMonth));
     }
 
     if (filters.period === 'custom' && filters.customStartDate && filters.customEndDate) {
