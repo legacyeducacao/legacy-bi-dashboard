@@ -257,15 +257,11 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
 
       <div className="flex-1 min-h-0 w-full relative">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
-              <linearGradient id="colorActualSuccess" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={COLOR_SUCCESS} stopOpacity={0.6} />
-                <stop offset="95%" stopColor={COLOR_SUCCESS} stopOpacity={0.1} />
-              </linearGradient>
-              <linearGradient id="colorActualDanger" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={COLOR_DANGER} stopOpacity={0.6} />
-                <stop offset="95%" stopColor={COLOR_DANGER} stopOpacity={0.1} />
+              <linearGradient id="gradFaturamento" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={isOnTrack ? COLOR_SUCCESS : COLOR_DANGER} stopOpacity={0.4} />
+                <stop offset="95%" stopColor={isOnTrack ? COLOR_SUCCESS : COLOR_DANGER} stopOpacity={0.05} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? "#334155" : "#e2e8f0"} opacity={0.3} />
@@ -282,7 +278,7 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
               tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
-              width={40}
+              width={45}
               tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
             />
             <Tooltip
@@ -292,50 +288,46 @@ export const GoalAchievementChart: React.FC<GoalAchievementChartProps> = ({
                 color: isDarkMode ? '#f8fafc' : '#0f172a',
                 borderRadius: '8px'
               }}
-              itemStyle={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }}
-              labelStyle={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }}
               labelFormatter={(label) => `Dia ${label}`}
-              formatter={(value: number, name: string) => {
-                const labels: Record<string, string> = { 'Meta Ideal': 'Meta Ideal', 'Projeção': 'Projeção', 'Faturamento': 'Faturamento Acumulado' };
-                return [formatValue(value, unit as MetricData['unit']), labels[name] || name];
-              }}
+              formatter={(value: number, name: string) => [formatValue(value, unit as MetricData['unit']), name]}
             />
 
-            {/* Goal Line (Dotted) */}
-            <Area
-              type="monotone"
-              dataKey="goal"
-              stroke="#94a3b8"
-              strokeDasharray="4 4"
-              fill="none"
-              strokeWidth={2}
-              name="Meta Ideal"
-              isAnimationActive={false}
-            />
-
-            {/* Projection Line (Dashed) - Always Blue as it is future */}
-            <Area
-              type="monotone"
-              dataKey="projection"
-              stroke={COLOR_PROJECTION}
-              strokeDasharray="2 2"
-              fill="none"
-              strokeWidth={2}
-              name="Projeção"
-              connectNulls
-            />
-
-            {/* Actual Area - Dynamic Color */}
+            {/* Faturamento — main area with gradient fill */}
             <Area
               type="monotone"
               dataKey="actual"
               stroke={isOnTrack ? COLOR_SUCCESS : COLOR_DANGER}
-              fill={isOnTrack ? "url(#colorActualSuccess)" : "url(#colorActualDanger)"}
+              fill="url(#gradFaturamento)"
               strokeWidth={3}
               name="Faturamento"
+              dot={false}
             />
 
-          </AreaChart>
+            {/* Meta Ideal — dotted line */}
+            <Line
+              type="monotone"
+              dataKey="goal"
+              stroke="#94a3b8"
+              strokeDasharray="6 4"
+              strokeWidth={2}
+              dot={false}
+              name="Meta Ideal"
+              isAnimationActive={false}
+            />
+
+            {/* Projeção — dashed line */}
+            <Line
+              type="monotone"
+              dataKey="projection"
+              stroke={COLOR_PROJECTION}
+              strokeDasharray="4 2"
+              strokeWidth={2}
+              dot={false}
+              name="Projeção"
+              connectNulls
+            />
+
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </div>
