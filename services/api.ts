@@ -50,6 +50,7 @@ const USER_ROLES: Record<string, { name: string; role: 'SDR' | 'Closer'; revenue
    '25952181': { name: 'Leonardo Padilha', role: 'Closer', revenueGoal: 290000 },
    '25959529': { name: 'Leonardo Souza', role: 'Closer', revenueGoal: 270000 },
    '25839024': { name: 'Allan Silva', role: 'Closer' },
+   '288289978': { name: 'Leonardo Souza', role: 'Closer', revenueGoal: 270000 },
 };
 
 // João Vitor excluded from meetings held count (operational SDR)

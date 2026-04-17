@@ -46,12 +46,11 @@ export async function fetchDealsUpdated(monthStart: string, monthEnd: string): P
   });
 }
 
-// --- Won Deals ---
+// --- Won Deals (any pipeline — captures deals in pipeline 2 and 8) ---
 export async function fetchWonDeals(monthStart: string, monthEnd: string): Promise<CRMDealUpdated[]> {
   return fetchCRMTable<CRMDealUpdated>('Deal Alterada', {
     select: '*',
     Status: 'eq.won',
-    pipeline_id: 'eq.2',
     and: dateRangeFilter(monthStart, monthEnd),
     order: 'created_at.desc',
     limit: '5000',
